@@ -1,0 +1,8 @@
+export enum ContentPlatform {
+  INSTAGRAM = 'INSTAGRAM',
+  FACEBOOK = 'FACEBOOK',
+  TIKTOK = 'TIKTOK',
+  LINKEDIN = 'LINKEDIN',
+  WHATSAPP = 'WHATSAPP',
+  WEBSITE = 'WEBSITE',
+}

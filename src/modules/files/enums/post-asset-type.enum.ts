@@ -1,0 +1,7 @@
+export enum PostAssetType {
+  DESIGN = 'DESIGN',
+  REFERENCE = 'REFERENCE',
+  VIDEO = 'VIDEO',
+  THUMBNAIL = 'THUMBNAIL',
+  DOCUMENT = 'DOCUMENT',
+}
