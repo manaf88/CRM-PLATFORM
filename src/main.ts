@@ -12,8 +12,21 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   const configService = app.get(ConfigService);
-  const port = configService.getOrThrow<number>('app.port');
-  const frontendUrl = configService.getOrThrow<string>('app.frontendUrl');
+
+  const port =
+    Number(process.env.PORT) ||
+    configService.get<number>('app.port') ||
+    3000;
+
+  const frontendUrl =
+    configService.get<string>('app.frontendUrl') ||
+    process.env.FRONTEND_URL ||
+    'http://localhost:5173';
+
+  const allowedOrigins = frontendUrl
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
 
   app.setGlobalPrefix('api');
 
@@ -22,7 +35,14 @@ async function bootstrap() {
   app.use(cookieParser());
 
   app.enableCors({
-    origin: frontendUrl,
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error(`CORS blocked for origin: ${origin}`));
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
@@ -36,9 +56,9 @@ async function bootstrap() {
     }),
   );
 
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0');
 
-  console.log(`API running on http://localhost:${port}/api`);
+  console.log(`API running on port ${port}`);
 }
 
 bootstrap();
