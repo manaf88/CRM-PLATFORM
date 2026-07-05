@@ -15,7 +15,7 @@ import { ContentPlatform } from '../enums/content-platform.enum';
 import { ContentPostStatus } from '../enums/content-post-status.enum';
 import { ContentType } from '../enums/content-type.enum';
 import { ContentPlan } from './content-plan.entity';
-
+import { Campaign } from '../../campaigns/entities/campaign.entity';
 @Entity('posts')
 @Index(['companyId'])
 @Index(['contentPlanId'])
@@ -23,6 +23,7 @@ import { ContentPlan } from './content-plan.entity';
 @Index(['companyId', 'scheduledAt'])
 @Index(['platform'])
 @Index(['contentType'])
+@Index(['companyId', 'campaignId'])
 export class ContentPost {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
@@ -76,6 +77,13 @@ export class ContentPost {
   @Column({ name: 'published_url', type: 'text', nullable: true })
   publishedUrl!: string | null;
 
+  @Column({ name: 'campaign_id', type: 'uuid', nullable: true })
+  campaignId!: string | null;
+
+  @ManyToOne(() => Campaign, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'campaign_id' })
+  campaign!: Campaign | null;
+
   @Column({ name: 'created_by_id', type: 'uuid', nullable: true })
   createdById!: string | null;
 
@@ -95,4 +103,6 @@ export class ContentPost {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt!: Date;
+
+
 }

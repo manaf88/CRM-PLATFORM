@@ -13,7 +13,7 @@ import { Company } from '../../companies/entities/company.entity';
 import { User } from '../../users/entities/user.entity';
 import { LeadSource } from '../enums/lead-source.enum';
 import { LeadStatus } from '../enums/lead-status.enum';
-
+import { Campaign } from '../../campaigns/entities/campaign.entity';
 @Entity('leads')
 @Index(['companyId'])
 @Index(['companyId', 'status'])
@@ -21,6 +21,7 @@ import { LeadStatus } from '../enums/lead-status.enum';
 @Index(['assignedToId'])
 @Index(['nextFollowUpAt'])
 @Index(['createdAt'])
+@Index(['companyId', 'campaignId'])
 export class Lead {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
@@ -73,6 +74,13 @@ export class Lead {
 
   @Column({ type: 'text', nullable: true })
   notes!: string | null;
+  
+  @Column({ name: 'campaign_id', type: 'uuid', nullable: true })
+  campaignId!: string | null;
+
+  @ManyToOne(() => Campaign, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'campaign_id' })
+  campaign!: Campaign | null;
 
   @Column({ name: 'created_by_id', type: 'uuid', nullable: true })
   createdById!: string | null;

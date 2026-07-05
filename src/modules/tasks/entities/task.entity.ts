@@ -15,7 +15,7 @@ import { TaskPriority } from '../enums/task-priority.enum';
 import { TaskRelatedEntityType } from '../enums/task-related-entity-type.enum';
 import { TaskStatus } from '../enums/task-status.enum';
 import { TaskType } from '../enums/task-type.enum';
-
+import { Campaign } from 'src/modules/campaigns/entities/campaign.entity';
 @Entity('tasks')
 @Index(['companyId'])
 @Index(['companyId', 'status'])
@@ -23,6 +23,7 @@ import { TaskType } from '../enums/task-type.enum';
 @Index(['assignedToId'])
 @Index(['dueDate'])
 @Index(['relatedEntityType', 'relatedEntityId'])
+@Index(['companyId', 'campaignId'])
 export class Task {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
@@ -82,6 +83,13 @@ export class Task {
 
   @Column({ name: 'due_date', type: 'timestamptz', nullable: true })
   dueDate!: Date | null;
+  
+  @Column({ name: 'campaign_id', type: 'uuid', nullable: true })
+  campaignId!: string | null;
+
+  @ManyToOne(() => Campaign, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'campaign_id' })
+  campaign!: Campaign | null;
 
   @Column({ name: 'completed_at', type: 'timestamptz', nullable: true })
   completedAt!: Date | null;

@@ -1,0 +1,8 @@
+export enum CampaignObjective {
+  AWARENESS = 'AWARENESS',
+  ENGAGEMENT = 'ENGAGEMENT',
+  LEADS = 'LEADS',
+  SALES = 'SALES',
+  RETENTION = 'RETENTION',
+  LAUNCH = 'LAUNCH',
+}

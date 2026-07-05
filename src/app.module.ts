@@ -24,7 +24,8 @@ import { InvitationsModule } from './modules/invitations/invitations.module';
 import { TasksModule } from './modules/tasks/tasks.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { AutomationsModule } from './modules/automations/automations.module';
-
+import { CampaignsModule } from './modules/campaigns/campaigns.module';
+import { ResponsibilitiesModule } from './modules/responsibilities/responsibilities.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -55,6 +56,8 @@ import { AutomationsModule } from './modules/automations/automations.module';
     TasksModule,
     NotificationsModule,
     AutomationsModule,
+    CampaignsModule,
+    ResponsibilitiesModule,
   ],
   providers: [
     {

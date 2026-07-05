@@ -36,7 +36,12 @@ const TASK_VIEW_ROLES = [
   CompanyMembershipRole.SALES_AGENT,
 ];
 
-const TASK_MANAGE_ROLES = [
+const TASK_ASSIGN_ROLES = [
+  CompanyMembershipRole.ACCOUNT_MANAGER,
+  CompanyMembershipRole.SOCIAL_MEDIA_MANAGER,
+];
+
+const TASK_WORK_ROLES = [
   CompanyMembershipRole.ACCOUNT_MANAGER,
   CompanyMembershipRole.COPYWRITER,
   CompanyMembershipRole.DESIGNER,
@@ -47,9 +52,9 @@ const TASK_MANAGE_ROLES = [
 @UseGuards(JwtAuthGuard, CompanyAccessGuard, CompanyRolesGuard)
 @Controller('companies/:companyId/tasks')
 export class TasksController {
-  constructor(private readonly tasksService: TasksService) {}
+  constructor(private readonly tasksService: TasksService) { }
 
-  @CompanyRoles(...TASK_MANAGE_ROLES)
+  @CompanyRoles(...TASK_ASSIGN_ROLES)
   @Post()
   create(
     @Param('companyId', ParseUUIDPipe) companyId: string,
@@ -67,7 +72,18 @@ export class TasksController {
   ) {
     return this.tasksService.findAll(companyId, query);
   }
-
+  @CompanyRoles(...TASK_VIEW_ROLES)
+  @Get('my')
+  findMyTasks(
+    @Param('companyId', ParseUUIDPipe) companyId: string,
+    @Query() query: FindTasksQueryDto,
+    @CurrentUser() currentUser: RequestUser,
+  ) {
+    return this.tasksService.findAll(companyId, {
+      ...query,
+      assignedToId: currentUser.id,
+    });
+  }
   @CompanyRoles(...TASK_VIEW_ROLES)
   @Get(':taskId')
   findOne(
@@ -77,7 +93,7 @@ export class TasksController {
     return this.tasksService.findOne(companyId, taskId);
   }
 
-  @CompanyRoles(...TASK_MANAGE_ROLES)
+  @CompanyRoles(...TASK_ASSIGN_ROLES)
   @Patch(':taskId')
   update(
     @Param('companyId', ParseUUIDPipe) companyId: string,
@@ -93,7 +109,7 @@ export class TasksController {
     );
   }
 
-  @CompanyRoles(...TASK_MANAGE_ROLES)
+  @CompanyRoles(...TASK_WORK_ROLES)
   @Patch(':taskId/status')
   updateStatus(
     @Param('companyId', ParseUUIDPipe) companyId: string,
@@ -134,7 +150,7 @@ export class TasksController {
     return this.tasksService.findComments(companyId, taskId);
   }
 
-  @CompanyRoles(...TASK_MANAGE_ROLES)
+  @CompanyRoles(...TASK_WORK_ROLES)
   @Post(':taskId/attachments')
   attachFile(
     @Param('companyId', ParseUUIDPipe) companyId: string,
@@ -159,7 +175,7 @@ export class TasksController {
     return this.tasksService.findAttachments(companyId, taskId);
   }
 
-  @CompanyRoles(...TASK_MANAGE_ROLES)
+  @CompanyRoles(...TASK_WORK_ROLES)
   @Delete(':taskId/attachments/:attachmentId')
   removeAttachment(
     @Param('companyId', ParseUUIDPipe) companyId: string,

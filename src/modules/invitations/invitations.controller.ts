@@ -30,7 +30,8 @@ export class InvitationsController {
   @Post('companies/:companyId/invitations')
   createInvitation(
     @Param('companyId', ParseUUIDPipe) companyId: string,
-    @Body() dto: CreateCompanyInvitationDto,
+    // @Body() dto: CreateCompanyInvitationDto,
+    @Body() dto : any ,
     @CurrentUser() currentUser: RequestUser,
   ) {
     return this.invitationsService.createInvitation(
