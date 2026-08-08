@@ -1,7 +1,5 @@
 import * as Joi from 'joi';
 
-import { CompanyMembershipRole } from '../modules/memberships/enums/company-membership-role.enum';
-
 export const envValidationSchema = Joi.object({
   NODE_ENV: Joi.string()
     .valid('development', 'test', 'staging', 'production')
@@ -41,10 +39,12 @@ export const envValidationSchema = Joi.object({
   
   FRONTEND_URL: Joi.string().uri().required(),
 
-  // Shared workspace every account is placed in on sign-up.
-  DEFAULT_COMPANY_ID: Joi.string().uuid().optional(),
-  DEFAULT_COMPANY_NAME: Joi.string().min(2).max(160).default('Solutions'),
-  DEFAULT_MEMBER_ROLE: Joi.string()
-    .valid(...Object.values(CompanyMembershipRole))
-    .default(CompanyMembershipRole.ACCOUNT_MANAGER),
+  // First platform administrator, created on boot when it does not exist yet.
+  // Without this nobody could sign in, since sign-up is admin-only.
+  // tlds disabled so internal domains such as admin@solutions.local are allowed.
+  BOOTSTRAP_ADMIN_EMAIL: Joi.string()
+    .email({ tlds: { allow: false } })
+    .optional(),
+  BOOTSTRAP_ADMIN_PASSWORD: Joi.string().min(12).optional(),
+  BOOTSTRAP_ADMIN_NAME: Joi.string().min(2).max(120).default('Solutions Admin'),
 });

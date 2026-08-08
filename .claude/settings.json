@@ -39,7 +39,9 @@
       "Bash(netstat -ano)",
       "Bash(grep -vE \"^import|^$|from '\" src/modules/automations/dto/create-automation-rule.dto.ts)",
       "Bash(cd /c/Users/User/Desktop/crm-front && grep -nE \"invitationToken|acceptPath|invite|Invitation\" src/pages/MembersPage.tsx | head -25)",
-      "Bash(cd /c/Users/User/Desktop/crm-front && sed -n '1,25p' src/pages/AcceptInvitationPage.tsx && echo \"=== LoginPage schema ===\" && grep -n \"password: z\" src/pages/LoginPage.tsx)"
+      "Bash(cd /c/Users/User/Desktop/crm-front && sed -n '1,25p' src/pages/AcceptInvitationPage.tsx && echo \"=== LoginPage schema ===\" && grep -n \"password: z\" src/pages/LoginPage.tsx)",
+      "Bash(grep -vE \"^import|^$\" src/modules/auth/types/request-user.type.ts)",
+      "Bash(cd /c/Users/User/Desktop/crm-front && grep -nE \"compan|switch|select\" -i src/components/layout/Topbar.tsx | head -20)"
     ],
     "additionalDirectories": [
       "c:\\Users\\User\\Desktop\\crm-front\\src\\components\\layout",

@@ -51,12 +51,11 @@ export class MembershipsService {
   }
 
   /**
-   * Create the membership only when the user has none for this company.
-   *
-   * A SUSPENDED membership is an administrator's decision, so it is returned
-   * untouched rather than silently restored.
+   * Put an employee on a client. Re-assigning somebody who was taken off that
+   * client before reactivates their existing membership with the new role,
+   * which keeps their history rather than starting a second one.
    */
-  async ensureMembership(
+  async assignToCompany(
     input: CreateMembershipInput,
   ): Promise<CompanyMembership> {
     const existingMembership = await this.findByUserAndCompany(
@@ -64,11 +63,42 @@ export class MembershipsService {
       input.companyId,
     );
 
-    if (existingMembership) {
-      return existingMembership;
+    if (!existingMembership) {
+      return this.create(input);
     }
 
-    return this.create(input);
+    if (existingMembership.status === CompanyMembershipStatus.ACTIVE) {
+      throw new ConflictException(
+        'This employee already works on this client',
+      );
+    }
+
+    existingMembership.role = input.role;
+    existingMembership.status = CompanyMembershipStatus.ACTIVE;
+
+    return this.membershipsRepository.save(existingMembership);
+  }
+
+  /**
+   * Active memberships for many users at once, so listing employees with the
+   * clients they work on stays a single query.
+   */
+  async findActiveMembershipsForUsers(
+    userIds: string[],
+  ): Promise<CompanyMembership[]> {
+    if (userIds.length === 0) {
+      return [];
+    }
+
+    return this.membershipsRepository.find({
+      where: {
+        userId: In(userIds),
+        status: CompanyMembershipStatus.ACTIVE,
+      },
+      relations: {
+        company: true,
+      },
+    });
   }
 
   async existsActiveMembership(

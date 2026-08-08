@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { CompanyAccessGuard } from '../../common/guards/company-access.guard';
 import { CompanyRolesGuard } from '../../common/guards/company-roles.guard';
+import { PlatformRolesGuard } from '../../common/guards/platform-roles.guard';
 import { MembershipsModule } from '../memberships/memberships.module';
 import { UsersModule } from '../users/users.module';
 import { CompanyMembersController } from './company-members.controller';
@@ -24,6 +25,7 @@ import { InvitationsService } from './invitations.service';
     InvitationsService,
     CompanyAccessGuard,
     CompanyRolesGuard,
+    PlatformRolesGuard,
   ],
   exports: [InvitationsService],
 })

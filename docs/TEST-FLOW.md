@@ -13,11 +13,13 @@ a post is needed for a campaign, and so on).
 
 | # | Gotcha |
 |---|--------|
-| 1 | **Passwords must be at least 12 characters.** The sign-up form says "minimum 8" — it is wrong, and the server rejects anything shorter with a red error. Use `TestPass123!@#` everywhere. |
-| 2 | **The invite link that the app gives you is broken.** It produces `…/auth/accept-invitation?token=…`, which lands on the 404 page. Delete `/auth` from the URL → `http://localhost:5173/accept-invitation?token=…`. Alternatively open `/accept-invitation` directly and paste the token into the "Invitation token" field. |
-| 3 | **Rate limits.** 3 sign-ups per minute and 5 logins per minute per machine. If you are creating several accounts quickly and start getting errors, wait 60 seconds — it is not a bug. |
-| 4 | **AI is in mock mode.** The AI Studio returns canned placeholder text, not real generated content. That is expected; you are testing the plumbing (generate → review → apply), not the writing quality. |
-| 5 | **Everything is role-gated.** Most "I can't see / can't click / got Forbidden" findings are the permission model working as designed. Check the role table in §6 before filing. |
+| 1 | **There is no sign-up.** This is an internal Solutions system. Accounts are created by an administrator, and client-side contacts are invited by email. If you are looking for a "register" page, there isn't one — that is intentional. |
+| 2 | **"Company" in the URLs means "client".** Solutions is the system; Al Zaman, Curby and Taxero are clients. An employee sees only the clients they are assigned to. |
+| 3 | **Passwords must be at least 12 characters.** Use `TestPass123!@#` everywhere. |
+| 4 | **The invite link that the app gives you is broken.** It produces `…/auth/accept-invitation?token=…`, which lands on the 404 page. Delete `/auth` from the URL → `http://localhost:5173/accept-invitation?token=…`. Alternatively open `/accept-invitation` directly and paste the token into the "Invitation token" field. |
+| 5 | **Rate limits.** 5 logins per minute per machine. If you are switching between accounts quickly and start getting errors, wait 60 seconds — it is not a bug. |
+| 6 | **AI is in mock mode.** The AI Studio returns canned placeholder text, not real generated content. That is expected; you are testing the plumbing (generate → review → apply), not the writing quality. |
+| 7 | **Everything is role-gated.** Most "I can't see / can't click / got Forbidden" findings are the permission model working as designed. Check the role table in §6 before filing. |
 
 ---
 
@@ -47,51 +49,52 @@ Health check before you begin: open http://localhost:5173. You should reach the 
 
 ## 2. Build the test cast
 
-The product is a multi-role agency workspace, so a single account cannot test it.
-Create these six accounts. **All accounts share one workspace** — there is no
-"create company" step; the first sign-in puts you straight into the workspace.
+The product is a multi-role system, so a single account cannot test it. You need
+**two clients** and **six people**, because the whole point is that one employee works
+across several clients.
 
-| # | Name | Email | Role | Exists to test |
-|---|------|-------|------|----------------|
-| 1 | Amir Manager | `am@test.local` | ACCOUNT_MANAGER | Everything; the only role that can invite, run reports, manage automations |
-| 2 | Salma Client | `client@test.local` | CLIENT_OWNER | Approving / rejecting posts, reading reports |
-| 3 | Dina Designer | `designer@test.local` | DESIGNER | Uploading files, attaching post assets, doing tasks |
-| 4 | Omar Copy | `copy@test.local` | COPYWRITER | Commenting, doing tasks |
-| 5 | Nour Social | `social@test.local` | SOCIAL_MEDIA_MANAGER | Content plans, posts, publishing |
-| 6 | Sami Sales | `sales@test.local` | SALES_AGENT | The leads pipeline |
+### 2.1 Sign in as the administrator
 
-Password for all six: `TestPass123!@#`
+The first administrator is seeded from the backend `.env` on boot
+(`BOOTSTRAP_ADMIN_EMAIL` / `BOOTSTRAP_ADMIN_PASSWORD`) — by default
+`admin@solutions.local` / `ChangeThisAdminPass123`. Ask whoever runs the environment if
+these were changed.
 
-### 2.1 Create account 1 (the manager)
+Sign in with it. As an administrator you see **every** client.
 
-1. Go to http://localhost:5173/register
-2. Full name `Amir Manager`, email `am@test.local`, password `TestPass123!@#`
-3. Submit.
+### 2.2 Create two clients
 
-**Expected:** you land directly on the dashboard. You are **never** asked to create a
-company or workspace. The workspace name appears in the top bar.
+Add two clients — call them **Curby** and **Taxero**. Two is the minimum that proves the
+important behaviour: an employee on both must see both and be able to switch, and data
+must never leak between them.
 
-> This is the behaviour that changed. If you see any "Create your workspace" screen,
-> that is a bug — report it.
+### 2.3 Create the employees
 
-### 2.2 Create accounts 2–6 (invitations)
+Create these accounts, then assign each to clients with the roles shown. Password for
+everyone: `TestPass123!@#`
 
-For each remaining person, signed in as Amir:
+| # | Name | Email | Curby | Taxero | Exists to test |
+|---|------|-------|-------|--------|----------------|
+| 1 | Amir Manager | `am@test.local` | ACCOUNT_MANAGER | ACCOUNT_MANAGER | Everything; the only client role that can invite, run reports, manage automations |
+| 2 | Dina Designer | `designer@test.local` | DESIGNER | DESIGNER | **Works on both clients** — the switcher, and data isolation |
+| 3 | Omar Copy | `copy@test.local` | COPYWRITER | — | Commenting, doing tasks; must never see Taxero |
+| 4 | Nour Social | `social@test.local` | SOCIAL_MEDIA_MANAGER | — | Content plans, posts, publishing |
+| 5 | Sami Sales | `sales@test.local` | SALES_AGENT | — | The leads pipeline |
 
-1. **Members** in the sidebar → **Invite member**
-2. Fill in full name, email, and pick the role from the table above → **Create invitation**
-3. Copy the invitation link or token it shows you
-4. **Open a private/incognito window** (so you stay signed in as Amir), go to
-   `http://localhost:5173/accept-invitation?token=<TOKEN>` — remember gotcha #2, no `/auth`
-5. Set password `TestPass123!@#` → submit
+Dina working on both clients is the case to watch throughout — she is how you catch data
+leaking between clients.
 
-**Expected:** the invitee is signed in and lands on the dashboard. Back in Amir's window,
-**Members** lists them with the right role, and the invitation shows as `ACCEPTED`.
+### 2.4 Invite the client-side contact
 
-> **Shortcut:** `node scripts/seed-test-members.mjs` (in `api/`) creates the DESIGNER,
-> COPYWRITER and SOCIAL_MEDIA_MANAGER accounts for you. Set `ADMIN_EMAIL`,
-> `ADMIN_PASSWORD` and `COMPANY_NAME` first. It does **not** create the CLIENT_OWNER,
-> so you must still invite account 2 by hand — nothing in the approval flow works without it.
+Salma is **not** a Solutions employee — she is the contact at the client who approves
+work. She comes in by invitation, not by being created as staff.
+
+Signed in as Amir (Account Manager of Curby): **Members** → **Invite member** →
+`client@test.local`, role `CLIENT_OWNER`. Copy the token, open a private window at
+`http://localhost:5173/accept-invitation?token=<TOKEN>` (remember gotcha #4 — no `/auth`),
+and set the password.
+
+**Nothing in the approval flow works without her**, so do not skip this.
 
 ---
 
@@ -100,15 +103,35 @@ For each remaining person, signed in as Amir:
 Each scenario says **who** to sign in as. Keep several browser profiles open so you are
 not constantly logging in and out (and tripping the login rate limit).
 
-### S1 — Sign in and workspace access
+### S1 — Sign in and client access
 *Anyone*
 
 1. Sign out, sign back in.
 2. Reload the page mid-session (F5).
 3. Sign out and try to open http://localhost:5173/dashboard directly.
 
-**Expected:** login goes straight to the dashboard, no workspace/company prompt at any
-point. A reload keeps you signed in. Signed out, `/dashboard` bounces you to `/login`.
+**Expected:** login goes straight to the dashboard, with a client already selected — no
+prompt to create anything. A reload keeps you signed in and keeps the same client selected.
+Signed out, `/dashboard` bounces you to `/login`.
+
+### S1b — Multi-client access and isolation ⭐ the other important one
+*Dina (both clients), then Omar (Curby only)*
+
+This is the behaviour the whole system exists for. Do it early — if it is broken,
+everything else is unsafe.
+
+1. As **Dina**: the client switcher offers **Curby and Taxero**, and nothing else.
+   Solutions itself must never appear as something you can pick.
+2. Switch to Curby, note what you see. Switch to Taxero.
+   → the posts, leads, tasks, brand profile and reports must **change completely**.
+   Nothing from Curby may appear under Taxero.
+3. Create a lead under Curby. Switch to Taxero → it must not be there. Switch back → it is.
+4. As **Omar** (Curby only): the switcher shows **only Curby**, with nothing to switch to.
+5. As Omar, take a `companyId` belonging to **Taxero** and put it in the URL directly.
+   → must be refused. He is not on that client.
+
+**Expected:** an employee sees exactly the clients they are assigned to, and client data
+never crosses over. Anything leaking here is a blocker — report it immediately.
 
 ### S2 — Members administration
 *Amir (ACCOUNT_MANAGER)*
@@ -360,9 +383,10 @@ Send `Authorization: Bearer <accessToken>` on all of them.
 
 | Area | Endpoints |
 |------|-----------|
-| Auth | `POST /auth/register`, `POST /auth/login`, `POST /auth/refresh`, `POST /auth/logout`, `GET /auth/me`, `POST /auth/accept-invitation` |
-| Companies | `GET /companies`, `GET/PATCH /companies/{id}` |
-| Members | `GET /members`, `PATCH /members/{membershipId}`, `DELETE /members/{membershipId}` |
+| Auth | `POST /auth/login`, `POST /auth/refresh`, `POST /auth/logout`, `GET /auth/me`, `POST /auth/accept-invitation` — **there is no `register`** |
+| Employees *(admin only)* | `POST /users`, `GET /users`, `GET /users/{userId}`, `PATCH /users/{userId}` |
+| Clients | `GET /companies` (the ones you work on), `POST /companies` *(admin only)*, `GET/PATCH /companies/{id}` |
+| Members | `POST /members` *(admin only — put an employee on this client)*, `GET /members`, `PATCH /members/{membershipId}`, `DELETE /members/{membershipId}` |
 | Invitations | `POST /invitations`, `GET /invitations` |
 | Brand profile | `POST /brand-profile`, `GET /brand-profile`, `PATCH /brand-profile` |
 | Content plans | `POST /content-plans`, `GET /content-plans`, `GET/PATCH /content-plans/{id}` |
@@ -380,8 +404,8 @@ Send `Authorization: Bearer <accessToken>` on all of them.
 | Automations | `POST /automation-rules`, `GET /automation-rules`, `GET/PATCH /automation-rules/{id}`, `GET /automation-runs`, `GET /automation-runs/{id}` |
 
 **For API testers:** unknown fields in a request body are rejected with a 400 — send only
-the documented fields. Rate limits are 3/min for register, 5/min for login, 20/min for
-refresh, 100/min for everything else.
+the documented fields. Rate limits are 5/min for login, 20/min for refresh, 100/min for
+everything else.
 
 ---
 
@@ -435,12 +459,13 @@ AM = Account Manager · SMM = Social Media Manager
 
 | Issue | Impact on testing |
 |-------|-------------------|
-| Invite link contains `/auth` and 404s | Use the workaround in gotcha #2 |
-| Sign-up form says 8-character password, server needs 12 | Use a 12+ character password |
+| Invite link contains `/auth` and 404s | Use the workaround in gotcha #4 |
+| The UI may still say "company" where it means "client" | Renaming is in progress; report only if it is confusing, not every instance |
+| The UI may still show a registration page | The endpoint is gone; it cannot work. Being removed |
 | AI returns mock placeholder text | Expected in this build |
 | No UI for automation rules | API-only, see S16 |
 | API refuses to boot when MinIO is down | Environment issue, not a product bug |
-| Anyone who registers becomes an Account Manager of the shared workspace | Known, under review |
+| Roles and permissions are not final | Report anything that *leaks data* between clients; do not report role-by-role permission opinions yet |
 
 ---
 

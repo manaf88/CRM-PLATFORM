@@ -16,7 +16,6 @@ import type { CookieOptions, Request, Response } from 'express';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
-import { RegisterDto } from './dto/register.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import type { RequestUser } from './types/request-user.type';
 
@@ -26,22 +25,6 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly configService: ConfigService,
   ) {}
-
-  @Throttle({ default: { limit: 3, ttl: 60_000 } })
-  @Post('register')
-  async register(
-    @Body() dto: RegisterDto,
-    @Res({ passthrough: true }) response: Response,
-  ) {
-    const result = await this.authService.register(dto);
-
-    this.setRefreshTokenCookie(response, result.refreshToken);
-
-    return {
-      user: result.user,
-      accessToken: result.accessToken,
-    };
-  }
 
   @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @Post('login')

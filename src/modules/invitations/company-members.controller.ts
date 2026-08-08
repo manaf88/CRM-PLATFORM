@@ -6,15 +6,22 @@ import {
   Param,
   ParseUUIDPipe,
   Patch,
+  Post,
   UseGuards,
 } from '@nestjs/common';
 
 import { CompanyRoles } from '../../common/decorators/company-roles.decorator';
+import { PlatformRoles } from '../../common/decorators/platform-roles.decorator';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { CompanyAccessGuard } from '../../common/guards/company-access.guard';
 import { CompanyRolesGuard } from '../../common/guards/company-roles.guard';
+import { PlatformRolesGuard } from '../../common/guards/platform-roles.guard';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import type { RequestUser } from '../auth/types/request-user.type';
 import { CompanyMembershipRole } from '../memberships/enums/company-membership-role.enum';
 import { MembershipsService } from '../memberships/memberships.service';
+import { PlatformRole } from '../users/enums/platform-role.enum';
+import { AddCompanyMemberDto } from './dto/add-company-member.dto';
 import { UpdateCompanyMemberDto } from './dto/update-company-member.dto';
 
 @UseGuards(JwtAuthGuard, CompanyAccessGuard, CompanyRolesGuard)
@@ -24,6 +31,31 @@ export class CompanyMembersController {
   constructor(
     private readonly membershipsService: MembershipsService,
   ) {}
+
+  /**
+   * Put an existing employee on this client.
+   *
+   * Deciding who works on which client is Solutions management's call, so this
+   * one route is narrowed further than the rest of the controller: the
+   * class-level guard admits Account Managers, and this extra guard then
+   * requires a platform administrator — who bypasses the company role check.
+   * Both must pass, so effectively only administrators can staff a client.
+   */
+  @UseGuards(PlatformRolesGuard)
+  @PlatformRoles(PlatformRole.SUPER_ADMIN, PlatformRole.AGENCY_ADMIN)
+  @Post()
+  addMember(
+    @Param('companyId', ParseUUIDPipe) companyId: string,
+    @Body() dto: AddCompanyMemberDto,
+    @CurrentUser() currentUser: RequestUser,
+  ) {
+    return this.membershipsService.assignToCompany({
+      companyId,
+      userId: dto.userId,
+      role: dto.role,
+      invitedById: currentUser.id,
+    });
+  }
 
   @Get()
   findMembers(@Param('companyId', ParseUUIDPipe) companyId: string) {
