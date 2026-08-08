@@ -7,6 +7,7 @@ import appConfig from './config/app.config';
 import authConfig from './config/auth.config';
 import databaseConfig from './config/database.config';
 import { envValidationSchema } from './config/validation';
+import workspaceConfig from './config/workspace.config';
 import { DatabaseModule } from './database/database.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { CompaniesModule } from './modules/companies/companies.module';
@@ -31,7 +32,14 @@ import { ResponsibilitiesModule } from './modules/responsibilities/responsibilit
     ConfigModule.forRoot({
       isGlobal: true,
       cache: true,
-      load: [appConfig, databaseConfig, authConfig, aiConfig, storageConfig],
+      load: [
+        appConfig,
+        databaseConfig,
+        authConfig,
+        aiConfig,
+        storageConfig,
+        workspaceConfig,
+      ],
       validationSchema: envValidationSchema,
     }),
     ThrottlerModule.forRoot([

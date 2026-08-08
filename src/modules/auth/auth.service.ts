@@ -1,10 +1,11 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 
 import * as argon2 from 'argon2';
 import type { SignOptions } from 'jsonwebtoken';
 
+import { CompaniesService } from '../companies/companies.service';
 import { PlatformRole } from '../users/enums/platform-role.enum';
 import { UsersService } from '../users/users.service';
 import { LoginDto } from './dto/login.dto';
@@ -26,8 +27,11 @@ type AuthResult = {
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private readonly usersService: UsersService,
+    private readonly companiesService: CompaniesService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
   ) {}
@@ -42,6 +46,8 @@ export class AuthService {
       fullName: dto.fullName,
       passwordHash,
     });
+
+    await this.joinSharedWorkspace(user.id);
 
     const tokens = await this.generateTokens({
       sub: user.id,
@@ -73,6 +79,9 @@ export class AuthService {
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
+
+    // Covers accounts that existed before the shared workspace was introduced.
+    await this.joinSharedWorkspace(user.id);
 
     const tokens = await this.generateTokens({
       sub: user.id,
@@ -136,6 +145,25 @@ export class AuthService {
 
   async logout(userId: string): Promise<void> {
     await this.usersService.clearRefreshTokenHash(userId);
+  }
+
+  /**
+   * Put the account in the shared workspace so it never lands on a
+   * "create your company" step. Already a member? Nothing changes.
+   *
+   * A failure here must not cost the user their sign-in, so it is logged
+   * instead of thrown — the next login retries it.
+   */
+  private async joinSharedWorkspace(userId: string): Promise<void> {
+    try {
+      await this.companiesService.ensureDefaultMembership(userId);
+    } catch (error) {
+      this.logger.error(
+        `Could not add user ${userId} to the shared workspace: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+    }
   }
 
   private async generateTokens(payload: JwtPayload): Promise<{

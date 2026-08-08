@@ -1,5 +1,7 @@
 import * as Joi from 'joi';
 
+import { CompanyMembershipRole } from '../modules/memberships/enums/company-membership-role.enum';
+
 export const envValidationSchema = Joi.object({
   NODE_ENV: Joi.string()
     .valid('development', 'test', 'staging', 'production')
@@ -38,4 +40,11 @@ export const envValidationSchema = Joi.object({
   S3_FORCE_PATH_STYLE: Joi.boolean().default(true),
   
   FRONTEND_URL: Joi.string().uri().required(),
+
+  // Shared workspace every account is placed in on sign-up.
+  DEFAULT_COMPANY_ID: Joi.string().uuid().optional(),
+  DEFAULT_COMPANY_NAME: Joi.string().min(2).max(160).default('Solutions'),
+  DEFAULT_MEMBER_ROLE: Joi.string()
+    .valid(...Object.values(CompanyMembershipRole))
+    .default(CompanyMembershipRole.ACCOUNT_MANAGER),
 });

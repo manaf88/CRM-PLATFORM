@@ -1,0 +1,50 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd /c/Users/User/Desktop/solutions/solutions-platform && ls -la)",
+      "Read(//c/Users/User/Desktop/solutions/solutions-platform/**)",
+      "Read(//c/Users/User/Desktop/solutions//**)",
+      "Read(//c/Users/User/Desktop//**)",
+      "Bash(cd /c/Users/User/Desktop/crm-front && ls -la && echo \"=== tree src ===\" && find src -type d -not -path \"*/node_modules/*\" | sort | head -80)",
+      "Read(//c/Users/User/Desktop/crm-front/**)",
+      "Bash(cd /c/Users/User/Desktop/crm-front && grep -ril \"create.company\\\\|createCompany\\\\|create-company\" --include=\"*.ts\" --include=\"*.tsx\" --include=\"*.js\" --include=\"*.jsx\" . | grep -v node_modules | head -40)",
+      "Read(//c/Users/User/Desktop/crm-front/src/**)",
+      "Read(//c/Users/User/Desktop/crm-front/src/components/layout/**)",
+      "Read(//c/Users/User/Desktop/crm-front/src/pages/**)",
+      "Bash(cd /c/Users/User/Desktop/crm-front && grep -rn \"RequireCompany\" --include=\"*.tsx\" src | head -30)",
+      "Read(//c/Users/User/Desktop/crm-front/src/context/**)",
+      "Bash(cd /c/Users/User/Desktop/crm-front && cat src/services/companies.ts && echo \"=== ProtectedRoute ===\" && cat src/components/layout/ProtectedRoute.tsx)",
+      "Bash(cd /c/Users/User/Desktop/crm-front && cat src/pages/RegisterPage.tsx && echo \"=== env config ===\" && cat src/config/env.ts && echo \"=== .env ===\" && cat .env && echo \"=== apiRoutes companies ===\" && grep -n \"companies\" -A 8 src/config/apiRoutes.ts | head -30)",
+      "Bash(cd /c/Users/User/Desktop/crm-front && echo \"=== main.tsx ===\" && cat src/main.tsx && echo \"=== AuthContext ===\" && cat src/context/AuthContext.tsx)",
+      "Bash(cd /c/Users/User/Desktop/crm-front && grep -rn \"CompanyProvider\" src | head && echo \"=== DashboardLayout ===\" && cat src/components/layout/DashboardLayout.tsx)",
+      "Bash(cd /c/Users/User/Desktop/crm-front && cat src/components/ui/State.tsx && echo \"=== types/domain User ===\" && grep -n \"platformRole\\\\|interface User\" -A 8 src/types/domain.ts | head -30)",
+      "Bash(cd /c/Users/User/Desktop/crm-front && cat src/components/layout/Sidebar.tsx)",
+      "Bash(npx tsc *)",
+      "Read(//c/Users/User/Desktop/crm-front/src/types/**)",
+      "Bash(cd /c/Users/User/Desktop/solutions/solutions-platform && cat docker-compose.yml && echo \"=== containers ===\" && docker ps --format \"table {{.Names}}\\\\t{{.Status}}\\\\t{{.Ports}}\" 2>&1 | head -10)",
+      "PowerShell($r = Test-NetConnection -ComputerName localhost -Port 5432 -InformationLevel Quiet -WarningAction SilentlyContinue; \"postgres 5432 reachable: $r\")",
+      "Bash(npm run *)",
+      "PowerShell($paths = @\\(\"C:\\\\Program Files\\\\Docker\\\\Docker\\\\Docker Desktop.exe\", \"$env:LOCALAPPDATA\\\\Docker\\\\Docker Desktop.exe\"\\); foreach \\($p in $paths\\) { if \\(Test-Path $p\\) { \"FOUND: $p\" } else { \"missing: $p\" } })",
+      "PowerShell(Start-Process \"C:\\\\Program Files\\\\Docker\\\\Docker\\\\Docker Desktop.exe\")",
+      "PowerShell(\"Docker Desktop launch requested\")",
+      "Bash(docker info *)",
+      "Bash(cd /c/Users/User/Desktop/crm-front && grep -rn \"create-company\\\\|CreateCompanyPage\\\\|Create your workspace\\\\|companiesService.create\" src | head -20)",
+      "Bash(docker compose *)",
+      "Bash(docker exec *)",
+      "Bash(curl -sf http://localhost:9000/minio/health/live)",
+      "Bash(tasklist //FI \"IMAGENAME eq node.exe\" //FO CSV)",
+      "Bash(taskkill //F //PID 19972)",
+      "Bash(taskkill //F //PID 9528)",
+      "Bash(taskkill //F //PID 8716)",
+      "Bash(netstat -ano)",
+      "Bash(grep -vE \"^import|^$|from '\" src/modules/automations/dto/create-automation-rule.dto.ts)",
+      "Bash(cd /c/Users/User/Desktop/crm-front && grep -nE \"invitationToken|acceptPath|invite|Invitation\" src/pages/MembersPage.tsx | head -25)",
+      "Bash(cd /c/Users/User/Desktop/crm-front && sed -n '1,25p' src/pages/AcceptInvitationPage.tsx && echo \"=== LoginPage schema ===\" && grep -n \"password: z\" src/pages/LoginPage.tsx)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\User\\Desktop\\crm-front\\src\\components\\layout",
+      "c:\\Users\\User\\Desktop\\crm-front\\src\\pages",
+      "c:\\Users\\User\\Desktop\\crm-front\\src\\types"
+    ]
+  }
+}

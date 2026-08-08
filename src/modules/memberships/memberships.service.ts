@@ -50,6 +50,27 @@ export class MembershipsService {
     return this.membershipsRepository.save(membership);
   }
 
+  /**
+   * Create the membership only when the user has none for this company.
+   *
+   * A SUSPENDED membership is an administrator's decision, so it is returned
+   * untouched rather than silently restored.
+   */
+  async ensureMembership(
+    input: CreateMembershipInput,
+  ): Promise<CompanyMembership> {
+    const existingMembership = await this.findByUserAndCompany(
+      input.userId,
+      input.companyId,
+    );
+
+    if (existingMembership) {
+      return existingMembership;
+    }
+
+    return this.create(input);
+  }
+
   async existsActiveMembership(
     userId: string,
     companyId: string,

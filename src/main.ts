@@ -23,10 +23,17 @@ async function bootstrap() {
     process.env.FRONTEND_URL ||
     'http://localhost:5173';
 
+  // يشيل المسافات الزايدة والسلاش بآخر الرابط، عشان المقارنة تصير موثوقة
+  const normalize = (url: string) => url.trim().replace(/\/+$/, '');
+
   const allowedOrigins = frontendUrl
     .split(',')
-    .map((origin) => origin.trim())
+    .map((origin) => normalize(origin))
     .filter(Boolean);
+
+  // Debug مؤقت — احذفهم بعد ما تتأكد إنه الحل نجح
+  console.log('frontendUrl RAW:', JSON.stringify(frontendUrl));
+  console.log('allowedOrigins:', JSON.stringify(allowedOrigins));
 
   app.setGlobalPrefix('api');
 
@@ -34,25 +41,36 @@ async function bootstrap() {
   app.use(compression());
   app.use(cookieParser());
 
-app.enableCors({
-  origin: (origin, callback) => {
-    console.log('Incoming Origin:', origin);
+  app.enableCors({
+    origin: (origin, callback) => {
+      // origin ممكن تكون undefined (Postman, curl, server-to-server requests)
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
 
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-      return;
-    }
+      const normalizedOrigin = normalize(origin);
 
-    callback(new Error(`CORS blocked for origin: ${origin}`));
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: [
-    'Content-Type',
-    'Authorization',
-    'ngrok-skip-browser-warning',
-  ],
-});
+      console.log('Incoming Origin:', JSON.stringify(origin));
+      console.log('Normalized Origin:', JSON.stringify(normalizedOrigin));
+      console.log('Match?', allowedOrigins.includes(normalizedOrigin));
+
+      if (allowedOrigins.includes(normalizedOrigin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error(`CORS blocked for origin: ${origin}`));
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'ngrok-skip-browser-warning',
+    ],
+  });
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
