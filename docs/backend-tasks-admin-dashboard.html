@@ -1,0 +1,815 @@
+<title>Backend Tasks — Admin &amp; Super Admin Operations Dashboard</title>
+<style>
+  :root {
+    --ink:      #191C21;
+    --muted:    #5E6672;
+    --faint:    #8A9199;
+    --line:     #DCE0E3;
+    --hairline: #EDF0F1;
+    --surface:  #F4F7F7;
+    --accent:   #0F5D62;
+    --accent-d: #0A4347;
+    --good:     #2C6A4E;
+    --partial:  #8A6212;
+    --gap:      #9C382A;
+
+    --serif: Georgia, "Iowan Old Style", "Palatino Linotype", Palatino, serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: "Cascadia Mono", Consolas, "SF Mono", Menlo, "DejaVu Sans Mono", monospace;
+  }
+
+  @page { size: A4; margin: 17mm 15mm 15mm; }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: #FFFFFF;
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 9.6pt;
+    line-height: 1.55;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* ---------- cover ---------- */
+  .cover { page-break-after: always; padding-top: 4mm; }
+  .cover__block { background: var(--accent); color: #FFFFFF; padding: 16mm 12mm 14mm; }
+  .cover__eyebrow {
+    font-family: var(--mono);
+    font-size: 8pt;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: #A7CFD1;
+    margin: 0 0 7mm;
+  }
+  .cover__title {
+    font-family: var(--serif);
+    font-size: 28pt;
+    line-height: 1.1;
+    font-weight: 400;
+    margin: 0 0 5mm;
+    text-wrap: balance;
+  }
+  .cover__sub { font-size: 11pt; line-height: 1.5; color: #CFE3E4; margin: 0; max-width: 112mm; }
+  .cover__meta {
+    margin-top: 12mm;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6mm;
+    border-top: 1px solid var(--line);
+    padding-top: 5mm;
+  }
+  .cover__meta dt {
+    font-family: var(--mono);
+    font-size: 7.4pt;
+    letter-spacing: .13em;
+    text-transform: uppercase;
+    color: var(--faint);
+    margin: 0 0 1.5mm;
+  }
+  .cover__meta dd { margin: 0; font-size: 9.6pt; color: var(--ink); }
+  .cover__note {
+    margin-top: 8mm;
+    border-left: 2.5pt solid var(--accent);
+    background: var(--surface);
+    padding: 4mm 5mm;
+    font-size: 9.2pt;
+    color: var(--muted);
+  }
+  .cover__note p:last-child { margin-bottom: 0; }
+
+  /* ---------- structure ---------- */
+  h2 {
+    font-family: var(--serif);
+    font-size: 14pt;
+    font-weight: 400;
+    margin: 9mm 0 3mm;
+    padding-bottom: 1.5mm;
+    border-bottom: 1px solid var(--line);
+    page-break-after: avoid;
+  }
+  h2:first-of-type { margin-top: 0; }
+  h2 .sec { font-family: var(--mono); font-size: 9pt; color: var(--accent); margin-right: 2.5mm; }
+  h3 {
+    font-family: var(--sans);
+    font-size: 10.2pt;
+    font-weight: 650;
+    margin: 6mm 0 2mm;
+    page-break-after: avoid;
+  }
+  h3 .id { font-family: var(--mono); font-size: 8.6pt; color: var(--accent); margin-right: 2mm; }
+  h4 {
+    font-family: var(--mono);
+    font-size: 8.2pt;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 600;
+    margin: 4.5mm 0 2mm;
+    page-break-after: avoid;
+  }
+
+  p { margin: 0 0 2.6mm; max-width: 165mm; }
+  strong { font-weight: 650; }
+  em { color: var(--muted); }
+
+  ul, ol { margin: 0 0 3mm; padding-left: 5.5mm; max-width: 165mm; }
+  li { margin-bottom: 1.2mm; }
+
+  code {
+    font-family: var(--mono);
+    font-size: .89em;
+    background: var(--surface);
+    padding: .5pt 2pt;
+    border-radius: 2px;
+    word-break: break-word;
+  }
+
+  pre {
+    font-family: var(--mono);
+    font-size: 8.1pt;
+    line-height: 1.45;
+    background: var(--surface);
+    border-left: 2pt solid var(--accent);
+    padding: 3mm 4mm;
+    margin: 0 0 3.5mm;
+    white-space: pre-wrap;
+    word-break: break-word;
+    break-inside: avoid;
+  }
+  pre code { background: none; padding: 0; font-size: inherit; }
+
+  /* ---------- tables ---------- */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0 0 4mm;
+    font-size: 8.7pt;
+    font-variant-numeric: tabular-nums;
+  }
+  caption {
+    caption-side: top;
+    text-align: left;
+    font-family: var(--mono);
+    font-size: 7.6pt;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding-bottom: 1.5mm;
+  }
+  th {
+    text-align: left;
+    font-weight: 650;
+    font-size: 8.1pt;
+    letter-spacing: .04em;
+    color: var(--ink);
+    border-bottom: 1.2pt solid var(--ink);
+    padding: 1.8mm 2mm;
+    vertical-align: bottom;
+  }
+  td { border-bottom: 1px solid var(--hairline); padding: 1.7mm 2mm; vertical-align: top; }
+  tbody tr:nth-child(even) { background: #FAFCFC; }
+  tr { break-inside: avoid; }
+  th.c, td.c { text-align: center; }
+  td.mono, th.mono { font-family: var(--mono); font-size: 8pt; }
+  .yes { color: var(--good); font-weight: 650; }
+  .no  { color: var(--gap); font-weight: 650; }
+  .off { color: var(--faint); }
+
+  /* ---------- chips ---------- */
+  .chip {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 7.2pt;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    padding: .7mm 1.8mm;
+    border-radius: 2px;
+    white-space: nowrap;
+    font-weight: 600;
+  }
+  .chip--good { background: #E4EFE9; color: var(--good); }
+  .chip--gap  { background: #F6E5E2; color: var(--gap); }
+  .chip--next { background: #E3EDEE; color: var(--accent-d); }
+  .chip--new  { background: #F6EEDC; color: var(--partial); }
+
+  /* ---------- callouts ---------- */
+  .callout {
+    border-left: 2.5pt solid var(--accent);
+    background: var(--surface);
+    padding: 3.5mm 4.5mm;
+    margin: 0 0 4mm;
+    break-inside: avoid;
+  }
+  .callout--gap { border-left-color: var(--gap); background: #FBF3F1; }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout__label {
+    font-family: var(--mono);
+    font-size: 7.4pt;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 1.5mm;
+    font-weight: 600;
+  }
+  .callout--gap .callout__label { color: var(--gap); }
+
+  .rule { margin-bottom: 2.4mm; max-width: 165mm; }
+  .rule b { color: var(--accent-d); font-weight: 650; }
+
+  .footer-note {
+    margin-top: 9mm;
+    padding-top: 3mm;
+    border-top: 1px solid var(--line);
+    font-size: 8.4pt;
+    color: var(--faint);
+  }
+</style>
+
+<!-- ============ COVER ============ -->
+<section class="cover">
+  <div class="cover__block">
+    <p class="cover__eyebrow">Backend Tasks · Revision 2</p>
+    <h1 class="cover__title">Admin &amp; Super Admin Operations Dashboard</h1>
+    <p class="cover__sub">An agency-wide operations view for both administrator roles, and the client administration actions behind it.</p>
+  </div>
+
+  <dl class="cover__meta">
+    <div><dt>Revision</dt><dd>2 — 25 August 2026</dd></div>
+    <div><dt>Scope</dt><dd>34 tasks · 18 epics</dd></div>
+    <div><dt>Backend</dt><dd>NestJS 11 · PostgreSQL</dd></div>
+  </dl>
+
+  <div class="cover__note">
+    <p class="callout__label">What changed in this revision</p>
+    <p>The operations dashboard is no longer Super-Admin-only. <strong>Admin</strong> (<code>AGENCY_ADMIN</code>) now gets the dashboard plus client administration — add a client, edit a client name, assign a client to users. Two capabilities stay <strong>Super Admin only</strong>: assigning admins, and deleting a client from the database.</p>
+    <p><strong>Epic&nbsp;0</strong> and <strong>Epic&nbsp;17</strong> are new; <strong>BE-01</strong>, <strong>BE-02</strong>, <strong>BE-29</strong> and <strong>BE-30</strong> were rewritten. Everything else is unchanged from revision&nbsp;1.</p>
+  </div>
+</section>
+
+<!-- ============ EPIC 0 ============ -->
+<h2><span class="sec">0</span>Role rules <span class="chip chip--new">new</span></h2>
+
+<p>Read this before Epic&nbsp;1. Every task below inherits these rules; where a task repeats them it is for emphasis, not as a separate decision.</p>
+
+<table>
+  <caption>Vocabulary</caption>
+  <thead><tr><th style="width:22%">This document</th><th style="width:38%">Code</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td>Super Admin</td><td class="mono">PlatformRole.SUPER_ADMIN</td><td>Full platform control</td></tr>
+    <tr><td>Admin</td><td class="mono">PlatformRole.AGENCY_ADMIN</td><td>Agency operations — no destructive or role-granting powers</td></tr>
+    <tr><td>Employee</td><td class="mono">PlatformRole.USER</td><td>Works on the clients they are assigned to</td></tr>
+    <tr><td>Client user</td><td class="mono">USER + CLIENT_OWNER / CLIENT_REVIEWER</td><td>External. Never an administrator</td></tr>
+  </tbody>
+</table>
+
+<p>"Client" in the interface is <code>company</code> in the API. A client is assigned to a user through a <code>company_membership</code>.</p>
+
+<table>
+  <caption>Permission matrix</caption>
+  <thead>
+    <tr>
+      <th style="width:42%">Capability</th>
+      <th class="c" style="width:15%">Super Admin</th>
+      <th class="c" style="width:13%">Admin</th>
+      <th class="c" style="width:15%">Employee</th>
+      <th class="c" style="width:15%">Client user</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>Operations dashboard — all of <code>/api/admin/dashboard/*</code></td><td class="c yes">yes</td><td class="c yes">yes</td><td class="c off">403</td><td class="c off">403</td></tr>
+    <tr><td>Add client</td><td class="c yes">yes</td><td class="c yes">yes</td><td class="c off">403</td><td class="c off">403</td></tr>
+    <tr><td>Edit client name</td><td class="c yes">yes</td><td class="c yes">yes</td><td class="c off">403</td><td class="c off">403</td></tr>
+    <tr><td>Assign client to users — create, re-role, remove membership</td><td class="c yes">yes</td><td class="c yes">yes</td><td class="c off">403</td><td class="c off">403</td></tr>
+    <tr><td>Assign admins — grant or revoke <code>AGENCY_ADMIN</code></td><td class="c yes">yes</td><td class="c no">403</td><td class="c off">403</td><td class="c off">403</td></tr>
+    <tr><td>Delete client from the database</td><td class="c yes">yes</td><td class="c no">403</td><td class="c off">403</td><td class="c off">403</td></tr>
+    <tr><td>System health — <code>/api/admin/system/health</code></td><td class="c yes">yes</td><td class="c no">403</td><td class="c off">403</td><td class="c off">403</td></tr>
+  </tbody>
+</table>
+
+<h4>Rules</h4>
+
+<p class="rule"><b>R1 — Same dashboard for both admin roles.</b> Admin and Super Admin receive identical dashboard payloads. Admin is <em>not</em> narrowed to the clients they hold a membership on: the dashboard is an agency-wide operations view for both roles.</p>
+<p class="rule"><b>R2 — Admin runs day-to-day client administration.</b> Creating a client, renaming it and staffing it with employees are Admin-level actions.</p>
+<p class="rule"><b>R3 — Only Super Admin changes a platform role.</b> Granting or revoking <code>AGENCY_ADMIN</code> (and <code>SUPER_ADMIN</code>) is Super Admin only. An Admin must not be able to promote themselves or anyone else.</p>
+<p class="rule"><b>R4 — Only Super Admin deletes a client.</b> A hard delete removes the client and its dependent records from the database. Admin may deactivate or archive a client through its status, but never delete it.</p>
+<p class="rule"><b>R5 — Everyone else is refused.</b> <code>USER</code> and client users receive <code>403</code> on every route under <code>/api/admin/*</code>, with no data leaked in the error body.</p>
+<p class="rule"><b>R6 — Platform health stays with Super Admin.</b> <code>/api/admin/system/health</code> exposes infrastructure state, not agency operations, so it remains Super Admin only. <em>Assumption — confirm with the Product Owner if Admin should also see it.</em></p>
+
+<h4>Implementation note</h4>
+
+<p>The role machinery already exists in the codebase; use it rather than inventing a new mechanism.</p>
+
+<pre><code>// Dashboard endpoints — both admin roles
+@UseGuards(JwtAuthGuard, PlatformRolesGuard)
+@PlatformRoles(PlatformRole.SUPER_ADMIN, PlatformRole.AGENCY_ADMIN)
+
+// Assign admins, delete client, system health — Super Admin only
+@UseGuards(JwtAuthGuard, PlatformRolesGuard)
+@PlatformRoles(PlatformRole.SUPER_ADMIN)</code></pre>
+
+<div class="callout callout--gap">
+  <p class="callout__label">Two existing gaps this matrix exposes</p>
+  <p><strong>1.</strong> <code>PATCH /api/companies/:companyId</code> is protected by <code>CompanyAccessGuard</code> only, so any member of the client can rename it. It must require an admin platform role — <strong>BE-31</strong>.</p>
+  <p><strong>2.</strong> <code>PATCH /api/users/:userId</code> accepts <code>platformRole</code> while the whole <code>UsersController</code> admits both admin roles, so an Admin can currently promote anyone. Role changes must be split out and restricted to Super Admin — <strong>BE-33</strong>.</p>
+</div>
+
+<!-- ============ EPIC 1 ============ -->
+<h2><span class="sec">1</span>Operations dashboard foundation</h2>
+
+<h3><span class="id">BE-01</span>Create the Admin dashboard module <span class="chip chip--next">revised</span></h3>
+
+<ul>
+  <li>Create <code>AdminDashboardModule</code>, <code>AdminDashboardController</code>, <code>AdminDashboardService</code></li>
+  <li>Restrict all dashboard endpoints to <strong><code>SUPER_ADMIN</code> and <code>AGENCY_ADMIN</code></strong></li>
+  <li>Do not require a <code>companyId</code></li>
+  <li>Allow dashboard queries to aggregate data across all clients</li>
+  <li>Both admin roles receive the same data — do not scope Admin to their memberships (R1)</li>
+  <li>Reuse existing repositories/services where possible</li>
+</ul>
+
+<h4>Suggested base route</h4>
+<pre><code>/api/admin/dashboard</code></pre>
+
+<h4>Acceptance criteria</h4>
+<ul>
+  <li><code>SUPER_ADMIN</code> and <code>AGENCY_ADMIN</code> can retrieve cross-client information</li>
+  <li><code>USER</code> and client users receive <code>403</code></li>
+  <li>Dashboard endpoints do not depend on selecting a client first</li>
+  <li>An Admin with no company memberships still sees every client's data</li>
+</ul>
+
+<h3><span class="id">BE-02</span>Add common dashboard filters <span class="chip chip--next">revised</span></h3>
+
+<p>Support reusable query parameters: <code>from</code>, <code>to</code>, <code>clientId</code>, <code>employeeId</code>, <code>status</code>, <code>priority</code>.</p>
+
+<p>Default behaviour: <code>from</code>/<code>to</code> → today · <code>clientId</code> → all clients · <code>employeeId</code> → all employees.</p>
+
+<h4>Acceptance criteria</h4>
+<ul>
+  <li>The same filtering rules are reused across dashboard endpoints</li>
+  <li>Invalid dates/IDs return <code>400</code></li>
+  <li>Both Admin and Super Admin can filter one client without entering the client workspace</li>
+  <li><code>clientId</code> filtering is not restricted by the caller's memberships</li>
+</ul>
+
+<!-- ============ EPIC 2 ============ -->
+<h2><span class="sec">2</span>Agency overview</h2>
+
+<h3><span class="id">BE-03</span>Create dashboard overview endpoint</h3>
+
+<pre><code>GET /api/admin/dashboard/overview</code></pre>
+
+<p>Return active clients, active employees, work due today, overdue work, blocked tasks, posts waiting for client approval, leads requiring follow-up today, overdue lead follow-ups, posts published today.</p>
+
+<pre><code>{
+  "activeClients": 18,
+  "activeEmployees": 24,
+  "dueToday": 42,
+  "overdue": 11,
+  "blockedTasks": 4,
+  "waitingClientApproval": 8,
+  "leadFollowUpsToday": 13,
+  "overdueLeadFollowUps": 5,
+  "publishedToday": 9
+}</code></pre>
+
+<h4>Acceptance criteria</h4>
+<ul>
+  <li>Values are calculated across all clients</li>
+  <li>Filters work correctly</li>
+  <li>No duplicate work items are counted</li>
+</ul>
+
+<!-- ============ EPIC 3 ============ -->
+<h2><span class="sec">3</span>Attention / problems feed</h2>
+
+<h3><span class="id">BE-04</span>Build the "Needs Attention" aggregation endpoint</h3>
+
+<pre><code>GET /api/admin/dashboard/attention</code></pre>
+
+<p>Return operational exceptions: overdue tasks, blocked tasks, overdue publishing tasks, client approvals waiting too long, changes-requested posts waiting for action, lead follow-ups overdue, campaigns ending soon with incomplete work, unassigned urgent/high-priority tasks.</p>
+
+<pre><code>{
+  "type": "TASK_OVERDUE",
+  "severity": "CRITICAL",
+  "client": {},
+  "entityId": "...",
+  "title": "...",
+  "owner": {},
+  "dueAt": "...",
+  "waitingSince": "...",
+  "ageMinutes": 1280
+}</code></pre>
+
+<p>Severity — implement <code>INFO</code>, <code>WARNING</code>, <code>CRITICAL</code>.</p>
+
+<h4>Acceptance criteria</h4>
+<ul>
+  <li>Results ordered by severity and urgency; critical issues appear first</li>
+  <li>Every record contains enough information for frontend drill-down</li>
+  <li>Endpoint supports pagination</li>
+</ul>
+
+<!-- ============ EPIC 4 ============ -->
+<h2><span class="sec">4</span>Content process monitoring</h2>
+
+<h3><span class="id">BE-05</span>Build content pipeline metrics</h3>
+
+<pre><code>GET /api/admin/dashboard/content</code></pre>
+
+<p>Return counts for <code>DRAFT</code>, <code>IN_INTERNAL_REVIEW</code>, <code>READY_FOR_CLIENT</code>, <code>CHANGES_REQUESTED</code>, <code>APPROVED</code>, <code>SCHEDULED</code>, <code>PUBLISHED</code>, <code>CANCELED</code>.</p>
+
+<p>Also return published today, scheduled today, awaiting client action, changes requested, overdue scheduled posts, average approval waiting time.</p>
+
+<h3><span class="id">BE-06</span>Detect scheduled posts requiring manual publishing</h3>
+
+<p>The platform stores scheduled posts but does not publish them automatically:</p>
+<ul>
+  <li>Find posts with <code>status = SCHEDULED</code></li>
+  <li>Compare <code>scheduledAt &lt;= now</code></li>
+  <li>Exclude already published posts</li>
+  <li>Return them as <code>PUBLISHING_DUE</code> and include them in <code>/attention</code></li>
+</ul>
+
+<h4>Acceptance criteria</h4>
+<ul>
+  <li>A scheduled post becomes visible as due when its scheduled time passes</li>
+  <li>No automatic social publishing is required in this task</li>
+</ul>
+
+<!-- ============ EPIC 5 ============ -->
+<h2><span class="sec">5</span>Client approval monitoring</h2>
+
+<h3><span class="id">BE-07</span>Create approvals dashboard endpoint</h3>
+
+<pre><code>GET /api/admin/dashboard/approvals</code></pre>
+
+<p>Return total waiting for client, waiting by client, oldest waiting post, average waiting duration, changes requested count, approved today, rejected/canceled today.</p>
+
+<pre><code>{
+  "waiting": 12,
+  "overThreshold": 3,
+  "clients": [
+    {
+      "clientId": "...",
+      "clientName": "Taxero",
+      "waiting": 4,
+      "oldestWaitingHours": 49,
+      "changesRequested": 1
+    }
+  ]
+}</code></pre>
+
+<h3><span class="id">BE-08</span>Add approval aging calculation</h3>
+
+<p>For each post waiting for approval: determine when it entered <code>READY_FOR_CLIENT</code>, calculate the current waiting duration, provide <code>waitingHours</code>, and provide a derived SLA state — <code>NORMAL</code>, <code>WARNING</code>, <code>CRITICAL</code>.</p>
+
+<p>Keep thresholds configurable rather than hard-coded where possible.</p>
+
+<!-- ============ EPIC 6 ============ -->
+<h2><span class="sec">6</span>Task operations</h2>
+
+<h3><span class="id">BE-09</span>Create tasks dashboard metrics</h3>
+
+<pre><code>GET /api/admin/dashboard/tasks</code></pre>
+
+<p>Return total open tasks, <code>TODO</code>, <code>IN_PROGRESS</code>, <code>IN_REVIEW</code>, <code>BLOCKED</code>, due today, overdue, urgent, high priority, unassigned, completed today.</p>
+
+<h3><span class="id">BE-10</span>Create employee workload aggregation</h3>
+
+<pre><code>GET /api/admin/dashboard/team-workload</code></pre>
+
+<p>For each employee return active clients count, total active tasks, due today, overdue, blocked, in review, urgent/high-priority work.</p>
+
+<pre><code>{
+  "employeeId": "...",
+  "name": "Ahmad",
+  "clients": 3,
+  "openTasks": 12,
+  "dueToday": 4,
+  "overdue": 4,
+  "blocked": 2,
+  "urgent": 1
+}</code></pre>
+
+<div class="callout">
+  <p class="callout__label">Important</p>
+  <p>Do not calculate an arbitrary workload percentage yet. Return objective workload metrics first.</p>
+</div>
+
+<!-- ============ EPIC 7 ============ -->
+<h2><span class="sec">7</span>Lead operations</h2>
+
+<h3><span class="id">BE-11</span>Create leads dashboard endpoint</h3>
+
+<pre><code>GET /api/admin/dashboard/leads</code></pre>
+
+<p>Return counts for <code>NEW</code>, <code>CONTACTED</code>, <code>INTERESTED</code>, <code>WAITING_DECISION</code>, <code>WON</code>, <code>LOST</code>, <code>FOLLOW_UP_LATER</code>.</p>
+
+<p>Also return new leads today, follow-ups today, overdue follow-ups, won this month, lost this month, conversion rate.</p>
+
+<h3><span class="id">BE-12</span>Create overdue lead-follow-up detection</h3>
+
+<pre><code>followUpDate &lt; now
+AND lead is not WON
+AND lead is not LOST</code></pre>
+
+<p>Return lead, client, assigned employee, follow-up date, number of hours/days overdue.</p>
+
+<!-- ============ EPIC 8 ============ -->
+<h2><span class="sec">8</span>Campaign monitoring</h2>
+
+<h3><span class="id">BE-13</span>Create campaign dashboard endpoint</h3>
+
+<pre><code>GET /api/admin/dashboard/campaigns</code></pre>
+
+<p>Return active, draft, paused and completed campaigns, campaigns ending soon, campaigns with overdue tasks.</p>
+
+<p>For each active campaign: client, objective, start/end date, total linked posts, published posts, total linked tasks, completed tasks, linked leads, won leads.</p>
+
+<h3><span class="id">BE-14</span>Create campaign progress aggregation</h3>
+
+<pre><code>{
+  "tasks": { "total": 16, "completed": 12 },
+  "posts": { "total": 10, "published": 8 },
+  "leads": { "total": 43, "won": 7 }
+}</code></pre>
+
+<p>Do not generate one arbitrary campaign percentage unless product rules for the calculation are defined.</p>
+
+<!-- ============ EPIC 9 ============ -->
+<h2><span class="sec">9</span>Content plan monitoring</h2>
+
+<h3><span class="id">BE-15</span>Create monthly content plan overview</h3>
+
+<pre><code>GET /api/admin/dashboard/content-plans</code></pre>
+
+<p>Return <code>DRAFT</code>, <code>INTERNAL_REVIEW</code>, <code>CLIENT_REVIEW</code>, <code>APPROVED</code>, <code>ARCHIVED</code>. Group by client.</p>
+
+<h3><span class="id">BE-16</span>Detect clients missing current-month content plans</h3>
+
+<p>Create a derived dashboard state <code>MISSING</code>. This must <strong>not</strong> be added to the database content-plan enum.</p>
+
+<pre><code>active client + no content plan for selected month = MISSING</code></pre>
+
+<p>Return client, account manager if available, selected month/year.</p>
+
+<!-- ============ EPIC 10 ============ -->
+<h2><span class="sec">10</span>Client health data</h2>
+
+<h3><span class="id">BE-17</span>Create client operations summary</h3>
+
+<pre><code>GET /api/admin/dashboard/clients</code></pre>
+
+<p>For every active client return open tasks, overdue tasks, blocked tasks, content awaiting approval, changes requested, scheduled posts, published posts, open leads, overdue lead follow-ups, active campaigns, current content-plan status.</p>
+
+<pre><code>{
+  "clientId": "...",
+  "clientName": "Taxero",
+  "tasks": { "open": 8, "overdue": 1, "blocked": 0 },
+  "content": { "waitingApproval": 2, "changesRequested": 1 },
+  "leads": { "open": 13, "overdueFollowUps": 1 }
+}</code></pre>
+
+<h3><span class="id">BE-18</span>Prepare client health score inputs</h3>
+
+<p>Do <strong>not</strong> hard-code the final score yet. Expose the underlying metrics the frontend/product layer needs: overdue task ratio, blocked task count, client approval age, overdue lead follow-ups, current content-plan status, campaign issues.</p>
+
+<p>The Product Owner should define the final scoring formula separately.</p>
+
+<!-- ============ EPIC 11 ============ -->
+<h2><span class="sec">11</span>Automations monitoring</h2>
+
+<h3><span class="id">BE-19</span>Create automation dashboard summary</h3>
+
+<pre><code>GET /api/admin/dashboard/automations</code></pre>
+
+<p>Return runs today, successful runs, failed runs, active rules, inactive rules, last failed runs.</p>
+
+<p>For failed runs return automation rule, client, trigger, action, failure timestamp, error where available.</p>
+
+<!-- ============ EPIC 12 ============ -->
+<h2><span class="sec">12</span>Recent agency activity</h2>
+
+<h3><span class="id">BE-20</span>Design global audit/event model</h3>
+
+<p>The platform has some entity-specific logs but no complete system-wide audit trail. Create a reusable global activity entity.</p>
+
+<pre><code>id · actorUserId · clientId · entityType · entityId · action · metadata · createdAt</code></pre>
+
+<p>Potential actions: <code>TASK_CREATED</code>, <code>TASK_STATUS_CHANGED</code>, <code>POST_CREATED</code>, <code>POST_SUBMITTED</code>, <code>POST_APPROVED</code>, <code>POST_CHANGES_REQUESTED</code>, <code>POST_PUBLISHED</code>, <code>LEAD_CREATED</code>, <code>LEAD_STATUS_CHANGED</code>, <code>CAMPAIGN_CREATED</code>, <code>MEMBER_ADDED</code>, <code>AUTOMATION_EXECUTED</code>.</p>
+
+<p>Add the administrative actions from Epic&nbsp;17 as well: <code>CLIENT_CREATED</code>, <code>CLIENT_RENAMED</code>, <code>CLIENT_DELETED</code>, <code>MEMBER_REMOVED</code>, <code>PLATFORM_ROLE_CHANGED</code>.</p>
+
+<h3><span class="id">BE-21</span>Write important platform actions into the global activity log</h3>
+
+<p>Integrate audit recording into major workflows: posts, approvals, tasks, leads, campaigns, users/memberships, automations, and client administration (Epic&nbsp;17).</p>
+
+<p>Prefer centralized event/subscriber logic rather than duplicating audit-writing code everywhere.</p>
+
+<h3><span class="id">BE-22</span>Create recent activity endpoint</h3>
+
+<pre><code>GET /api/admin/dashboard/activity</code></pre>
+
+<p>Support pagination, client filter, user filter, entity-type filter and date range. Return newest first.</p>
+
+<!-- ============ EPIC 13 ============ -->
+<h2><span class="sec">13</span>Platform health</h2>
+
+<h3><span class="id">BE-23</span>Create Super Admin system-health endpoint</h3>
+
+<pre><code>GET /api/admin/system/health</code></pre>
+
+<p><strong>Super Admin only</strong> — the one route in the admin area that Admin does not reach (R6).</p>
+
+<p>Check API, PostgreSQL, object storage (MinIO or S3), Redis when actually used, scheduler when implemented, AI provider configuration, email/SMTP configuration.</p>
+
+<pre><code>{
+  "api": "UP",
+  "database": "UP",
+  "storage": "UP",
+  "redis": "NOT_IN_USE",
+  "scheduler": "NOT_IMPLEMENTED",
+  "email": "NOT_CONFIGURED",
+  "ai": "MOCK"
+}</code></pre>
+
+<p>Do not report services as healthy simply because environment variables exist. Verify connectivity when applicable.</p>
+
+<!-- ============ EPIC 14 ============ -->
+<h2><span class="sec">14</span>Dashboard API performance</h2>
+
+<h3><span class="id">BE-24</span>Optimize dashboard queries</h3>
+
+<ul>
+  <li>Avoid N+1 client queries</li>
+  <li>Aggregate with database queries where appropriate</li>
+  <li>Use <code>COUNT</code>, <code>GROUP BY</code>, conditional aggregation</li>
+  <li>Add required indexes after reviewing query plans</li>
+  <li>Avoid loading complete entities when only counts are required</li>
+</ul>
+
+<p>Target: the main dashboard request ideally under <code>500 ms</code> with realistic agency data.</p>
+
+<h3><span class="id">BE-25</span>Decide dashboard API composition</h3>
+
+<p><strong>Option A</strong> — <code>GET /api/admin/dashboard</code> returns all major sections. <strong>Option B</strong> — separate <code>/overview</code>, <code>/attention</code>, <code>/content</code>, <code>/tasks</code> endpoints.</p>
+
+<p>Recommended: several domain endpoints plus one lightweight <code>/overview</code> endpoint. Widgets then refresh independently, and one expensive query cannot block the entire dashboard.</p>
+
+<!-- ============ EPIC 15 ============ -->
+<h2><span class="sec">15</span>Pagination and consistency</h2>
+
+<h3><span class="id">BE-26</span>Add pagination to dashboard detail endpoints</h3>
+
+<p>Required for attention items, activity, tasks drill-down, approval records, leads, and client summaries where necessary. Standardize <code>?page=1&amp;limit=20</code>.</p>
+
+<pre><code>{
+  "items": [],
+  "pagination": { "page": 1, "limit": 20, "total": 156, "totalPages": 8 }
+}</code></pre>
+
+<h3><span class="id">BE-27</span>Standardize dashboard time calculations</h3>
+
+<p>Create shared helpers for start/end of day, selected timezone, due today, overdue, waiting duration, current month, published today.</p>
+
+<p>Do not scatter <code>new Date()</code> comparison logic throughout different services.</p>
+
+<!-- ============ EPIC 16 ============ -->
+<h2><span class="sec">16</span>Testing</h2>
+
+<h3><span class="id">BE-28</span>Add unit tests for dashboard aggregation</h3>
+
+<p>Test at minimum: due-today calculations, overdue tasks, blocked tasks, client approval aging, scheduled publishing due, lead follow-up overdue, missing monthly content plan, and admin filtering by <code>clientId</code>.</p>
+
+<h3><span class="id">BE-29</span>Add authorization tests <span class="chip chip--next">revised</span></h3>
+
+<table>
+  <caption>Expected result per role</caption>
+  <thead>
+    <tr>
+      <th style="width:24%">Role</th>
+      <th class="c">Dashboard</th>
+      <th class="c">Add client · edit name · assign to users</th>
+      <th class="c">Assign admins</th>
+      <th class="c">Delete client</th>
+      <th class="c">System health</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td class="mono">SUPER_ADMIN</td><td class="c yes">allowed</td><td class="c yes">allowed</td><td class="c yes">allowed</td><td class="c yes">allowed</td><td class="c yes">allowed</td></tr>
+    <tr><td class="mono">AGENCY_ADMIN</td><td class="c yes">allowed</td><td class="c yes">allowed</td><td class="c no">403</td><td class="c no">403</td><td class="c no">403</td></tr>
+    <tr><td class="mono">USER</td><td class="c off">403</td><td class="c off">403</td><td class="c off">403</td><td class="c off">403</td><td class="c off">403</td></tr>
+    <tr><td>Client user</td><td class="c off">403</td><td class="c off">403</td><td class="c off">403</td><td class="c off">403</td><td class="c off">403</td></tr>
+  </tbody>
+</table>
+
+<p>Also verify:</p>
+<ul>
+  <li>An <code>AGENCY_ADMIN</code> cannot promote themselves or anyone else to <code>AGENCY_ADMIN</code>/<code>SUPER_ADMIN</code> through any route, including <code>PATCH /api/users/:userId</code></li>
+  <li>An <code>AGENCY_ADMIN</code> calling <code>DELETE /api/companies/:companyId</code> gets <code>403</code> and the client row still exists afterwards</li>
+  <li>A <code>403</code> response body leaks no client or user data</li>
+</ul>
+
+<h3><span class="id">BE-30</span>Add integration tests for cross-client isolation <span class="chip chip--next">revised</span></h3>
+
+<p>Create at least two clients with independent data. Verify:</p>
+<ul>
+  <li>A Super Admin sees both</li>
+  <li>An Admin sees both, including a client they hold no membership on</li>
+  <li>The <code>clientId</code> filter returns only the selected client</li>
+  <li>No duplicate cross-client records</li>
+  <li>A normal user and a client user cannot access the admin endpoints</li>
+</ul>
+
+<!-- ============ EPIC 17 ============ -->
+<h2><span class="sec">17</span>Client administration <span class="chip chip--new">new</span></h2>
+
+<p>The dashboard is read-only; these are the write actions behind it. All four tasks live in the existing <code>companies</code>/<code>users</code> modules — no new module is required.</p>
+
+<h3><span class="id">BE-31</span>Add client and edit client name <span class="chip chip--good">Admin + Super Admin</span></h3>
+
+<pre><code>POST  /api/companies
+PATCH /api/companies/:companyId</code></pre>
+
+<ul>
+  <li>Guard both with <code>PlatformRolesGuard</code> + <code>@PlatformRoles(SUPER_ADMIN, AGENCY_ADMIN)</code></li>
+  <li><code>POST /api/companies</code> is already correct — leave the rule as it is</li>
+  <li><strong>Fix required:</strong> <code>PATCH /api/companies/:companyId</code> currently runs <code>CompanyAccessGuard</code> only, so any member of that client can rename it. Add the platform-role requirement</li>
+  <li>Renaming a client must not change its <code>id</code>, memberships or any linked records</li>
+  <li>Record <code>CLIENT_CREATED</code> / <code>CLIENT_RENAMED</code> in the global activity log (BE-21)</li>
+</ul>
+
+<h4>Acceptance criteria</h4>
+<ul>
+  <li>Admin and Super Admin can create a client and rename it</li>
+  <li>An employee with an active membership on the client receives <code>403</code> when renaming it</li>
+  <li>The name is validated (2–160 characters) and duplicates are handled per product rules</li>
+</ul>
+
+<h3><span class="id">BE-32</span>Assign a client to users <span class="chip chip--good">Admin + Super Admin</span></h3>
+
+<pre><code>POST   /api/companies/:companyId/members
+PATCH  /api/companies/:companyId/members/:membershipId
+DELETE /api/companies/:companyId/members/:membershipId</code></pre>
+
+<ul>
+  <li>Keep the platform-role requirement already present on <code>POST</code> and apply the same rule to <code>PATCH</code> and <code>DELETE</code> — staffing decisions are administrative, not per-client</li>
+  <li>Assigning a user who is already an active member must not create a duplicate membership</li>
+  <li>Record <code>MEMBER_ADDED</code> / <code>MEMBER_REMOVED</code> in the global activity log</li>
+</ul>
+
+<h4>Acceptance criteria</h4>
+<ul>
+  <li>Admin and Super Admin can assign, re-role and remove a user on any client</li>
+  <li>An Account Manager without an admin platform role can no longer staff a client</li>
+  <li>Assignments are visible immediately in <code>/team-workload</code> and <code>/clients</code></li>
+</ul>
+
+<h3><span class="id">BE-33</span>Assign admins <span class="chip chip--gap">Super Admin only</span></h3>
+
+<pre><code>PATCH /api/users/:userId/platform-role</code></pre>
+
+<ul>
+  <li>New dedicated route, <code>@PlatformRoles(SUPER_ADMIN)</code> only</li>
+  <li><strong>Fix required:</strong> remove <code>platformRole</code> from <code>UpdateUserDto</code>, so <code>PATCH /api/users/:userId</code> — open to both admin roles — can no longer change a role. <code>CreateUserDto.platformRole</code> must be rejected with <code>403</code> unless the caller is a Super Admin</li>
+  <li>Guard rails: a Super Admin cannot demote themselves, and the last active <code>SUPER_ADMIN</code> cannot be demoted or deactivated</li>
+  <li>Record <code>PLATFORM_ROLE_CHANGED</code> — previous role, new role, actor — in the activity log</li>
+  <li>Existing sessions must pick up the new role: revoke refresh tokens or re-issue on next refresh, since the role is carried in the JWT</li>
+</ul>
+
+<h4>Acceptance criteria</h4>
+<ul>
+  <li>Super Admin can grant and revoke <code>AGENCY_ADMIN</code></li>
+  <li>Admin receives <code>403</code> on this route, including when the target is themselves</li>
+  <li>The last remaining Super Admin cannot lose the role</li>
+  <li>A demoted Admin loses dashboard access without needing a manual database change</li>
+</ul>
+
+<h3><span class="id">BE-34</span>Delete a client from the database <span class="chip chip--gap">Super Admin only</span></h3>
+
+<pre><code>DELETE /api/companies/:companyId</code></pre>
+
+<ul>
+  <li>New route, <code>@PlatformRoles(SUPER_ADMIN)</code> only</li>
+  <li>This is a <strong>hard delete</strong> — the client row is removed from PostgreSQL, not archived. Deactivating a client stays a status change via <code>PATCH</code> and remains available to Admin</li>
+  <li>Define and document the cascade before implementing: memberships, tasks, posts, content plans, approvals, leads, campaigns, automations, files, notifications and audit rows all reference the client. Decide per table whether it cascades, is nulled, or blocks the delete</li>
+  <li>Uploaded files in object storage must be removed or deliberately orphaned — state which</li>
+  <li>Run the whole delete in a single transaction; on any failure nothing is removed</li>
+  <li>Require an explicit confirmation — for example <code>?confirm=&lt;client name&gt;</code> — and return <code>409</code> if it does not match</li>
+  <li>Write <code>CLIENT_DELETED</code> to the activity log <strong>before</strong> the delete commits, with a snapshot of the client name and the deleted row counts, so the record survives the client's removal</li>
+</ul>
+
+<h4>Acceptance criteria</h4>
+<ul>
+  <li>Super Admin can delete a client and it is gone from the database</li>
+  <li>Admin, employees and client users receive <code>403</code> and the client still exists</li>
+  <li>No orphaned rows remain in any client-scoped table afterwards</li>
+  <li>The dashboard endpoints do not error for other clients after a delete</li>
+  <li>The activity log still shows who deleted which client and when</li>
+</ul>
+
+<p class="footer-note">Revision 2 · 25 August 2026 · Solutions Platform backend. Supersedes “Backend Tasks — Super Admin Operations Dashboard” (revision 1). Source: <code>api/docs/backend-tasks-admin-dashboard.html</code>; text version: <code>api/docs/BACKEND-TASKS-ADMIN-DASHBOARD.md</code>.</p>

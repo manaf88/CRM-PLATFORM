@@ -1,0 +1,568 @@
+<title>Solutions — شرح الـ Flow بالرسومات</title>
+<style>
+  :root {
+    --ink:      #16191D;
+    --muted:    #5C6672;
+    --faint:    #949CA3;
+    --line:     #D7DEDE;
+    --hairline: #EAEFEF;
+    --surface:  #F2F6F6;
+    --accent:   #0F5D62;
+    --good:     #2C6A4E;
+    --warn:     #8A6212;
+    --bad:      #A63A28;
+
+    --ar: "Segoe UI", Tahoma, "Noto Naskh Arabic", "Traditional Arabic", Arial, sans-serif;
+    --mono: "Cascadia Mono", Consolas, "SF Mono", monospace;
+  }
+
+  @page { size: A4; margin: 14mm 13mm; }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    direction: rtl;
+    background: #FFFFFF;
+    color: var(--ink);
+    font-family: var(--ar);
+    font-size: 10.5pt;
+    line-height: 1.7;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .head {
+    background: var(--accent);
+    color: #fff;
+    padding: 11mm 10mm 9mm;
+    margin-bottom: 8mm;
+  }
+  .head__eyebrow {
+    font-family: var(--mono);
+    direction: ltr;
+    font-size: 8pt;
+    letter-spacing: .16em;
+    color: #A8D0D2;
+    margin: 0 0 4mm;
+  }
+  .head h1 { font-size: 22pt; margin: 0 0 3mm; font-weight: 600; }
+  .head p { margin: 0; color: #CFE3E4; font-size: 11pt; max-width: 130mm; }
+
+  h2 {
+    font-size: 14pt;
+    font-weight: 700;
+    margin: 10mm 0 2mm;
+    padding-bottom: 2mm;
+    border-bottom: 2pt solid var(--accent);
+    page-break-after: avoid;
+  }
+  h2 .n {
+    font-family: var(--mono);
+    direction: ltr;
+    font-size: 10pt;
+    color: var(--accent);
+    margin-left: 3mm;
+  }
+  p { margin: 0 0 3mm; max-width: 175mm; }
+  strong { font-weight: 700; }
+  code {
+    font-family: var(--mono);
+    direction: ltr;
+    unicode-bidi: embed;
+    font-size: .88em;
+    background: var(--surface);
+    padding: .5pt 2pt;
+    border-radius: 2px;
+  }
+
+  figure {
+    margin: 0 0 5mm;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  /* Geometry must be LTR so text-anchor maps to visual x; Arabic runs inside
+     still shape and read right-to-left on their own. */
+  figure svg { width: 100%; height: auto; display: block; direction: ltr; }
+  figcaption {
+    font-size: 9pt;
+    color: var(--muted);
+    border-right: 2.5pt solid var(--accent);
+    padding: 1mm 3mm;
+    margin-top: 2mm;
+  }
+
+  /* ---- svg shared classes ---- */
+  .bx    { fill: #FFFFFF; stroke: var(--ink); stroke-width: 1.1; }
+  .bx-s  { fill: var(--surface); stroke: var(--line); stroke-width: 1; }
+  .bx-a  { fill: #E4EDEE; stroke: var(--accent); stroke-width: 1.4; }
+  .bx-d  { fill: none; stroke: var(--faint); stroke-width: 1; stroke-dasharray: 4 3; }
+  .bx-b  { fill: #F8E9E6; stroke: var(--bad); stroke-width: 1.2; }
+
+  .t    { font-family: "Segoe UI", Tahoma, Arial, sans-serif; font-size: 12px; fill: var(--ink); }
+  .t-s  { font-size: 10.5px; fill: var(--muted); }
+  .t-m  { font-family: var(--mono); font-size: 10.5px; fill: var(--ink); direction: ltr; }
+  .t-a  { fill: var(--accent); font-weight: 700; }
+  .t-b  { fill: var(--bad); font-weight: 700; }
+  .t-w  { fill: var(--warn); }
+  .t-f  { fill: var(--faint); }
+
+  .ed    { stroke: var(--ink); stroke-width: 1.2; fill: none; }
+  .ed-a  { stroke: var(--accent); stroke-width: 1.8; fill: none; }
+  .ed-w  { stroke: var(--warn); stroke-width: 1.3; fill: none; }
+  .ed-b  { stroke: var(--bad); stroke-width: 1.8; fill: none; }
+  .ed-d  { stroke: var(--faint); stroke-width: 1; stroke-dasharray: 4 3; fill: none; }
+
+  /* ---- html mockups ---- */
+  .cmp {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5mm;
+    margin: 0 0 4mm;
+    break-inside: avoid;
+  }
+  .panel { border: 1px solid var(--line); background: #fff; }
+  .panel__bar {
+    font-size: 8.6pt;
+    font-weight: 700;
+    padding: 2mm 3mm;
+    border-bottom: 1px solid var(--line);
+  }
+  .panel--now .panel__bar { background: #F8E9E6; color: var(--bad); }
+  .panel--new .panel__bar { background: #E4EDEE; color: var(--accent); }
+  .panel__body { padding: 3mm; }
+
+  .ui-sel {
+    border: 1px solid var(--line);
+    background: var(--surface);
+    padding: 1.6mm 2.5mm;
+    font-size: 8.6pt;
+    margin-bottom: 2.5mm;
+    display: flex;
+    justify-content: space-between;
+  }
+  .ui-sel b { font-weight: 700; }
+  .ui-row {
+    display: flex;
+    align-items: baseline;
+    gap: 2mm;
+    font-size: 8.8pt;
+    padding: 1.3mm 0;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .ui-row:last-child { border-bottom: 0; }
+  .tag {
+    font-size: 7.2pt;
+    padding: .4mm 1.4mm;
+    border-radius: 2px;
+    background: var(--surface);
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .tag--c1 { background: #E4EDEE; color: var(--accent); }
+  .tag--c2 { background: #F6EEDC; color: var(--warn); }
+  .ui-grp {
+    font-size: 7.6pt;
+    font-weight: 700;
+    color: var(--muted);
+    margin: 2mm 0 1mm;
+  }
+  .ui-grp--late { color: var(--bad); }
+  .ui-miss {
+    font-size: 8.4pt;
+    color: var(--bad);
+    background: #F8E9E6;
+    padding: 2mm;
+    margin-top: 2.5mm;
+  }
+  .num { font-family: var(--mono); direction: ltr; font-variant-numeric: tabular-nums; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9pt;
+    margin: 0 0 4mm;
+  }
+  th {
+    text-align: right;
+    font-weight: 700;
+    border-bottom: 1.2pt solid var(--ink);
+    padding: 1.8mm 2mm;
+    font-size: 8.6pt;
+  }
+  td { border-bottom: 1px solid var(--hairline); padding: 1.7mm 2mm; vertical-align: top; }
+  tbody tr:nth-child(even) { background: #FAFCFC; }
+  .bad-t  { color: var(--bad); font-weight: 700; }
+  .good-t { color: var(--good); font-weight: 700; }
+
+  .note {
+    border-right: 2.5pt solid var(--accent);
+    background: var(--surface);
+    padding: 3mm 4mm;
+    margin: 0 0 4mm;
+    break-inside: avoid;
+  }
+  .note--bad { border-right-color: var(--bad); background: #FBF3F1; }
+  .note p:last-child { margin-bottom: 0; }
+  .note__l {
+    font-size: 8.4pt;
+    font-weight: 700;
+    color: var(--accent);
+    margin: 0 0 1.5mm;
+  }
+  .note--bad .note__l { color: var(--bad); }
+  .pb { page-break-before: always; }
+</style>
+
+<div class="head">
+  <p class="head__eyebrow">SOLUTIONS PLATFORM</p>
+  <h1>شرح النظام بالرسومات</h1>
+  <p>كيف يعمل الـ flow الآن، وكيف يصبح بعد التعديل — بالصور بدل الكلام.</p>
+</div>
+
+<!-- ============ 1 ============ -->
+<h2><span class="n">1</span>من يرى ماذا؟</h2>
+
+<p>أهم فكرة في النظام: <strong>Solutions ليست عميلاً ولا سجلاً في قاعدة البيانات — هي الإطار نفسه.</strong> العملاء هم السجلات، والموظف يمكن أن يعمل على أكثر من عميل في نفس الوقت.</p>
+
+<figure>
+  <svg viewBox="0 0 700 300" role="img" aria-label="مخطط يوضح أن Solutions هي الإطار، وأن دينا تعمل على عميلين في نفس الوقت">
+    <defs>
+      <marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <polygon points="0,1 10,5 0,9" fill="currentColor"/>
+      </marker>
+    </defs>
+
+    <rect x="16" y="16" width="668" height="268" class="bx-d" rx="4"/>
+    <text x="668" y="36" text-anchor="end" class="t t-f">Solutions — النظام نفسه، وليس عميلاً</text>
+
+    <!-- employees (right) -->
+    <text x="655" y="66" text-anchor="end" class="t t-s">الموظفون</text>
+    <rect x="530" y="76"  width="126" height="36" class="bx-a" rx="3"/>
+    <text x="593" y="99"  text-anchor="middle" class="t">دينا — مصمّمة</text>
+    <rect x="530" y="146" width="126" height="36" class="bx" rx="3"/>
+    <text x="593" y="169" text-anchor="middle" class="t">عمر — كاتب</text>
+    <rect x="530" y="216" width="126" height="36" class="bx" rx="3"/>
+    <text x="593" y="239" text-anchor="middle" class="t">سامي — مبيعات</text>
+
+    <!-- clients (left) -->
+    <text x="90" y="66" text-anchor="start" class="t t-s">العملاء</text>
+    <rect x="86" y="76"  width="120" height="36" class="bx-s" rx="3"/>
+    <text x="146" y="99"  text-anchor="middle" class="t">Curby</text>
+    <rect x="86" y="146" width="120" height="36" class="bx-s" rx="3"/>
+    <text x="146" y="169" text-anchor="middle" class="t">Taxero</text>
+    <rect x="86" y="216" width="120" height="36" class="bx-s" rx="3"/>
+    <text x="146" y="239" text-anchor="middle" class="t">الزمان</text>
+
+    <!-- edges -->
+    <g color="#0F5D62">
+      <path d="M 530 90 L 206 90" class="ed-a" marker-end="url(#a1)"/>
+      <path d="M 530 100 C 400 100, 360 160, 206 160" class="ed-a" marker-end="url(#a1)"/>
+    </g>
+    <g color="#16191D">
+      <path d="M 530 160 C 420 160, 330 104, 206 100" class="ed" marker-end="url(#a1)"/>
+      <path d="M 530 234 L 206 234" class="ed" marker-end="url(#a1)"/>
+    </g>
+
+    <text x="368" y="205" text-anchor="middle" class="t t-s t-a">دينا لها خطّان — تعمل على عميلين</text>
+    <text x="360" y="278" text-anchor="middle" class="t t-s">كل خط = عضوية بدور محدد على ذلك العميل</text>
+  </svg>
+  <figcaption>الموظف مرتبط بالعملاء الذين يعمل عليهم فقط. دينا لها خطّان، فترى Curby و Taxero. عمر له خط واحد، فلا يرى Taxero إطلاقاً — ولو غيّر الرابط بنفسه.</figcaption>
+</figure>
+
+<!-- ============ 2 ============ -->
+<h2><span class="n">2</span>الثغرة: مسار الموافقات له باب خلفي</h2>
+
+<p>هذا أخطر ما وجدته. المسار الصحيح مرسوم بالأسود، وله قواعد وأدوار وسجل كامل. لكن سهماً واحداً أحمر يتجاوزه كله.</p>
+
+<figure>
+  <svg viewBox="0 0 720 360" role="img" aria-label="مخطط حالات البوست يوضح المسار الصحيح وسهماً أحمر يتجاوز كل المراحل عبر PATCH">
+    <defs>
+      <marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <polygon points="0,1 10,5 0,9" fill="currentColor"/>
+      </marker>
+    </defs>
+
+    <!-- main path, RTL: DRAFT rightmost -->
+    <rect x="586" y="44" width="110" height="34" class="bx" rx="3"/>
+    <text x="641" y="66" text-anchor="middle" class="t-m">DRAFT</text>
+
+    <rect x="386" y="44" width="152" height="34" class="bx" rx="3"/>
+    <text x="462" y="66" text-anchor="middle" class="t-m">READY_FOR_CLIENT</text>
+
+    <rect x="222" y="44" width="116" height="34" class="bx" rx="3"/>
+    <text x="280" y="66" text-anchor="middle" class="t-m">APPROVED</text>
+
+    <rect x="60" y="44" width="114" height="34" class="bx-a" rx="3"/>
+    <text x="117" y="66" text-anchor="middle" class="t-m">PUBLISHED</text>
+
+    <g color="#16191D">
+      <path d="M 586 61 L 538 61" class="ed" marker-end="url(#a2)"/>
+      <path d="M 386 61 L 338 61" class="ed" marker-end="url(#a2)"/>
+      <path d="M 222 61 L 174 61" class="ed" marker-end="url(#a2)"/>
+    </g>
+    <text x="562" y="34" text-anchor="middle" class="t t-s">إرسال</text>
+    <text x="362" y="34" text-anchor="middle" class="t t-s">موافقة العميل</text>
+    <text x="198" y="34" text-anchor="middle" class="t t-s">نشر</text>
+
+    <!-- changes requested -->
+    <rect x="386" y="132" width="152" height="34" class="bx" rx="3"/>
+    <text x="462" y="154" text-anchor="middle" class="t-m">CHANGES_REQ.</text>
+    <g color="#16191D">
+      <path d="M 447 78 L 447 132" class="ed" marker-end="url(#a2)"/>
+      <path d="M 477 132 L 477 78" class="ed" marker-end="url(#a2)"/>
+    </g>
+    <text x="400" y="108" text-anchor="middle" class="t t-s">تعديل</text>
+    <text x="524" y="108" text-anchor="middle" class="t t-s">إعادة</text>
+
+    <!-- canceled -->
+    <rect x="60" y="132" width="114" height="34" class="bx" rx="3"/>
+    <text x="117" y="154" text-anchor="middle" class="t-m">CANCELED</text>
+    <path d="M 386 149 L 174 149" class="ed" marker-end="url(#a2)" color="#16191D"/>
+    <text x="280" y="142" text-anchor="middle" class="t t-s">رفض</text>
+
+    <!-- unreachable -->
+    <rect x="586" y="200" width="110" height="34" class="bx-d" rx="3"/>
+    <text x="641" y="222" text-anchor="middle" class="t-m t-f">INTERNAL_REV.</text>
+    <rect x="222" y="200" width="116" height="34" class="bx-d" rx="3"/>
+    <text x="280" y="222" text-anchor="middle" class="t-m t-f">SCHEDULED</text>
+    <text x="462" y="222" text-anchor="middle" class="t t-s t-f">حالتان لا يمكن الوصول إليهما أبداً</text>
+
+    <!-- the bypass -->
+    <path d="M 641 78 C 641 330, 117 330, 117 78" class="ed-b" marker-end="url(#a2)" color="#A63A28"/>
+    <text x="379" y="322" text-anchor="middle" class="t t-b">PATCH status — يتجاوز كل المراحل</text>
+    <text x="379" y="342" text-anchor="middle" class="t t-s">بلا موافقة عميل · بلا سجل · بلا إشعار</text>
+  </svg>
+  <figcaption>الأسود هو المسار المحمي بالأدوار والسجل. الأحمر هو <code>PATCH /posts/{id}</code> مع حقل <code>status</code>: يستطيع أي Social Media Manager نقل البوست من مسودة إلى «منشور» مباشرة — والعميل لم يره.</figcaption>
+</figure>
+
+<div class="note note--bad">
+  <p class="note__l">الإصلاح</p>
+  <p>حذف حقل <code>status</code> من <code>UpdateContentPostDto</code>. تغيير الحالة يكون حصراً عبر عمليات الموافقة الخمس. <strong>سطران، وساعات عمل.</strong></p>
+</div>
+
+<!-- ============ 3 ============ -->
+<h2 class="pb"><span class="n">3</span>من يحرّك العمل؟ الآن مقابل بعد التعديل</h2>
+
+<p>هذه هي المشكلة الحقيقية في الـ flow. المربعات هي نفسها في الحالتين — <strong>ما يتغيّر هو الأسهم:</strong> من الذي ينقل العمل من مربع إلى الذي بعده.</p>
+
+<figure>
+  <svg viewBox="0 0 720 300" role="img" aria-label="مقارنة: الآن كل انتقال يحتاج إنساناً، بعد التعديل النظام ينقل نصف الخطوات">
+    <defs>
+      <marker id="a3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <polygon points="0,1 10,5 0,9" fill="currentColor"/>
+      </marker>
+    </defs>
+
+    <!-- ROW: NOW -->
+    <text x="700" y="24" text-anchor="end" class="t t-b">الآن — كل سهم يحتاج إنساناً يتذكّر</text>
+
+    <rect x="596" y="40" width="104" height="34" class="bx" rx="3"/>
+    <text x="648" y="62" text-anchor="middle" class="t">بوست</text>
+    <rect x="452" y="40" width="104" height="34" class="bx" rx="3"/>
+    <text x="504" y="62" text-anchor="middle" class="t">مهام</text>
+    <rect x="308" y="40" width="104" height="34" class="bx" rx="3"/>
+    <text x="360" y="62" text-anchor="middle" class="t">تصميم جاهز</text>
+    <rect x="164" y="40" width="104" height="34" class="bx" rx="3"/>
+    <text x="216" y="62" text-anchor="middle" class="t">عند العميل</text>
+    <rect x="20" y="40" width="104" height="34" class="bx" rx="3"/>
+    <text x="72" y="62" text-anchor="middle" class="t">منشور</text>
+
+    <g color="#8A6212">
+      <path d="M 596 57 L 556 57" class="ed-w" marker-end="url(#a3)"/>
+      <path d="M 452 57 L 412 57" class="ed-w" marker-end="url(#a3)"/>
+      <path d="M 308 57 L 268 57" class="ed-w" marker-end="url(#a3)"/>
+      <path d="M 164 57 L 124 57" class="ed-w" marker-end="url(#a3)"/>
+    </g>
+    <text x="576" y="94" text-anchor="middle" class="t t-s t-w">إنسان</text>
+    <text x="432" y="94" text-anchor="middle" class="t t-s t-w">إنسان</text>
+    <text x="288" y="94" text-anchor="middle" class="t t-s t-w">إنسان</text>
+    <text x="144" y="94" text-anchor="middle" class="t t-s t-w">إنسان</text>
+
+    <line x1="20" y1="128" x2="700" y2="128" class="ed-d" color="#949CA3"/>
+
+    <!-- ROW: AFTER -->
+    <text x="700" y="164" text-anchor="end" class="t t-a">بعد التعديل — النظام ينقل نصف الخطوات</text>
+
+    <rect x="596" y="180" width="104" height="34" class="bx" rx="3"/>
+    <text x="648" y="202" text-anchor="middle" class="t">بوست</text>
+    <rect x="452" y="180" width="104" height="34" class="bx-a" rx="3"/>
+    <text x="504" y="202" text-anchor="middle" class="t">مهام</text>
+    <rect x="308" y="180" width="104" height="34" class="bx" rx="3"/>
+    <text x="360" y="202" text-anchor="middle" class="t">تصميم جاهز</text>
+    <rect x="164" y="180" width="104" height="34" class="bx-a" rx="3"/>
+    <text x="216" y="202" text-anchor="middle" class="t">مراجعة داخلية</text>
+    <rect x="20" y="180" width="104" height="34" class="bx" rx="3"/>
+    <text x="72" y="202" text-anchor="middle" class="t">منشور</text>
+
+    <g color="#0F5D62">
+      <path d="M 596 197 L 556 197" class="ed-a" marker-end="url(#a3)"/>
+      <path d="M 308 197 L 268 197" class="ed-a" marker-end="url(#a3)"/>
+    </g>
+    <g color="#8A6212">
+      <path d="M 452 197 L 412 197" class="ed-w" marker-end="url(#a3)"/>
+      <path d="M 164 197 L 124 197" class="ed-w" marker-end="url(#a3)"/>
+    </g>
+    <text x="576" y="234" text-anchor="middle" class="t t-s t-a">النظام</text>
+    <text x="432" y="234" text-anchor="middle" class="t t-s t-w">إنسان ينفّذ</text>
+    <text x="288" y="234" text-anchor="middle" class="t t-s t-a">النظام</text>
+    <text x="144" y="234" text-anchor="middle" class="t t-s t-w">إنسان</text>
+
+    <text x="360" y="278" text-anchor="middle" class="t t-s">الأخضر = النظام يتحرّك وحده · البُنّي = إنسان يعمل شيئاً حقيقياً، لا «يتذكّر»</text>
+  </svg>
+  <figcaption>اليوم أربع خطوات كلها تعتمد على أن يتذكّر شخص ما نقل العمل. بعد التعديل، خطوتان يقوم بهما النظام، والخطوتان الباقيتان عملٌ حقيقي (المصمم يصمّم، المراجع يوافق) لا مجرد نقل حالة.</figcaption>
+</figure>
+
+<!-- ============ 4 ============ -->
+<h2><span class="n">4</span>شاشة الموظف: قبل وبعد</h2>
+
+<p>دينا عندها ٦ مهام اليوم: ٤ على Curby و٢ على Taxero.</p>
+
+<div class="cmp">
+  <div class="panel panel--now">
+    <div class="panel__bar">الآن — العميل «بوابة»</div>
+    <div class="panel__body">
+      <div class="ui-sel"><span>العميل المختار</span><b>Curby ▾</b></div>
+      <div class="ui-row"><span class="num">1</span><span>تصميم بوست رمضان</span></div>
+      <div class="ui-row"><span class="num">2</span><span>تصميم ٣ ستوري</span></div>
+      <div class="ui-row"><span class="num">3</span><span>تعديل كاروسيل</span></div>
+      <div class="ui-row"><span class="num">4</span><span>غلاف ريل</span></div>
+      <div class="ui-miss">وماذا عن مهامها على Taxero؟<br/>يجب أن تبدّل العميل لتراها — <b>وأن تتذكّر أنها موجودة</b>.</div>
+    </div>
+  </div>
+
+  <div class="panel panel--new">
+    <div class="panel__bar">بعد التعديل — العميل «وسم»</div>
+    <div class="panel__body">
+      <div class="ui-sel"><span>عملي اليوم</span><b>كل العملاء ▾</b></div>
+      <div class="ui-grp ui-grp--late">متأخر</div>
+      <div class="ui-row"><span>تصميم بوست رمضان</span><span class="tag tag--c1">Curby</span></div>
+      <div class="ui-grp">مستحق اليوم</div>
+      <div class="ui-row"><span>كابشن إعلان الخدمة</span><span class="tag tag--c2">Taxero</span></div>
+      <div class="ui-row"><span>تصميم ٣ ستوري</span><span class="tag tag--c1">Curby</span></div>
+      <div class="ui-row"><span>غلاف ريل</span><span class="tag tag--c2">Taxero</span></div>
+      <div class="ui-grp">هذا الأسبوع</div>
+      <div class="ui-row"><span>تعديل كاروسيل</span><span class="tag tag--c1">Curby</span></div>
+      <div class="ui-row"><span>غلاف ريل ٢</span><span class="tag tag--c1">Curby</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="note">
+  <p class="note__l">الفكرة في سطر</p>
+  <p>المبدّل يصبح <strong>فلتراً</strong> بدل <strong>بوابة</strong>. الأمان لا يتغيّر — دينا ما زالت ترى عملاءها فقط — لكنها لم تعد محبوسة داخل عميل واحد في المرة.</p>
+</div>
+
+<!-- ============ 5 ============ -->
+<h2 class="pb"><span class="n">5</span>من يوزّع المهام؟ مصفوفة المسؤوليات</h2>
+
+<p>المصفوفة موجودة ومبنية، لكنها <strong>لا تفعل شيئاً</strong> — مجرد جدول على صفحة لا يفتحها أحد. الرسم يوضح كيف تصبح هي العقل الذي يوزّع العمل.</p>
+
+<figure>
+  <svg viewBox="0 0 720 260" role="img" aria-label="مخطط يوضح كيف تحدد مصفوفة المسؤوليات من يستلم المهمة ومن يوافق">
+    <defs>
+      <marker id="a4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <polygon points="0,1 10,5 0,9" fill="currentColor"/>
+      </marker>
+    </defs>
+
+    <rect x="536" y="60" width="164" height="80" class="bx" rx="3"/>
+    <text x="618" y="88" text-anchor="middle" class="t">بوست انستغرام</text>
+    <text x="618" y="112" text-anchor="middle" class="t t-s">المجال: محتوى انستغرام</text>
+
+    <rect x="286" y="46" width="196" height="108" class="bx-a" rx="3"/>
+    <text x="384" y="72" text-anchor="middle" class="t t-a">مصفوفة المسؤوليات</text>
+    <text x="384" y="96" text-anchor="middle" class="t t-s">دينا — تنفّذ</text>
+    <text x="384" y="118" text-anchor="middle" class="t t-s">أمير — يوافق</text>
+    <text x="384" y="140" text-anchor="middle" class="t t-s">نور — تُشرف</text>
+
+    <rect x="30" y="30" width="188" height="34" class="bx" rx="3"/>
+    <text x="124" y="52" text-anchor="middle" class="t">المهمة تذهب لدينا</text>
+    <rect x="30" y="86" width="188" height="34" class="bx" rx="3"/>
+    <text x="124" y="108" text-anchor="middle" class="t">الموافقة تذهب لأمير</text>
+    <rect x="30" y="142" width="188" height="34" class="bx" rx="3"/>
+    <text x="124" y="164" text-anchor="middle" class="t">التأخير يُبلَّغ لنور</text>
+
+    <path d="M 536 100 L 482 100" class="ed-a" marker-end="url(#a4)" color="#0F5D62"/>
+    <g color="#16191D">
+      <path d="M 286 78  C 250 78, 250 47, 218 47" class="ed" marker-end="url(#a4)"/>
+      <path d="M 286 100 L 218 103" class="ed" marker-end="url(#a4)"/>
+      <path d="M 286 124 C 250 124, 250 159, 218 159" class="ed" marker-end="url(#a4)"/>
+    </g>
+
+    <text x="384" y="196" text-anchor="middle" class="t t-s">اليوم: لا يوجد هذا السهم — يوزّع الإنسان يدوياً في كل مرة</text>
+    <text x="384" y="228" text-anchor="middle" class="t t-s t-a">الأدوار = ما يُسمح لك به · المصفوفة = ما يُتوقّع منك</text>
+  </svg>
+  <figcaption>الربط الناقص هو حقل واحد: ربط البوست بمجال مسؤولية. بهذا الحقل تتحوّل المصفوفة من جدول للعرض إلى جدول توجيه فعلي.</figcaption>
+</figure>
+
+<!-- ============ 6 ============ -->
+<h2><span class="n">6</span>التقرير: من «ماذا حدث» إلى «هل نحن متأخرون»</h2>
+
+<div class="cmp">
+  <div class="panel panel--now">
+    <div class="panel__bar">الآن — يَعُدّ ما حدث</div>
+    <div class="panel__body">
+      <div class="ui-row"><span>بوستات</span><span class="num">12</span></div>
+      <div class="ui-row"><span>منشور</span><span class="num">8</span></div>
+      <div class="ui-row"><span>عملاء محتملون</span><span class="num">23</span></div>
+      <div class="ui-row"><span>نسبة التحويل</span><span class="num">17%</span></div>
+      <div class="ui-miss">السؤال الذي يسأله المدير:<br/><b>«هل نحن متأخرون على Curby؟»</b><br/>لا يمكن معرفة الجواب — لأن النظام لا يعرف ما وعدنا به.</div>
+    </div>
+  </div>
+
+  <div class="panel panel--new">
+    <div class="panel__bar">بعد التعديل — يقارن بالالتزام</div>
+    <div class="panel__body">
+      <div class="ui-row"><span>بوستات</span><span class="num">8 / 12</span><span class="tag" style="background:#F8E9E6;color:#A63A28">ناقص 4</span></div>
+      <div class="ui-row"><span>ريلز</span><span class="num">2 / 4</span><span class="tag" style="background:#F8E9E6;color:#A63A28">ناقص 2</span></div>
+      <div class="ui-row"><span>ستوري</span><span class="num">15 / 15</span><span class="tag" style="background:#E4EFE9;color:#2C6A4E">مكتمل</span></div>
+      <div class="ui-row"><span>تقرير شهري</span><span class="num">0 / 1</span><span class="tag" style="background:#F6EEDC;color:#8A6212">لم يبدأ</span></div>
+      <div class="ui-grp">اليوم 24 من الشهر</div>
+      <div class="ui-row"><span>الجواب</span><span style="color:#A63A28;font-weight:700">نعم، متأخرون على Curby</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="note">
+  <p class="note__l">الإضافة المطلوبة</p>
+  <p>حقل واحد جديد: <strong>الالتزام الشهري لكل عميل</strong> (١٢ بوست، ٤ ريلز، تقرير). هذا هو الفرق بين <strong>نظام تتبّع</strong> و<strong>أداة إدارة</strong>.</p>
+</div>
+
+<!-- ============ 7 ============ -->
+<h2 class="pb"><span class="n">7</span>الخلاصة والترتيب</h2>
+
+<table>
+  <thead><tr><th style="width:30%">الشيء</th><th style="width:35%">الآن</th><th>بعد التعديل</th></tr></thead>
+  <tbody>
+    <tr><td>خطوات يدوية لبوست واحد</td><td class="bad-t">~12</td><td class="good-t">~6</td></tr>
+    <tr><td>خطوات «تذكّر أن تنقل»</td><td class="bad-t">4</td><td class="good-t">صفر</td></tr>
+    <tr><td>إدخال شخص للنظام</td><td class="bad-t">واتساب يدوي</td><td class="good-t">إيميل تلقائي</td></tr>
+    <tr><td>شاشة الموظف</td><td class="bad-t">اختر عميلاً أولاً</td><td class="good-t">عمله عبر كل العملاء</td></tr>
+    <tr><td>توزيع المهام</td><td class="bad-t">إنسان كل مرة</td><td class="good-t">المصفوفة</td></tr>
+    <tr><td>موافقة العميل</td><td class="bad-t">حساب + لوحة داخلية</td><td class="good-t">رابط واحد</td></tr>
+    <tr><td>هل النظام ينبّهك؟</td><td class="bad-t">لا</td><td class="good-t">نعم، عند الاستحقاق</td></tr>
+    <tr><td>هل نحن متأخرون؟</td><td class="bad-t">لا يمكن معرفته</td><td class="good-t">رقم واضح</td></tr>
+  </tbody>
+</table>
+
+<h3 style="font-size:11pt;margin:6mm 0 2mm">الترتيب المقترح</h3>
+
+<table>
+  <thead><tr><th style="width:8%">#</th><th style="width:52%">العمل</th><th style="width:18%">المدة</th><th>يعتمد على</th></tr></thead>
+  <tbody>
+    <tr><td class="num">1</td><td><b>إغلاق ثغرة <code>PATCH status</code></b> — شكل 2</td><td>ساعات</td><td>لا شيء</td></tr>
+    <tr><td class="num">2</td><td>إيميلات التنشيط + إصلاح رابط الدعوة + بيانات تجريبية</td><td>2–3 أيام</td><td>لا شيء</td></tr>
+    <tr><td class="num">3</td><td><b>شاشة «عملي اليوم»</b> — شكل 4</td><td>1–2 يوم</td><td>لا شيء</td></tr>
+    <tr><td class="num">4</td><td>البوست يولّد مهامه + المهام تحرّك البوست — شكل 3</td><td>2 أيام</td><td>3</td></tr>
+    <tr><td class="num">5</td><td>المصفوفة توزّع وتوجّه — شكل 5</td><td>2–3 أيام</td><td>4</td></tr>
+    <tr><td class="num">6</td><td>الالتزام الشهري في التقارير — شكل 6</td><td>2 أيام</td><td>لا شيء</td></tr>
+    <tr><td class="num">7</td><td>تنبيهات المواعيد (scheduler)</td><td>يوم</td><td>4</td></tr>
+    <tr><td class="num">8</td><td>روابط المراجعة العامة للعميل</td><td>2–3 أيام</td><td>لا شيء</td></tr>
+  </tbody>
+</table>
+
+<div class="note">
+  <p class="note__l">من أين نبدأ</p>
+  <p>البنود <strong>1</strong> و<strong>2</strong> و<strong>3</strong> لا تعتمد على أي قرار تصميمي، ويمكن البدء بها فوراً. البند <strong>1</strong> إصلاح خطأ وليس ميزة — يُنفَّذ اليوم.</p>
+</div>

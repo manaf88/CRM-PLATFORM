@@ -1,0 +1,1009 @@
+<title>Solutions Platform — System Documentation</title>
+<style>
+  :root {
+    --ink:      #191C21;
+    --muted:    #5E6672;
+    --faint:    #8A9199;
+    --line:     #DCE0E3;
+    --hairline: #EDF0F1;
+    --surface:  #F4F7F7;
+    --accent:   #0F5D62;
+    --accent-d: #0A4347;
+    --good:     #2C6A4E;
+    --partial:  #8A6212;
+    --gap:      #9C382A;
+
+    --serif: Georgia, "Iowan Old Style", "Palatino Linotype", Palatino, serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: "Cascadia Mono", Consolas, "SF Mono", Menlo, "DejaVu Sans Mono", monospace;
+  }
+
+  @page { size: A4; margin: 17mm 15mm 15mm; }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: #FFFFFF;
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 9.6pt;
+    line-height: 1.55;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* ---------- cover ---------- */
+  .cover { page-break-after: always; padding-top: 4mm; }
+  .cover__block {
+    background: var(--accent);
+    color: #FFFFFF;
+    padding: 16mm 12mm 14mm;
+  }
+  .cover__eyebrow {
+    font-family: var(--mono);
+    font-size: 8pt;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: #A7CFD1;
+    margin: 0 0 7mm;
+  }
+  .cover__title {
+    font-family: var(--serif);
+    font-size: 30pt;
+    line-height: 1.08;
+    font-weight: 400;
+    margin: 0 0 5mm;
+    text-wrap: balance;
+  }
+  .cover__sub {
+    font-size: 11pt;
+    line-height: 1.5;
+    color: #CFE3E4;
+    margin: 0;
+    max-width: 105mm;
+  }
+  .cover__meta {
+    margin-top: 12mm;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6mm;
+    border-top: 1px solid var(--line);
+    padding-top: 5mm;
+  }
+  .cover__meta dt {
+    font-family: var(--mono);
+    font-size: 7.4pt;
+    letter-spacing: .13em;
+    text-transform: uppercase;
+    color: var(--faint);
+    margin: 0 0 1.5mm;
+  }
+  .cover__meta dd { margin: 0; font-size: 9.6pt; color: var(--ink); }
+
+  .cover__note {
+    margin-top: 8mm;
+    border-left: 2.5pt solid var(--accent);
+    background: var(--surface);
+    padding: 4mm 5mm;
+    font-size: 9.2pt;
+    color: var(--muted);
+  }
+
+  /* ---------- contents ---------- */
+  .toc { page-break-after: always; }
+  .toc ol { list-style: none; margin: 0; padding: 0; }
+  .toc > ol > li { margin-bottom: 1.5mm; }
+  .toc__part {
+    font-family: var(--mono);
+    font-size: 7.6pt;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 7mm 0 3mm;
+    padding-bottom: 1.5mm;
+    border-bottom: 1px solid var(--line);
+  }
+  .toc__row {
+    display: flex;
+    align-items: baseline;
+    gap: 3mm;
+    padding: 1.6mm 0;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .toc__num {
+    font-family: var(--mono);
+    font-size: 8.4pt;
+    color: var(--accent);
+    min-width: 8mm;
+  }
+  .toc__label { flex: 1; }
+
+  /* ---------- structure ---------- */
+  .part-divider {
+    page-break-before: always;
+    border-top: 3pt solid var(--accent);
+    padding-top: 5mm;
+    margin-bottom: 8mm;
+  }
+  .part-divider__kicker {
+    font-family: var(--mono);
+    font-size: 7.6pt;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 2mm;
+  }
+  .part-divider__title {
+    font-family: var(--serif);
+    font-size: 19pt;
+    font-weight: 400;
+    margin: 0 0 2.5mm;
+  }
+  .part-divider__lede {
+    font-size: 10pt;
+    color: var(--muted);
+    margin: 0;
+    max-width: 140mm;
+  }
+
+  h2 {
+    font-family: var(--serif);
+    font-size: 14pt;
+    font-weight: 400;
+    margin: 9mm 0 3mm;
+    padding-bottom: 1.5mm;
+    border-bottom: 1px solid var(--line);
+    page-break-after: avoid;
+  }
+  h2 .sec {
+    font-family: var(--mono);
+    font-size: 9pt;
+    color: var(--accent);
+    margin-right: 2.5mm;
+  }
+  h3 {
+    font-family: var(--sans);
+    font-size: 10.2pt;
+    font-weight: 650;
+    margin: 6mm 0 2mm;
+    page-break-after: avoid;
+  }
+  h4 {
+    font-family: var(--mono);
+    font-size: 8.2pt;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 600;
+    margin: 5mm 0 2mm;
+    page-break-after: avoid;
+  }
+
+  p { margin: 0 0 2.6mm; max-width: 165mm; }
+  strong { font-weight: 650; }
+  a { color: var(--accent); text-decoration: none; }
+
+  ul, ol { margin: 0 0 3mm; padding-left: 5.5mm; max-width: 165mm; }
+  li { margin-bottom: 1.2mm; }
+
+  code {
+    font-family: var(--mono);
+    font-size: .89em;
+    background: var(--surface);
+    padding: .5pt 2pt;
+    border-radius: 2px;
+    word-break: break-word;
+  }
+
+  pre {
+    font-family: var(--mono);
+    font-size: 8.1pt;
+    line-height: 1.45;
+    background: var(--surface);
+    border-left: 2pt solid var(--accent);
+    padding: 3mm 4mm;
+    margin: 0 0 3.5mm;
+    white-space: pre-wrap;
+    word-break: break-word;
+    break-inside: avoid;
+  }
+  pre code { background: none; padding: 0; font-size: inherit; }
+
+  /* ---------- tables ---------- */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0 0 4mm;
+    font-size: 8.7pt;
+    font-variant-numeric: tabular-nums;
+  }
+  caption {
+    caption-side: top;
+    text-align: left;
+    font-family: var(--mono);
+    font-size: 7.6pt;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding-bottom: 1.5mm;
+  }
+  th {
+    text-align: left;
+    font-weight: 650;
+    font-size: 8.1pt;
+    letter-spacing: .04em;
+    color: var(--ink);
+    border-bottom: 1.2pt solid var(--ink);
+    padding: 1.8mm 2mm;
+    vertical-align: bottom;
+  }
+  td {
+    border-bottom: 1px solid var(--hairline);
+    padding: 1.7mm 2mm;
+    vertical-align: top;
+  }
+  tbody tr:nth-child(even) { background: #FAFCFC; }
+  tr { break-inside: avoid; }
+  th.c, td.c { text-align: center; }
+  td.mono, th.mono { font-family: var(--mono); font-size: 8pt; }
+  .yes { color: var(--good); font-weight: 650; }
+  .no  { color: var(--faint); }
+
+  /* ---------- chips ---------- */
+  .chip {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 7.2pt;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    padding: .7mm 1.8mm;
+    border-radius: 2px;
+    white-space: nowrap;
+    font-weight: 600;
+  }
+  .chip--good    { background: #E4EFE9; color: var(--good); }
+  .chip--partial { background: #F6EEDC; color: var(--partial); }
+  .chip--gap     { background: #F6E5E2; color: var(--gap); }
+  .chip--next    { background: #E3EDEE; color: var(--accent-d); }
+
+  /* ---------- callouts ---------- */
+  .callout {
+    border-left: 2.5pt solid var(--accent);
+    background: var(--surface);
+    padding: 3.5mm 4.5mm;
+    margin: 0 0 4mm;
+    break-inside: avoid;
+  }
+  .callout--gap { border-left-color: var(--gap); background: #FBF3F1; }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout__label {
+    font-family: var(--mono);
+    font-size: 7.4pt;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 1.5mm;
+    font-weight: 600;
+  }
+  .callout--gap .callout__label { color: var(--gap); }
+
+  /* ---------- diagnosis / plan items ---------- */
+  .item {
+    display: grid;
+    grid-template-columns: 8mm 1fr;
+    gap: 0 3.5mm;
+    margin-bottom: 5mm;
+    break-inside: avoid;
+  }
+  .item__num {
+    font-family: var(--mono);
+    font-size: 13pt;
+    color: var(--accent);
+    line-height: 1.1;
+  }
+  .item__body > :last-child { margin-bottom: 0; }
+  .item__title { font-weight: 650; margin: 0 0 1.5mm; }
+
+  .meta-line {
+    font-family: var(--mono);
+    font-size: 7.8pt;
+    color: var(--muted);
+    margin-top: 1.5mm;
+  }
+  .meta-line b { color: var(--accent-d); font-weight: 650; }
+
+  .footer-note {
+    margin-top: 9mm;
+    padding-top: 3mm;
+    border-top: 1px solid var(--line);
+    font-size: 8.4pt;
+    color: var(--faint);
+  }
+</style>
+
+<!-- ============ COVER ============ -->
+<section class="cover">
+  <div class="cover__block">
+    <p class="cover__eyebrow">System Documentation</p>
+    <h1 class="cover__title">Solutions Platform</h1>
+    <p class="cover__sub">Internal operations system for the Solutions agency — the current build, and the plan for what comes next.</p>
+  </div>
+
+  <dl class="cover__meta">
+    <div><dt>Document</dt><dd>Current state &amp; roadmap</dd></div>
+    <div><dt>Audience</dt><dd>Solutions team &amp; developers</dd></div>
+    <div><dt>Backend</dt><dd>NestJS 11 · PostgreSQL</dd></div>
+  </dl>
+
+  <div class="cover__note">
+    <p>This document describes what has been verified in the codebase, not what was planned. Where a feature is incomplete or missing it is marked as such, including the gaps that block production deployment. Section&nbsp;7 lists those gaps in full.</p>
+  </div>
+</section>
+
+<!-- ============ CONTENTS ============ -->
+<section class="toc">
+  <h2 style="margin-top:0"><span class="sec">—</span>Contents</h2>
+
+  <p class="toc__part">Part I · The system today</p>
+  <ol>
+    <li><div class="toc__row"><span class="toc__num">1</span><span class="toc__label">What the platform is</span></div></li>
+    <li><div class="toc__row"><span class="toc__num">2</span><span class="toc__label">Architecture and stack</span></div></li>
+    <li><div class="toc__row"><span class="toc__num">3</span><span class="toc__label">People, roles and permissions</span></div></li>
+    <li><div class="toc__row"><span class="toc__num">4</span><span class="toc__label">Feature inventory</span></div></li>
+    <li><div class="toc__row"><span class="toc__num">5</span><span class="toc__label">The content approval workflow</span></div></li>
+    <li><div class="toc__row"><span class="toc__num">6</span><span class="toc__label">API reference</span></div></li>
+    <li><div class="toc__row"><span class="toc__num">7</span><span class="toc__label">Known gaps</span></div></li>
+  </ol>
+
+  <p class="toc__part">Part II · What we do next</p>
+  <ol>
+    <li><div class="toc__row"><span class="toc__num">8</span><span class="toc__label">Why the flow feels wrong</span></div></li>
+    <li><div class="toc__row"><span class="toc__num">9</span><span class="toc__label">The plan, by priority</span></div></li>
+    <li><div class="toc__row"><span class="toc__num">10</span><span class="toc__label">Sequence and dependencies</span></div></li>
+    <li><div class="toc__row"><span class="toc__num">11</span><span class="toc__label">Decisions we need</span></div></li>
+  </ol>
+
+  <p class="toc__part">Appendix</p>
+  <ol>
+    <li><div class="toc__row"><span class="toc__num">A</span><span class="toc__label">Running the system</span></div></li>
+    <li><div class="toc__row"><span class="toc__num">B</span><span class="toc__label">Environment variables</span></div></li>
+    <li><div class="toc__row"><span class="toc__num">C</span><span class="toc__label">Enumerated values</span></div></li>
+  </ol>
+</section>
+
+<!-- ============ PART I ============ -->
+<div class="part-divider">
+  <p class="part-divider__kicker">Part I</p>
+  <h1 class="part-divider__title">The system today</h1>
+  <p class="part-divider__lede">Nineteen modules and roughly sixty endpoints are built and working. The difficult foundations — multi-client isolation, role enforcement, and the approval state machine — are real implementations, not scaffolding. The weaknesses are in the connective tissue between features, and in the operational pieces needed to run in production.</p>
+</div>
+
+<h2><span class="sec">1</span>What the platform is</h2>
+
+<p><strong>Solutions is the system itself. It is not a record in the database.</strong> The records are the <strong>clients</strong> Solutions works for — Al&nbsp;Zaman, Curby, Taxero.</p>
+
+<p>An employee works across several clients, holds a possibly different role on each, and sees only the clients they are assigned to. The interface therefore reads <strong>Solutions&nbsp;(Curby)</strong>: Solutions is the product, the client is the workspace currently in view.</p>
+
+<table>
+  <caption>Business language mapped to the data model</caption>
+  <thead><tr><th style="width:34%">Business term</th><th style="width:26%">In the code</th><th>Meaning</th></tr></thead>
+  <tbody>
+    <tr><td>Solutions</td><td class="mono">—</td><td>The application. No table, no endpoint</td></tr>
+    <tr><td>Client</td><td class="mono">company</td><td>Al Zaman, Curby, Taxero — one row each</td></tr>
+    <tr><td>Employee</td><td class="mono">user</td><td>A member of Solutions staff</td></tr>
+    <tr><td>"Dina works on Curby as Designer"</td><td class="mono">company_membership</td><td>Links an employee to a client, carrying the role</td></tr>
+    <tr><td>The clients I work on</td><td class="mono">GET /companies</td><td>Returns only that employee's clients</td></tr>
+  </tbody>
+</table>
+
+<div class="callout">
+  <p class="callout__label">Naming note</p>
+  <p>The API calls a client a <code>company</code>, and every feature route is scoped <code>/api/companies/{companyId}/…</code>. The interface says "client". This split is deliberate for now — renaming the routes is a large refactor and the permission rules are still settling — but it should be unified once they are final.</p>
+</div>
+
+<h3>Data isolation</h3>
+<p>Every feature route carries a <code>companyId</code>, and two guards run on it. <code>CompanyAccessGuard</code> confirms the caller has an active membership for that client; <code>CompanyRolesGuard</code> then confirms their role on <em>that</em> client permits the action. An employee on Curby cannot read Taxero data by changing the URL. This is the property the whole system depends on and it should be re-verified after any change to routing or guards.</p>
+
+<h2><span class="sec">2</span>Architecture and stack</h2>
+
+<table>
+  <caption>Backend</caption>
+  <thead><tr><th style="width:32%">Concern</th><th>Choice</th></tr></thead>
+  <tbody>
+    <tr><td>Framework</td><td>NestJS 11 (modular, one module per domain)</td></tr>
+    <tr><td>Database</td><td>PostgreSQL via TypeORM</td></tr>
+    <tr><td>Authentication</td><td>JWT access token + refresh token in an httpOnly cookie</td></tr>
+    <tr><td>Password hashing</td><td>argon2id</td></tr>
+    <tr><td>File storage</td><td>S3-compatible (MinIO locally), presigned download URLs</td></tr>
+    <tr><td>Validation</td><td>class-validator on every request body; Joi on environment variables</td></tr>
+    <tr><td>Rate limiting</td><td>Global throttler, tightened on authentication routes</td></tr>
+    <tr><td>AI</td><td>OpenAI SDK, with a mock provider used by default</td></tr>
+    <tr><td>Hardening</td><td>helmet, compression, CORS allow-list, strict body whitelisting</td></tr>
+  </tbody>
+</table>
+
+<p>Requests are validated with <code>whitelist</code> and <code>forbidNonWhitelisted</code> enabled, so any undeclared field in a request body is rejected with a 400 rather than silently ignored.</p>
+
+<h2><span class="sec">3</span>People, roles and permissions</h2>
+
+<p>Authorisation works on two independent levels. A <strong>platform role</strong> describes standing within Solutions. A <strong>client role</strong> describes what a person does on one specific client, and the same person may hold different client roles on different clients.</p>
+
+<table>
+  <caption>Platform roles</caption>
+  <thead><tr><th style="width:30%">Role</th><th>Scope</th></tr></thead>
+  <tbody>
+    <tr><td class="mono">SUPER_ADMIN</td><td>Full access. Bypasses client role checks on every client</td></tr>
+    <tr><td class="mono">AGENCY_ADMIN</td><td>Solutions management. Creates clients, creates employees, staffs clients</td></tr>
+    <tr><td class="mono">USER</td><td>Normal employee. Access is entirely determined by their client memberships</td></tr>
+  </tbody>
+</table>
+
+<table>
+  <caption>Client roles</caption>
+  <thead><tr><th style="width:34%">Role</th><th>Responsibility</th></tr></thead>
+  <tbody>
+    <tr><td class="mono">ACCOUNT_MANAGER</td><td>Runs the client. The only client role that can invite, report and manage automations</td></tr>
+    <tr><td class="mono">SOCIAL_MEDIA_MANAGER</td><td>Content plans, posts, publishing</td></tr>
+    <tr><td class="mono">COPYWRITER</td><td>Captions and copy tasks</td></tr>
+    <tr><td class="mono">DESIGNER</td><td>Visual assets, file uploads</td></tr>
+    <tr><td class="mono">SALES_AGENT</td><td>The leads pipeline</td></tr>
+    <tr><td class="mono">CLIENT_OWNER</td><td>Client side — approves work, reads reports</td></tr>
+    <tr><td class="mono">CLIENT_REVIEWER</td><td>Client side — approves work</td></tr>
+  </tbody>
+</table>
+
+<p>The last two are not Solutions employees. They are the client's own people, and they reach the system by invitation.</p>
+
+<table>
+  <caption>Capability matrix — client roles</caption>
+  <thead>
+    <tr>
+      <th style="width:37%">Capability</th>
+      <th class="c">AM</th><th class="c">SMM</th><th class="c">Copy</th>
+      <th class="c">Design</th><th class="c">Sales</th><th class="c">Owner</th><th class="c">Rev.</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>Manage members &amp; invitations</td><td class="c yes">●</td><td class="c no">–</td><td class="c no">–</td><td class="c no">–</td><td class="c no">–</td><td class="c no">–</td><td class="c no">–</td></tr>
+    <tr><td>Create / edit content plans</td><td class="c yes">●</td><td class="c yes">●</td><td class="c no">–</td><td class="c no">–</td><td class="c no">–</td><td class="c no">–</td><td class="c no">–</td></tr>
+    <tr><td>Create / edit posts</td><td class="c yes">●</td><td class="c yes">●</td><td class="c no">–</td><td class="c no">–</td><td class="c no">–</td><td class="c no">–</td><td class="c no">–</td></tr>
+    <tr><td>Submit to client · publish</td><td class="c yes">●</td><td class="c yes">●</td><td class="c no">–</td><td class="c no">–</td><td class="c no">–</td><td class="c no">–</td><td class="c no">–</td></tr>
+    <tr><td>Approve · request changes · reject</td><td class="c yes">●</td><td class="c no">–</td><td class="c no">–</td><td class="c no">–</td><td class="c no">–</td><td class="c yes">●</td><td class="c yes">●</td></tr>
+    <tr><td>Comment on posts</td><td class="c yes">●</td><td class="c yes">●</td><td class="c yes">●</td><td class="c yes">●</td><td class="c no">–</td><td class="c yes">●</td><td class="c yes">●</td></tr>
+    <tr><td>Upload files &amp; post assets</td><td class="c yes">●</td><td class="c yes">●</td><td class="c no">–</td><td class="c yes">●</td><td class="c no">–</td><td class="c no">–</td><td class="c no">–</td></tr>
+    <tr><td>Create / edit leads</td><td class="c yes">●</td><td class="c no">–</td><td class="c no">–</td><td class="c no">–</td><td class="c yes">●</td><td class="c yes">●</td><td class="c no">–</td></tr>
+    <tr><td>Create / assign tasks</td><td class="c yes">●</td><td class="c yes">●</td><td class="c no">–</td><td class="c no">–</td><td class="c no">–</td><td class="c no">–</td><td class="c no">–</td></tr>
+    <tr><td>Work on tasks</td><td class="c yes">●</td><td class="c yes">●</td><td class="c yes">●</td><td class="c yes">●</td><td class="c yes">●</td><td class="c no">–</td><td class="c no">–</td></tr>
+    <tr><td>Manage campaigns</td><td class="c yes">●</td><td class="c yes">●</td><td class="c no">–</td><td class="c no">–</td><td class="c no">–</td><td class="c no">–</td><td class="c no">–</td></tr>
+    <tr><td>Manage responsibility matrix</td><td class="c yes">●</td><td class="c no">–</td><td class="c no">–</td><td class="c no">–</td><td class="c no">–</td><td class="c no">–</td><td class="c no">–</td></tr>
+    <tr><td>Reports overview</td><td class="c yes">●</td><td class="c no">–</td><td class="c no">–</td><td class="c no">–</td><td class="c no">–</td><td class="c yes">●</td><td class="c no">–</td></tr>
+    <tr><td>Generate monthly report</td><td class="c yes">●</td><td class="c no">–</td><td class="c no">–</td><td class="c no">–</td><td class="c no">–</td><td class="c no">–</td><td class="c no">–</td></tr>
+    <tr><td>Automation rules</td><td class="c yes">●</td><td class="c no">–</td><td class="c no">–</td><td class="c no">–</td><td class="c no">–</td><td class="c no">–</td><td class="c no">–</td></tr>
+  </tbody>
+</table>
+
+<p>Reading is broader than writing. The brand profile, and viewing content plans, posts, leads, tasks, campaigns and the responsibility matrix, are open to every active member of a client.</p>
+
+<div class="callout--gap callout">
+  <p class="callout__label">Two read permissions to review</p>
+  <p>Any member can <strong>read the whole leads pipeline</strong>, so a designer or copywriter can see the client's sales activity. Separately, <strong>any member can edit the brand profile</strong>, including client-side reviewers. Neither is likely intended; both are single-line fixes once you decide the rule.</p>
+</div>
+
+<h2><span class="sec">4</span>Feature inventory</h2>
+
+<p>Verified against the source, module by module.</p>
+
+<table>
+  <caption>Built and working</caption>
+  <thead><tr><th style="width:25%">Area</th><th style="width:13%">State</th><th>What exists</th></tr></thead>
+  <tbody>
+    <tr><td>Clients &amp; staffing</td><td><span class="chip chip--good">Solid</span></td><td>Clients, employees, per-client role assignment, isolation between clients</td></tr>
+    <tr><td>Authentication</td><td><span class="chip chip--good">Solid</span></td><td>Login, refresh, logout, current user. Deactivating a user ends their session immediately</td></tr>
+    <tr><td>Invitations</td><td><span class="chip chip--good">Solid</span></td><td>Hashed single-use tokens, 7-day expiry, accept flow creates the account and membership</td></tr>
+    <tr><td>Brand profile</td><td><span class="chip chip--good">Solid</span></td><td>Identity, audience, tone, languages, colours, services, offers, forbidden words. Feeds the AI</td></tr>
+    <tr><td>Content plans</td><td><span class="chip chip--good">Solid</span></td><td>Monthly plans with goals and a five-stage status flow</td></tr>
+    <tr><td>Content posts</td><td><span class="chip chip--good">Solid</span></td><td>Six platforms, five content types, captions, visual briefs, scheduling fields</td></tr>
+    <tr><td>Approval workflow</td><td><span class="chip chip--good">Solid</span></td><td>Eight statuses with enforced transitions, threaded comments, complete per-post audit log</td></tr>
+    <tr><td>Files &amp; assets</td><td><span class="chip chip--good">Solid</span></td><td>Real S3/MinIO uploads to 20&nbsp;MB, presigned downloads, five asset types attachable to posts</td></tr>
+    <tr><td>Leads</td><td><span class="chip chip--good">Solid</span></td><td>Seven statuses, nine sources, assignment, notes, full status history, follow-up dates</td></tr>
+    <tr><td>Tasks</td><td><span class="chip chip--good">Solid</span></td><td>Seven types, four priorities, comments, file attachments, activity log, "my tasks"</td></tr>
+    <tr><td>Campaigns</td><td><span class="chip chip--good">Solid</span></td><td>Six objectives, budget, dates, links posts + leads + tasks, overview rollup</td></tr>
+    <tr><td>Responsibility matrix</td><td><span class="chip chip--good">Solid</span></td><td>Areas, eleven responsibility types, bulk assignment, matrix view</td></tr>
+    <tr><td>Reports</td><td><span class="chip chip--good">Solid</span></td><td>Computes real figures: posts by status/platform/type, leads by status/source, conversion rate, saved monthly reports</td></tr>
+  </tbody>
+</table>
+
+<table>
+  <caption>Partially built</caption>
+  <thead><tr><th style="width:25%">Area</th><th style="width:13%">State</th><th>What is missing</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>Notifications</td><td><span class="chip chip--partial">In-app only</span></td>
+      <td>Fifteen event types, correctly targeted by role, unread counts. But there is no email or push, so a notification is only ever seen by someone already logged in</td>
+    </tr>
+    <tr>
+      <td>AI assistance</td><td><span class="chip chip--partial">Mock default</span></td>
+      <td>Complete generate → review → apply pipeline with saved history: content plan previews, post ideas, captions. Runs on a mock provider unless <code>AI_PROVIDER</code> is switched to <code>openai</code></td>
+    </tr>
+    <tr>
+      <td>Automations</td><td><span class="chip chip--partial">Real, narrow</span></td>
+      <td>Genuinely wired to live events with per-client rules and run history — but only two triggers exist (changes requested; lead became interested) and there is no interface for managing rules</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2><span class="sec">5</span>The content approval workflow</h2>
+
+<p>The most intricate logic in the system, and the piece most worth protecting with tests. Transitions are enforced server-side; any move not listed here is rejected.</p>
+
+<table>
+  <caption>Permitted transitions</caption>
+  <thead><tr><th style="width:20%">Action</th><th style="width:34%">Allowed from</th><th style="width:17%">Results in</th><th>Who may act</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>Submit to client</td>
+      <td class="mono">DRAFT · IN_INTERNAL_REVIEW · CHANGES_REQUESTED · APPROVED</td>
+      <td class="mono">READY_FOR_CLIENT</td>
+      <td>Account Manager, Social Media Manager</td>
+    </tr>
+    <tr>
+      <td>Approve</td>
+      <td class="mono">READY_FOR_CLIENT · CHANGES_REQUESTED</td>
+      <td class="mono">APPROVED</td>
+      <td>Client Owner, Client Reviewer, Account Manager</td>
+    </tr>
+    <tr>
+      <td>Request changes</td>
+      <td class="mono">READY_FOR_CLIENT · APPROVED</td>
+      <td class="mono">CHANGES_REQUESTED</td>
+      <td>Client Owner, Client Reviewer, Account Manager</td>
+    </tr>
+    <tr>
+      <td>Reject</td>
+      <td class="mono">READY_FOR_CLIENT · CHANGES_REQUESTED · APPROVED</td>
+      <td class="mono">CANCELED</td>
+      <td>Client Owner, Client Reviewer, Account Manager</td>
+    </tr>
+    <tr>
+      <td>Publish <span class="chip chip--partial">URL required</span></td>
+      <td class="mono">APPROVED · SCHEDULED</td>
+      <td class="mono">PUBLISHED</td>
+      <td>Account Manager, Social Media Manager</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Requesting changes also fires the automation engine, which can create fix-up tasks for the copywriter and designer. Every transition writes to the post's approval log with actor, timestamp and note, and notifies the roles that need to know.</p>
+
+<div class="callout--gap callout">
+  <p class="callout__label">The gap in this flow</p>
+  <p><code>SCHEDULED</code> is a valid status and posts carry a <code>scheduledAt</code> date, but <strong>no scheduler exists in the codebase</strong>. Nothing fires when that time arrives. Publishing means posting on the platform by hand and pasting the resulting URL back in — the system records publication, it does not perform it.</p>
+</div>
+
+<h2><span class="sec">6</span>API reference</h2>
+
+<p>Base URL <code>/api</code>. All routes except login, token refresh and invitation acceptance require <code>Authorization: Bearer &lt;accessToken&gt;</code>. Feature routes are scoped <code>/companies/{companyId}/…</code>.</p>
+
+<table>
+  <caption>Endpoints by area</caption>
+  <thead><tr><th style="width:20%">Area</th><th>Routes</th></tr></thead>
+  <tbody>
+    <tr><td>Authentication</td><td class="mono">POST /auth/login · /auth/refresh · /auth/logout · GET /auth/me · POST /auth/accept-invitation</td></tr>
+    <tr><td>Employees <em>(admin)</em></td><td class="mono">POST /users · GET /users · GET /users/{userId} · PATCH /users/{userId}</td></tr>
+    <tr><td>Clients</td><td class="mono">GET /companies · POST /companies <em>(admin)</em> · GET, PATCH /companies/{id}</td></tr>
+    <tr><td>Members</td><td class="mono">POST /members <em>(admin)</em> · GET /members · PATCH, DELETE /members/{membershipId}</td></tr>
+    <tr><td>Invitations</td><td class="mono">POST /invitations · GET /invitations</td></tr>
+    <tr><td>Brand profile</td><td class="mono">POST, GET, PATCH /brand-profile</td></tr>
+    <tr><td>Content plans</td><td class="mono">POST, GET /content-plans · GET, PATCH /content-plans/{id}</td></tr>
+    <tr><td>Posts</td><td class="mono">POST, GET /posts · GET, PATCH /posts/{id}</td></tr>
+    <tr><td>Approvals</td><td class="mono">POST /posts/{id}/submit-review · /approve · /request-changes · /reject · /publish · POST, GET /posts/{id}/comments · GET /posts/{id}/approval-logs</td></tr>
+    <tr><td>Files</td><td class="mono">POST /files/upload (multipart, field <code>file</code>, ≤20 MB) · GET /files/{id} · GET /files/{id}/download-url</td></tr>
+    <tr><td>Post assets</td><td class="mono">POST, GET /posts/{id}/assets · DELETE /posts/{id}/assets/{assetId}</td></tr>
+    <tr><td>AI</td><td class="mono">POST /ai/content-plan-preview · /ai/post-ideas · /ai/caption · GET /ai/generations · POST /ai/generations/{id}/apply-content-plan | apply-caption | apply-post-idea</td></tr>
+    <tr><td>Leads</td><td class="mono">POST, GET /leads · GET, PATCH /leads/{id} · PATCH /leads/{id}/status · POST, GET /leads/{id}/notes · GET /leads/{id}/status-history</td></tr>
+    <tr><td>Tasks</td><td class="mono">POST, GET /tasks · GET /tasks/my · GET, PATCH /tasks/{id} · PATCH /tasks/{id}/status · POST, GET /tasks/{id}/comments · POST, GET /tasks/{id}/attachments · DELETE /tasks/{id}/attachments/{attachmentId} · GET /tasks/{id}/activity-logs</td></tr>
+    <tr><td>Campaigns</td><td class="mono">POST, GET /campaigns · GET, PATCH /campaigns/{id} · PATCH /campaigns/{id}/status · GET /campaigns/{id}/overview · POST, DELETE /campaigns/{id}/posts | leads | tasks /{entityId}</td></tr>
+    <tr><td>Responsibilities</td><td class="mono">POST, GET /responsibility-areas · GET, PATCH, DELETE /responsibility-areas/{id} · POST /responsibility-assignments · POST /responsibility-assignments/bulk · GET /responsibility-assignments/matrix · GET, PATCH, DELETE /responsibility-assignments/{id}</td></tr>
+    <tr><td>Reports</td><td class="mono">GET /reports/overview?month=&amp;year= · POST /reports/monthly · GET /reports · GET /reports/{id}</td></tr>
+    <tr><td>Notifications</td><td class="mono">GET /notifications · GET /notifications/unread-count · PATCH /notifications/read-all · PATCH /notifications/{id}/read</td></tr>
+    <tr><td>Automations</td><td class="mono">POST, GET /automation-rules · GET, PATCH /automation-rules/{id} · GET /automation-runs · GET /automation-runs/{id}</td></tr>
+  </tbody>
+</table>
+
+<h4>Conventions</h4>
+<ul>
+  <li>Passwords must be at least 12 characters wherever one is set.</li>
+  <li>Undeclared fields in a request body produce a 400 — send only documented fields.</li>
+  <li>Rate limits: 5/min on login, 20/min on refresh, 100/min elsewhere.</li>
+  <li>Enum values are exact strings; anything outside the documented set is a 400.</li>
+  <li>There is <strong>no</strong> registration endpoint. Accounts are created by administrators, or by accepting an invitation.</li>
+</ul>
+
+<h2><span class="sec">7</span>Known gaps</h2>
+
+<p>Stated plainly, because these determine what can be tested and what can be deployed.</p>
+
+<table>
+  <caption>Gaps, by consequence</caption>
+  <thead><tr><th style="width:22%">Gap</th><th style="width:14%">Blocks</th><th>Detail</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>No email of any kind</td><td><span class="chip chip--gap">Testing</span></td>
+      <td>Nothing in the codebase sends mail. Invitation tokens are returned in an API response and must be carried to the recipient by hand. Admin-created employees receive a temporary password the same way</td
+      ></tr>
+    <tr>
+      <td>Invitation link path mismatch</td><td><span class="chip chip--gap">Testing</span></td>
+      <td>The API returns <code>/auth/accept-invitation?token=…</code> while the frontend route is <code>/accept-invitation</code>, so generated invite links reach the 404 page. One line, on either side</td>
+    </tr>
+    <tr>
+      <td>No database migrations</td><td><span class="chip chip--gap">Production</span></td>
+      <td>Schema is created by TypeORM <code>synchronize</code>, which is enabled only in development. <strong>A production deployment would start against an empty database with no way to create its tables</strong></td>
+    </tr>
+    <tr>
+      <td>No scheduler</td><td><span class="chip chip--gap">Features</span></td>
+      <td>No cron or job runner exists. Scheduled publishing, follow-up reminders and overdue alerts are therefore impossible today</td>
+    </tr>
+    <tr>
+      <td>Essentially no tests</td><td><span class="chip chip--gap">Confidence</span></td>
+      <td>Only the default framework example files. The approval state machine and the client isolation guards — the two places a bug is most costly — are unprotected</td>
+    </tr>
+    <tr>
+      <td>Audit module is empty</td><td><span class="chip chip--gap">Accountability</span></td>
+      <td>The folder exists with no code. Per-post and per-task histories do exist, but there is no system-wide audit trail</td>
+    </tr>
+    <tr>
+      <td>No pagination on posts</td><td><span class="chip chip--gap">Scale</span></td>
+      <td>Leads, tasks, campaigns, notifications and responsibilities all accept a limit. Posts do not, and will degrade once a client has a year of content</td>
+    </tr>
+    <tr>
+      <td>Redis required but unused</td><td><span class="chip chip--gap">Hygiene</span></td>
+      <td><code>REDIS_HOST</code> is a required environment variable and the container runs, but no code uses it and no Redis client is even installed. It will refuse to start without a service it never contacts</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout">
+  <p class="callout__label">One silver lining</p>
+  <p>Because Redis is already provisioned and running, the infrastructure needed for scheduled jobs, distributed locks and background queues is in place. It simply has not been used yet.</p>
+</div>
+
+<!-- ============ PART II ============ -->
+<div class="part-divider">
+  <p class="part-divider__kicker">Part II</p>
+  <h1 class="part-divider__title">What we do next</h1>
+  <p class="part-divider__lede">The system has not been tested end to end, and the reason is structural rather than a matter of effort: onboarding a person requires hand-carrying a secret, and the daily flow asks people to type in work the system already knows about. This part diagnoses that, then sets out a plan in priority order.</p>
+</div>
+
+<h2><span class="sec">8</span>Why the flow feels wrong</h2>
+
+<div class="item">
+  <div class="item__num">1</div>
+  <div class="item__body">
+    <p class="item__title">Nobody can get into the system</p>
+    <p>Invitations return a token in an API response, so an administrator must copy it out of a dialog and send it over a messaging app — and the resulting link is broken anyway. There is no email anywhere in the codebase. This single gap blocks testing the approval workflow, because approvals require a client contact who currently cannot be onboarded.</p>
+  </div>
+</div>
+
+<div class="item">
+  <div class="item__num">2</div>
+  <div class="item__body">
+    <p class="item__title">It is a set of forms, not a workflow</p>
+    <p>Creating a content plan does not create posts. Creating a post does not create tasks for the designer and the copywriter. Every step re-enters information the system already holds. That is the source of the "bad flow" feeling: staff feed the database instead of the database feeding them work.</p>
+  </div>
+</div>
+
+<div class="item">
+  <div class="item__num">3</div>
+  <div class="item__body">
+    <p class="item__title">There is no "what do I do today"</p>
+    <p>An employee signs in and arrives at a dashboard rather than at their work. Nothing assembles <em>my tasks, posts awaiting my action, and leads due for follow-up</em> across the clients that person works on. The API shape prevents it: every route is scoped to one client, so the question cannot even be asked.</p>
+  </div>
+</div>
+
+<div class="item">
+  <div class="item__num">4</div>
+  <div class="item__body">
+    <p class="item__title">Clients must use an internal tool</p>
+    <p>To approve one post, the contact at Al Zaman needs an account, an invitation, a password, and then has to navigate an agency dashboard built for staff. That friction is the usual reason client approvals stall.</p>
+  </div>
+</div>
+
+<div class="item">
+  <div class="item__num">5</div>
+  <div class="item__body">
+    <p class="item__title">"Scheduled" does not schedule</p>
+    <p>A post can be given a date and moved to <code>SCHEDULED</code>, but no job ever runs. The system is entirely passive: it never tells anyone that something is due, overdue, or waiting on them.</p>
+  </div>
+</div>
+
+<div class="item">
+  <div class="item__num">6</div>
+  <div class="item__body">
+    <p class="item__title">The responsibility matrix is decorative</p>
+    <p>This is the feature closest to the original goal — rules and responsibility per employee — and nothing reads it. Recording that "Dina manages Instagram content" changes no behaviour anywhere in the system. The structural reason is that responsibility areas have no link to work items, so nothing can be routed by them.</p>
+  </div>
+</div>
+
+<h2><span class="sec">9</span>The plan, by priority</h2>
+
+<h3>P0 — Before anything can be tested</h3>
+
+<div class="item">
+  <div class="item__num">1</div>
+  <div class="item__body">
+    <p class="item__title">Replace passwords-in-transit with activation links</p>
+    <p>Rather than bolting email onto the current design, collapse the two onboarding paths into one. An administrator creates an employee with no password at all; the invited client contact follows the same route. Both receive one email containing a "set your password" link. The token machinery already exists in the invitations module and only needs generalising.</p>
+    <p>Use SMTP through the existing Solutions mailbox — no third-party service required. When SMTP is not configured, write the activation link to the log, so development and testing never block on mail delivery again.</p>
+    <p class="meta-line">Effort <b>1–2 days</b> · Unlocks <b>all end-to-end testing</b></p>
+  </div>
+</div>
+
+<div class="item">
+  <div class="item__num">2</div>
+  <div class="item__body">
+    <p class="item__title">Fix the invitation link path</p>
+    <p>Align the path the API returns with the route the frontend registers.</p>
+    <p class="meta-line">Effort <b>minutes</b> · Unlocks <b>the entire approval workflow</b></p>
+  </div>
+</div>
+
+<div class="item">
+  <div class="item__num">3</div>
+  <div class="item__body">
+    <p class="item__title">Write a demo seed script</p>
+    <p>Two clients, six employees with mixed roles, a month of posts spread across every status, twenty leads, and a set of open tasks. A flow cannot be judged against an empty database, and hand-entering test data is precisely why testing keeps being postponed.</p>
+    <p class="meta-line">Effort <b>1 day</b> · Unlocks <b>meaningful review sessions</b></p>
+  </div>
+</div>
+
+<h3>P1 — Turn it into a system</h3>
+
+<div class="item">
+  <div class="item__num">4</div>
+  <div class="item__body">
+    <p class="item__title">A cross-client "my work" endpoint</p>
+    <p>Introduce a <code>/api/me/…</code> namespace that is not scoped to a single client — the one architectural change on this list. <code>GET /api/me/work</code> returns, grouped by client and ordered by urgency: tasks assigned to me with overdue first; posts awaiting my action, resolved from my role on each client; leads whose follow-up date has arrived; and unread notifications.</p>
+    <p>This becomes the landing page and is the largest single improvement in how the product feels. Staff open the application and see their day rather than a menu.</p>
+    <p class="meta-line">Effort <b>1–2 days</b> · Unlocks <b>the home screen for everything after</b></p>
+  </div>
+</div>
+
+<div class="item">
+  <div class="item__num">5</div>
+  <div class="item__body">
+    <p class="item__title">Generate work automatically, through the existing engine</p>
+    <p>Do not hard-code "a post creates tasks". The automation module already stores per-client trigger-and-action rules with a free-form config column; it simply has only two triggers. Add <code>POST_CREATED → CREATE_CONTENT_TASKS</code>, <code>CONTENT_PLAN_APPROVED → CREATE_POSTS_FROM_PLAN</code> and <code>POST_APPROVED → CREATE_PUBLISHING_TASK</code>.</p>
+    <p>The rule config holds the template — for a reel, a script task for the copywriter and an edit task for the designer, each due a set number of days before the scheduled date. Keeping this in rules rather than in code matters because clients differ: one may require client review on every post, another may not.</p>
+    <p class="meta-line">Effort <b>2 days</b> · Unlocks <b>the system generating work instead of receiving it</b></p>
+  </div>
+</div>
+
+<div class="item">
+  <div class="item__num">6</div>
+  <div class="item__body">
+    <p class="item__title">Make the responsibility matrix operational</p>
+    <p>Add an optional responsibility-area reference to posts and tasks. That one field turns the matrix from a chart into a routing table.</p>
+    <table style="margin-top:2mm">
+      <thead><tr><th style="width:38%">Matrix records</th><th>System behaviour</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">TO_WORK_ON</td><td>Receives the auto-created task, replacing role-based guesswork</td></tr>
+        <tr><td class="mono">TO_APPROVE</td><td>Receives the approval request — not everyone holding the role</td></tr>
+        <tr><td class="mono">TO_SUPERVISE · TO_BE_HELD_RESPONSIBLE</td><td>Notified when work in that area runs late</td></tr>
+        <tr><td class="mono">TO_BE_INFORMED</td><td>Receives a digest of changes in that area</td></tr>
+        <tr><td class="mono">TO_CONSULT</td><td>Suggested when a task is blocked or questioned</td></tr>
+      </tbody>
+    </table>
+    <p>Then surface it where the work is — showing "Instagram content — Dina manages, Amir approves" on the post itself. The matrix currently lives on a page nobody opens; placed beside the work it becomes the answer to "who owns this?"</p>
+    <p class="meta-line">Effort <b>2–3 days</b> · Unlocks <b>the original goal, actually operating</b></p>
+  </div>
+</div>
+
+<div class="item">
+  <div class="item__num">7</div>
+  <div class="item__body">
+    <p class="item__title">Public client review links</p>
+    <p>A revocable, expiring tokenised URL that shows a post — title, caption, images via presigned links — and accepts approve or request-changes with a name and a note, without any account. It writes into the same approval log, attributed as "via review link", so the audit trail stays whole.</p>
+    <p>Extend the same mechanism to a whole content plan, so a client can approve a month in one sitting. That is what agencies actually want, and it is the version clients will praise.</p>
+    <p><em>Trade-off:</em> weaker identity than a login. Mitigate with expiry, revocation, and binding the link to the invited email address.</p>
+    <p class="meta-line">Effort <b>2–3 days</b> · Unlocks <b>approvals that do not depend on client software adoption</b></p>
+  </div>
+</div>
+
+<h3>P2 — Before production</h3>
+
+<div class="item">
+  <div class="item__num">8</div>
+  <div class="item__body">
+    <p class="item__title">Database migrations</p>
+    <p>Non-negotiable. Today a production deployment creates no tables at all.</p>
+    <p class="meta-line">Effort <b>1 day</b> · Unlocks <b>deployment</b></p>
+  </div>
+</div>
+
+<div class="item">
+  <div class="item__num">9</div>
+  <div class="item__body">
+    <p class="item__title">Tests on the two costly areas</p>
+    <p>The approval state machine and client data isolation. Everything else can be caught by hand; a silent isolation failure cannot.</p>
+    <p class="meta-line">Effort <b>2 days</b> · Unlocks <b>changing code without fear</b></p>
+  </div>
+</div>
+
+<div class="item">
+  <div class="item__num">10</div>
+  <div class="item__body">
+    <p class="item__title">Housekeeping</p>
+    <p>Pagination on posts; either use Redis or stop requiring it; fill in the audit module; settle the two broad read permissions noted in section 3.</p>
+    <p class="meta-line">Effort <b>1–2 days</b></p>
+  </div>
+</div>
+
+<h3>P3 — Leverage, once the loop works</h3>
+
+<div class="item">
+  <div class="item__num">11</div>
+  <div class="item__body">
+    <p class="item__title">A scheduler, in two stages</p>
+    <p><strong>Now:</strong> a job every few minutes that reads the clock and nudges — an approved post whose date has arrived notifies the social media manager and creates a publishing task; a lead due for follow-up notifies its owner; an overdue task notifies the assignee and their supervisor from the matrix. This changes the system's character from passive to proactive without touching a single social platform. It is also where the idle Redis earns its place, providing the lock that stops jobs firing twice across instances.</p>
+    <p><strong>Later:</strong> real publishing through the Meta and LinkedIn APIs — per-client authorisation, token refresh, media upload and platform-specific rules. Substantial work that should not block anything above it.</p>
+    <p class="meta-line">Stage one <b>1 day</b> · Stage two <b>weeks</b></p>
+  </div>
+</div>
+
+<div class="item">
+  <div class="item__num">12</div>
+  <div class="item__body">
+    <p class="item__title">Further candidates</p>
+    <p>A content calendar as a month grid, which is the view agencies live in. Workload per employee across clients, using data already held. Recurring tasks for retainer work. Design file versioning, so revisions are traceable. A client-facing dashboard. Real AI generation, by switching the provider that is already integrated.</p>
+  </div>
+</div>
+
+<h2><span class="sec">10</span>Sequence and dependencies</h2>
+
+<p>Several items depend on each other, so order matters more than parallel effort.</p>
+
+<table>
+  <caption>Suggested order</caption>
+  <thead><tr><th style="width:16%">Stage</th><th style="width:36%">Work</th><th>Why here</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><span class="chip chip--next">Week 1</span></td>
+      <td>Activation emails · link path fix · demo seed script</td>
+      <td>Without these, testing keeps being deferred. Nothing else should start first</td>
+    </tr>
+    <tr>
+      <td><span class="chip chip--next">Week 2</span></td>
+      <td>"My work" endpoint, then automation triggers</td>
+      <td>The work view comes first so there is somewhere to see the work the triggers create</td>
+    </tr>
+    <tr>
+      <td><span class="chip chip--next">Week 3</span></td>
+      <td>Matrix routing, then the nudge scheduler</td>
+      <td>Routing needs generated tasks to route; nudges need something worth nudging about</td>
+    </tr>
+    <tr>
+      <td><span class="chip chip--next">Then</span></td>
+      <td>Migrations and tests, then public review links</td>
+      <td>Required before any real deployment</td>
+    </tr>
+    <tr>
+      <td><span class="chip chip--next">Later</span></td>
+      <td>Real social publishing, calendar, workload</td>
+      <td>High value, but each is large and none is blocking</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2><span class="sec">11</span>Decisions we need</h2>
+
+<table>
+  <caption>Open questions</caption>
+  <thead><tr><th style="width:26%">Question</th><th style="width:30%">Why it matters</th><th>Recommendation</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>Which side fixes the invitation path?</td>
+      <td>Blocks every invitation today</td>
+      <td>Change the backend to match whatever route the frontend already has — less churn</td>
+    </tr>
+    <tr>
+      <td>Should leads be readable by everyone?</td>
+      <td>Designers and copywriters currently see the full sales pipeline</td>
+      <td>Restrict reading to Account Manager, Sales Agent and Client Owner</td>
+    </tr>
+    <tr>
+      <td>Who may edit the brand profile?</td>
+      <td>Client-side reviewers can currently change it</td>
+      <td>Restrict to Account Manager and Social Media Manager</td>
+    </tr>
+    <tr>
+      <td>Turn on real AI?</td>
+      <td>The integration is built; only the provider setting and an API key are needed</td>
+      <td>Switch it on in a test environment once the brand profiles hold real content</td>
+    </tr>
+    <tr>
+      <td>How far should publishing go?</td>
+      <td>Determines whether stage two of the scheduler is ever needed</td>
+      <td>Decide after the nudge scheduler is in use — reminders may prove sufficient</td>
+    </tr>
+    <tr>
+      <td>Rename <code>company</code> to <code>client</code>?</td>
+      <td>The API and the interface currently disagree</td>
+      <td>Do it once the permission rules are final, in one deliberate pass</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- ============ APPENDIX ============ -->
+<div class="part-divider">
+  <p class="part-divider__kicker">Appendix</p>
+  <h1 class="part-divider__title">Reference</h1>
+  <p class="part-divider__lede">Operational detail for whoever runs or extends the system.</p>
+</div>
+
+<h2><span class="sec">A</span>Running the system</h2>
+
+<pre><code># 1 — Infrastructure, from solutions-platform/
+docker compose up -d postgres redis minio
+
+# 2 — API, from solutions-platform/api/
+npm ci
+npm run start:dev          # listens on port 3000, prefix /api
+
+# 3 — Frontend
+npm ci
+npm run dev                # http://localhost:5173</code></pre>
+
+<p>The API will not start while MinIO is unavailable, because it verifies its storage bucket during boot. It also refuses to start without <code>REDIS_HOST</code>, despite never contacting Redis.</p>
+
+<p>The first administrator is created on boot from <code>BOOTSTRAP_ADMIN_EMAIL</code> and <code>BOOTSTRAP_ADMIN_PASSWORD</code>. This is required because there is no public sign-up: without it, no one could sign in and no one could create anyone. The step is idempotent — it creates the account when missing, promotes it if it exists without administrator rights, and never overwrites an existing password.</p>
+
+<h2><span class="sec">B</span>Environment variables</h2>
+
+<table>
+  <thead><tr><th style="width:40%">Variable</th><th>Purpose</th></tr></thead>
+  <tbody>
+    <tr><td class="mono">NODE_ENV · PORT</td><td>Runtime mode and port. Schema auto-sync happens only in <code>development</code></td></tr>
+    <tr><td class="mono">DATABASE_HOST · _PORT · _NAME · _USER · _PASSWORD</td><td>PostgreSQL connection</td></tr>
+    <tr><td class="mono">JWT_ACCESS_SECRET · JWT_REFRESH_SECRET</td><td>Token signing. Minimum 32 characters each</td></tr>
+    <tr><td class="mono">JWT_ACCESS_EXPIRES_IN · JWT_REFRESH_EXPIRES_IN</td><td>Token lifetimes. Default 15 minutes and 30 days</td></tr>
+    <tr><td class="mono">REFRESH_TOKEN_COOKIE_NAME</td><td>Refresh cookie name, scoped to path <code>/api/auth</code></td></tr>
+    <tr><td class="mono">BOOTSTRAP_ADMIN_EMAIL · _PASSWORD · _NAME</td><td>First administrator, seeded on boot</td></tr>
+    <tr><td class="mono">FRONTEND_URL</td><td>CORS allow-list. Accepts a comma-separated list</td></tr>
+    <tr><td class="mono">S3_ENDPOINT · _ACCESS_KEY · _SECRET_KEY · _BUCKET · _REGION · _FORCE_PATH_STYLE</td><td>Object storage</td></tr>
+    <tr><td class="mono">AI_PROVIDER · AI_API_KEY · AI_MODEL</td><td><code>mock</code> or <code>openai</code>. A key is required only for the latter</td></tr>
+    <tr><td class="mono">REDIS_HOST · REDIS_PORT</td><td>Required, but currently unused by any code</td></tr>
+  </tbody>
+</table>
+
+<h2><span class="sec">C</span>Enumerated values</h2>
+
+<table>
+  <thead><tr><th style="width:26%">Set</th><th>Values</th></tr></thead>
+  <tbody>
+    <tr><td>Platform role</td><td class="mono">USER · AGENCY_ADMIN · SUPER_ADMIN</td></tr>
+    <tr><td>User status</td><td class="mono">ACTIVE · INACTIVE · SUSPENDED</td></tr>
+    <tr><td>Client status</td><td class="mono">ACTIVE · INACTIVE · ARCHIVED</td></tr>
+    <tr><td>Client role</td><td class="mono">ACCOUNT_MANAGER · COPYWRITER · DESIGNER · SOCIAL_MEDIA_MANAGER · CLIENT_OWNER · CLIENT_REVIEWER · SALES_AGENT</td></tr>
+    <tr><td>Membership status</td><td class="mono">ACTIVE · INVITED · SUSPENDED</td></tr>
+    <tr><td>Invitation status</td><td class="mono">PENDING · ACCEPTED · REVOKED · EXPIRED</td></tr>
+    <tr><td>Content plan status</td><td class="mono">DRAFT · INTERNAL_REVIEW · CLIENT_REVIEW · APPROVED · ARCHIVED</td></tr>
+    <tr><td>Post status</td><td class="mono">DRAFT · IN_INTERNAL_REVIEW · READY_FOR_CLIENT · CHANGES_REQUESTED · APPROVED · SCHEDULED · PUBLISHED · CANCELED</td></tr>
+    <tr><td>Platform</td><td class="mono">INSTAGRAM · FACEBOOK · TIKTOK · LINKEDIN · WHATSAPP · WEBSITE</td></tr>
+    <tr><td>Content type</td><td class="mono">POST · REEL · STORY · CAROUSEL · VIDEO</td></tr>
+    <tr><td>Post asset type</td><td class="mono">DESIGN · REFERENCE · VIDEO · THUMBNAIL · DOCUMENT</td></tr>
+    <tr><td>Lead status</td><td class="mono">NEW · CONTACTED · INTERESTED · WAITING_DECISION · WON · LOST · FOLLOW_UP_LATER</td></tr>
+    <tr><td>Lead source</td><td class="mono">FACEBOOK · INSTAGRAM · WHATSAPP · WEBSITE · MANUAL · REFERRAL · TIKTOK · LINKEDIN · OTHER</td></tr>
+    <tr><td>Task status</td><td class="mono">TODO · IN_PROGRESS · IN_REVIEW · BLOCKED · DONE · CANCELED</td></tr>
+    <tr><td>Task type</td><td class="mono">COPYWRITING · DESIGN · CLIENT_REVIEW · FOLLOW_UP · PUBLISHING · REPORTING · GENERAL</td></tr>
+    <tr><td>Task priority</td><td class="mono">LOW · MEDIUM · HIGH · URGENT</td></tr>
+    <tr><td>Campaign objective</td><td class="mono">AWARENESS · ENGAGEMENT · LEADS · SALES · RETENTION · LAUNCH</td></tr>
+    <tr><td>Campaign status</td><td class="mono">DRAFT · ACTIVE · PAUSED · COMPLETED · CANCELED</td></tr>
+    <tr><td>Responsibility type</td><td class="mono">TO_MANAGE · TO_SUPPORT · TO_FOLLOW_UP · TO_BE_HELD_RESPONSIBLE · TO_APPROVE · TO_WORK_ON · TO_CONSULT · TO_COORDINATE · TO_BE_INFORMED · TO_SUPERVISE · OTHER</td></tr>
+    <tr><td>Notification type</td><td class="mono">TASK_ASSIGNED · TASK_STATUS_CHANGED · TASK_COMMENTED · POST_SUBMITTED_TO_CLIENT · POST_CHANGES_REQUESTED · POST_APPROVED · POST_PUBLISHED · POST_COMMENTED · POST_REJECTED · LEAD_ASSIGNED · LEAD_STATUS_CHANGED · LEAD_NOTE_ADDED · INVITATION_CREATED · INVITATION_ACCEPTED · REPORT_CREATED</td></tr>
+    <tr><td>Automation trigger</td><td class="mono">POST_CHANGES_REQUESTED · LEAD_BECAME_INTERESTED</td></tr>
+    <tr><td>Automation action</td><td class="mono">CREATE_POST_CHANGES_TASKS · CREATE_LEAD_FOLLOW_UP_TASK</td></tr>
+  </tbody>
+</table>
+
+<p class="footer-note">Compiled from the state of the <code>api</code> repository. Every feature, endpoint, permission and gap listed here was read from source rather than from prior planning documents. Behaviour against a live database has not been exercised end to end — see Part&nbsp;II.</p>
