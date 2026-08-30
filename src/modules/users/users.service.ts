@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -188,6 +189,62 @@ export class UsersService {
     if (Object.keys(patch).length > 0) {
       await this.usersRepository.update({ id: user.id }, patch);
     }
+
+    return this.findOneEmployee(user.id);
+  }
+
+  /**
+   * Assign or revoke an administrator role (Super Admin only).
+   *
+   * Two guard rails: nobody changes their own role, and the platform must keep
+   * at least one active Super Admin — otherwise a single mistaken demotion
+   * locks everyone out of client deletion and role management for good.
+   *
+   * The role travels inside the access token, so the refresh token is cleared:
+   * the change then takes effect on the target's next refresh rather than
+   * whenever their current token happens to expire.
+   */
+  async changePlatformRole(
+    actorId: string,
+    userId: string,
+    platformRole: PlatformRole,
+  ): Promise<EmployeeView> {
+    const user = await this.usersRepository.findOne({ where: { id: userId } });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (actorId === userId) {
+      throw new ForbiddenException('You cannot change your own platform role');
+    }
+
+    if (user.platformRole === platformRole) {
+      return this.findOneEmployee(user.id);
+    }
+
+    if (
+      user.platformRole === PlatformRole.SUPER_ADMIN &&
+      platformRole !== PlatformRole.SUPER_ADMIN
+    ) {
+      const remainingSuperAdmins = await this.usersRepository.count({
+        where: {
+          platformRole: PlatformRole.SUPER_ADMIN,
+          status: UserStatus.ACTIVE,
+        },
+      });
+
+      if (remainingSuperAdmins <= 1) {
+        throw new ConflictException(
+          'At least one active Super Admin is required',
+        );
+      }
+    }
+
+    await this.usersRepository.update(
+      { id: user.id },
+      { platformRole, refreshTokenHash: null },
+    );
 
     return this.findOneEmployee(user.id);
   }

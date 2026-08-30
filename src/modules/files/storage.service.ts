@@ -73,6 +73,24 @@ export class StorageService implements OnModuleInit {
     });
   }
 
+  /**
+   * Real connectivity check for the Super Admin health endpoint (BE-23).
+   * Reports on the bucket actually answering, not on the env vars existing.
+   */
+  async checkConnection(): Promise<boolean> {
+    try {
+      await this.s3Client.send(
+        new HeadBucketCommand({
+          Bucket: this.bucket,
+        }),
+      );
+
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   private async ensureBucketExists(): Promise<void> {
     try {
       await this.s3Client.send(

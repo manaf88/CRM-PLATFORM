@@ -47,4 +47,11 @@ export const envValidationSchema = Joi.object({
     .optional(),
   BOOTSTRAP_ADMIN_PASSWORD: Joi.string().min(12).optional(),
   BOOTSTRAP_ADMIN_NAME: Joi.string().min(2).max(120).default('Solutions Admin'),
+
+  // Admin dashboard. All optional — the dashboard has working defaults, so an
+  // existing deployment needs no new environment variables.
+  DASHBOARD_TIMEZONE: Joi.string().default('Asia/Amman'),
+  APPROVAL_SLA_WARNING_HOURS: Joi.number().min(1).default(24),
+  APPROVAL_SLA_CRITICAL_HOURS: Joi.number().min(1).default(48),
+  CHANGES_REQUESTED_STALE_HOURS: Joi.number().min(1).default(24),
 });

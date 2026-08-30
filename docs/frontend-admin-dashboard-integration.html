@@ -1,0 +1,1084 @@
+<title>Frontend Integration — Admin &amp; Super Admin Dashboard</title>
+<style>
+  :root {
+    --ink:      #191C21;
+    --muted:    #5E6672;
+    --faint:    #8A9199;
+    --line:     #DCE0E3;
+    --hairline: #EDF0F1;
+    --surface:  #F4F7F7;
+    --accent:   #0F5D62;
+    --accent-d: #0A4347;
+    --good:     #2C6A4E;
+    --partial:  #8A6212;
+    --gap:      #9C382A;
+    --get:      #1F5C8B;
+    --post:     #2C6A4E;
+    --patch:    #8A6212;
+    --del:      #9C382A;
+
+    --serif: Georgia, "Iowan Old Style", "Palatino Linotype", Palatino, serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: "Cascadia Mono", Consolas, "SF Mono", Menlo, "DejaVu Sans Mono", monospace;
+  }
+
+  @page { size: A4; margin: 16mm 14mm 14mm; }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: #FFFFFF;
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 9.5pt;
+    line-height: 1.55;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* ---------- cover ---------- */
+  .cover { page-break-after: always; padding-top: 3mm; }
+  .cover__block { background: var(--accent); color: #FFFFFF; padding: 15mm 12mm 13mm; }
+  .cover__eyebrow {
+    font-family: var(--mono); font-size: 8pt; letter-spacing: .18em;
+    text-transform: uppercase; color: #A7CFD1; margin: 0 0 7mm;
+  }
+  .cover__title {
+    font-family: var(--serif); font-size: 27pt; line-height: 1.1;
+    font-weight: 400; margin: 0 0 5mm; text-wrap: balance;
+  }
+  .cover__sub { font-size: 10.8pt; line-height: 1.5; color: #CFE3E4; margin: 0; max-width: 115mm; }
+  .cover__meta {
+    margin-top: 11mm; display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 6mm; border-top: 1px solid var(--line); padding-top: 5mm;
+  }
+  .cover__meta dt {
+    font-family: var(--mono); font-size: 7.4pt; letter-spacing: .13em;
+    text-transform: uppercase; color: var(--faint); margin: 0 0 1.5mm;
+  }
+  .cover__meta dd { margin: 0; font-size: 9.5pt; }
+  .cover__note {
+    margin-top: 7mm; border-left: 2.5pt solid var(--accent); background: var(--surface);
+    padding: 4mm 5mm; font-size: 9.1pt; color: var(--muted);
+  }
+  .cover__note p:last-child { margin-bottom: 0; }
+
+  /* ---------- contents ---------- */
+  .toc { page-break-after: always; }
+  .toc ol { list-style: none; margin: 0; padding: 0; }
+  .toc__row {
+    display: flex; align-items: baseline; gap: 3mm;
+    padding: 1.7mm 0; border-bottom: 1px solid var(--hairline);
+  }
+  .toc__num { font-family: var(--mono); font-size: 8.4pt; color: var(--accent); min-width: 7mm; }
+  .toc__label { flex: 1; }
+  .toc__hint { color: var(--faint); font-size: 8.4pt; }
+
+  /* ---------- structure ---------- */
+  h2 {
+    font-family: var(--serif); font-size: 14pt; font-weight: 400;
+    margin: 9mm 0 3mm; padding-bottom: 1.5mm; border-bottom: 1px solid var(--line);
+    page-break-after: avoid;
+  }
+  h2:first-of-type { margin-top: 0; }
+  h2 .sec { font-family: var(--mono); font-size: 9pt; color: var(--accent); margin-right: 2.5mm; }
+  h3 { font-size: 10.2pt; font-weight: 650; margin: 6mm 0 2mm; page-break-after: avoid; }
+  h4 {
+    font-family: var(--mono); font-size: 8pt; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--muted); font-weight: 600;
+    margin: 4mm 0 1.8mm; page-break-after: avoid;
+  }
+
+  p { margin: 0 0 2.5mm; max-width: 168mm; }
+  strong { font-weight: 650; }
+  em { color: var(--muted); }
+  ul, ol { margin: 0 0 3mm; padding-left: 5.5mm; max-width: 168mm; }
+  li { margin-bottom: 1.1mm; }
+
+  code {
+    font-family: var(--mono); font-size: .89em; background: var(--surface);
+    padding: .5pt 2pt; border-radius: 2px; word-break: break-word;
+  }
+
+  pre {
+    font-family: var(--mono); font-size: 7.9pt; line-height: 1.45;
+    background: var(--surface); border-left: 2pt solid var(--accent);
+    padding: 3mm 4mm; margin: 0 0 3mm; white-space: pre-wrap;
+    word-break: break-word; break-inside: avoid;
+  }
+  pre code { background: none; padding: 0; font-size: inherit; }
+  pre .cm { color: var(--faint); }
+
+  /* ---------- tables ---------- */
+  table {
+    width: 100%; border-collapse: collapse; margin: 0 0 3.5mm;
+    font-size: 8.6pt; font-variant-numeric: tabular-nums;
+  }
+  caption {
+    caption-side: top; text-align: left; font-family: var(--mono);
+    font-size: 7.5pt; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--muted); padding-bottom: 1.5mm;
+  }
+  th {
+    text-align: left; font-weight: 650; font-size: 8pt; letter-spacing: .04em;
+    border-bottom: 1.2pt solid var(--ink); padding: 1.7mm 2mm; vertical-align: bottom;
+  }
+  td { border-bottom: 1px solid var(--hairline); padding: 1.6mm 2mm; vertical-align: top; }
+  tbody tr:nth-child(even) { background: #FAFCFC; }
+  tr { break-inside: avoid; }
+  th.c, td.c { text-align: center; }
+  td.mono, th.mono { font-family: var(--mono); font-size: 7.9pt; }
+  .yes { color: var(--good); font-weight: 650; }
+  .no  { color: var(--gap); font-weight: 650; }
+  .off { color: var(--faint); }
+
+  /* ---------- chips ---------- */
+  .chip {
+    display: inline-block; font-family: var(--mono); font-size: 7pt;
+    letter-spacing: .07em; text-transform: uppercase; padding: .7mm 1.7mm;
+    border-radius: 2px; white-space: nowrap; font-weight: 600;
+  }
+  .chip--live { background: #E4EFE9; color: var(--good); }
+  .chip--spec { background: #E3EDEE; color: var(--accent-d); }
+  .chip--fix  { background: #F6EEDC; color: var(--partial); }
+  .chip--break{ background: #F6E5E2; color: var(--gap); }
+
+  /* ---------- endpoint cards ---------- */
+  .ep {
+    border: 1px solid var(--line); border-left: 2.5pt solid var(--accent);
+    padding: 3.5mm 4mm 3mm; margin: 0 0 4mm; break-inside: avoid;
+  }
+  .ep--wide { break-inside: auto; }
+  .ep__head { display: flex; align-items: baseline; gap: 2.5mm; margin: 0 0 1.5mm; flex-wrap: wrap; }
+  .ep__url { font-family: var(--mono); font-size: 9pt; font-weight: 650; word-break: break-all; }
+  .verb {
+    font-family: var(--mono); font-size: 7.4pt; font-weight: 700; letter-spacing: .08em;
+    color: #FFF; padding: .8mm 2mm; border-radius: 2px;
+  }
+  .verb--get { background: var(--get); }
+  .verb--post { background: var(--post); }
+  .verb--patch { background: var(--patch); }
+  .verb--delete { background: var(--del); }
+  .ep__who {
+    font-family: var(--mono); font-size: 7.6pt; color: var(--muted);
+    margin: 0 0 2.5mm; padding-bottom: 1.5mm; border-bottom: 1px solid var(--hairline);
+  }
+  .ep__who b { color: var(--accent-d); font-weight: 650; }
+  .ep p:last-child, .ep pre:last-child, .ep table:last-child, .ep ul:last-child { margin-bottom: 0; }
+  .ep h4:first-of-type { margin-top: 0; }
+
+  /* ---------- callouts ---------- */
+  .callout {
+    border-left: 2.5pt solid var(--accent); background: var(--surface);
+    padding: 3.5mm 4.5mm; margin: 0 0 4mm; break-inside: avoid;
+  }
+  .callout--warn { border-left-color: var(--partial); background: #FCF8EF; }
+  .callout--gap { border-left-color: var(--gap); background: #FBF3F1; }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout__label {
+    font-family: var(--mono); font-size: 7.3pt; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--accent); margin: 0 0 1.5mm; font-weight: 600;
+  }
+  .callout--warn .callout__label { color: var(--partial); }
+  .callout--gap .callout__label { color: var(--gap); }
+
+  /* ---------- flow steps ---------- */
+  .step {
+    display: grid; grid-template-columns: 7mm 1fr; gap: 0 3.5mm;
+    margin-bottom: 4mm; break-inside: avoid;
+  }
+  .step__n { font-family: var(--mono); font-size: 11pt; color: var(--accent); line-height: 1.2; }
+  .step__body > :last-child { margin-bottom: 0; }
+  .step__title { font-weight: 650; margin: 0 0 1.5mm; }
+
+  .footer-note {
+    margin-top: 8mm; padding-top: 3mm; border-top: 1px solid var(--line);
+    font-size: 8.3pt; color: var(--faint);
+  }
+</style>
+
+<!-- ============ COVER ============ -->
+<section class="cover">
+  <div class="cover__block">
+    <p class="cover__eyebrow">Frontend Integration Guide</p>
+    <h1 class="cover__title">Admin &amp; Super Admin Dashboard</h1>
+    <p class="cover__sub">What changed in the role rules, every endpoint the dashboard needs, and how the frontend calls each one.</p>
+  </div>
+
+  <dl class="cover__meta">
+    <div><dt>Date</dt><dd>25 August 2026</dd></div>
+    <div><dt>Base URL</dt><dd><code>http://localhost:3000/api</code></dd></div>
+    <div><dt>Auth</dt><dd><code>Authorization: Bearer &lt;accessToken&gt;</code></dd></div>
+  </dl>
+
+  <div class="cover__note">
+    <p class="callout__label">Read this first</p>
+    <p>Two roles now reach the dashboard: <strong>Admin</strong> (<code>AGENCY_ADMIN</code>) and <strong>Super Admin</strong> (<code>SUPER_ADMIN</code>). Admin can add a client, edit a client name and assign a client to users. Only Super Admin can <strong>assign admins</strong> and <strong>delete a client from the database</strong>.</p>
+    <p>Every endpoint below carries a status chip. <span class="chip chip--live">live</span> exists in the API today and you can call it now. <span class="chip chip--spec">spec</span> is the agreed contract, <strong>not built yet</strong> — build the UI against it, but expect <code>404</code> until the backend ships it. <span class="chip chip--fix">fix</span> exists but its permission rule is changing, so behaviour will tighten.</p>
+  </div>
+</section>
+
+<!-- ============ CONTENTS ============ -->
+<section class="toc">
+  <h2><span class="sec">—</span>Contents</h2>
+  <ol>
+    <li><div class="toc__row"><span class="toc__num">1</span><span class="toc__label">What changed</span><span class="toc__hint">and what it means for the UI</span></div></li>
+    <li><div class="toc__row"><span class="toc__num">2</span><span class="toc__label">The two admin roles</span><span class="toc__hint">gating the interface</span></div></li>
+    <li><div class="toc__row"><span class="toc__num">3</span><span class="toc__label">Conventions</span><span class="toc__hint">auth, errors, filters, pagination</span></div></li>
+    <li><div class="toc__row"><span class="toc__num">4</span><span class="toc__label">Endpoints that already exist and behave differently</span><span class="toc__hint">3 endpoints</span></div></li>
+    <li><div class="toc__row"><span class="toc__num">5</span><span class="toc__label">New API — dashboard reads</span><span class="toc__hint">12 endpoints</span></div></li>
+    <li><div class="toc__row"><span class="toc__num">6</span><span class="toc__label">New API — client administration writes</span><span class="toc__hint">4 endpoints, with bodies</span></div></li>
+    <li><div class="toc__row"><span class="toc__num">7</span><span class="toc__label">How to use it — screen by screen</span><span class="toc__hint">dashboard composition</span></div></li>
+    <li><div class="toc__row"><span class="toc__num">8</span><span class="toc__label">How to use it — the seven flows</span><span class="toc__hint">step by step</span></div></li>
+    <li><div class="toc__row"><span class="toc__num">9</span><span class="toc__label">TypeScript types to paste</span><span class="toc__hint">copy into your API layer</span></div></li>
+    <li><div class="toc__row"><span class="toc__num">10</span><span class="toc__label">Build order and checklist</span><span class="toc__hint">what to do first</span></div></li>
+  </ol>
+</section>
+
+<!-- ============ 1 ============ -->
+<h2><span class="sec">1</span>What changed</h2>
+
+<p>The operations dashboard was specified as Super-Admin-only. It is now open to both administrator roles, and the client administration actions around it have been split between them.</p>
+
+<table>
+  <caption>Change log — revision 2 of the backend task list</caption>
+  <thead>
+    <tr><th style="width:5%">#</th><th style="width:40%">Change</th><th>What the frontend does about it</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="mono">1</td>
+      <td><strong>Admin now reaches the dashboard.</strong> All of <code>/api/admin/dashboard/*</code> accepts <code>AGENCY_ADMIN</code> as well as <code>SUPER_ADMIN</code>.</td>
+      <td>Show the dashboard entry point for both roles. Do not hide it behind a Super Admin check.</td>
+    </tr>
+    <tr>
+      <td class="mono">2</td>
+      <td><strong>Both roles see the whole agency.</strong> Admin is not narrowed to the clients they are a member of.</td>
+      <td>No "my clients only" toggle on the dashboard. The client filter is a convenience, not a permission.</td>
+    </tr>
+    <tr>
+      <td class="mono">3</td>
+      <td><strong>Admin can add a client, rename it, and assign it to users.</strong></td>
+      <td>Enable those three actions for both roles.</td>
+    </tr>
+    <tr>
+      <td class="mono">4</td>
+      <td><strong>Assigning admins is Super Admin only.</strong> A new dedicated route replaces role changes through the general user update.</td>
+      <td>Show the role control only to Super Admin. Stop sending <code>platformRole</code> to <code>PATCH /api/users/:userId</code>.</td>
+    </tr>
+    <tr>
+      <td class="mono">5</td>
+      <td><strong>Deleting a client is Super Admin only</strong> and is a permanent database delete, separate from archiving.</td>
+      <td>Two distinct actions in the UI: "Archive" (status change, both roles) and "Delete permanently" (Super Admin, typed confirmation).</td>
+    </tr>
+    <tr>
+      <td class="mono">6</td>
+      <td><strong>Renaming a client tightens.</strong> Today any member of a client can rename it; it will require an admin role.</td>
+      <td>Remove the rename control from non-admin client screens now, so it does not start failing with <code>403</code> later.</td>
+    </tr>
+    <tr>
+      <td class="mono">7</td>
+      <td><strong>System health stays Super Admin only.</strong></td>
+      <td>Render that widget for Super Admin only. <em>Open question — may widen to Admin.</em></td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout callout--warn">
+  <p class="callout__label">Nothing else moved</p>
+  <p>Authentication, the client workspace, tasks, posts, approvals, leads and campaigns keep the same routes and shapes. This document only adds the admin area and the client-administration rules around it.</p>
+</div>
+
+<!-- ============ 2 ============ -->
+<h2><span class="sec">2</span>The two admin roles</h2>
+
+<p>The signed-in user's role arrives with the login and refresh responses, on <code>user.platformRole</code>. There are three values: <code>SUPER_ADMIN</code>, <code>AGENCY_ADMIN</code>, <code>USER</code>.</p>
+
+<pre><code><span class="cm">// POST /api/auth/login  →  200</span>
+{
+  "user": {
+    "id": "uuid",
+    "email": "admin@solutions.com",
+    "fullName": "Ahmad",
+    "platformRole": "AGENCY_ADMIN",   <span class="cm">// ← gate the UI on this</span>
+    "status": "ACTIVE"
+  },
+  "accessToken": "eyJhbGciOi..."
+}</code></pre>
+
+<table>
+  <caption>Permission matrix — what to render for whom</caption>
+  <thead>
+    <tr>
+      <th style="width:40%">Capability</th>
+      <th class="c">Super Admin</th>
+      <th class="c">Admin</th>
+      <th class="c">Employee</th>
+      <th class="c">Client user</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>Operations dashboard — all widgets</td><td class="c yes">yes</td><td class="c yes">yes</td><td class="c off">403</td><td class="c off">403</td></tr>
+    <tr><td>Add client</td><td class="c yes">yes</td><td class="c yes">yes</td><td class="c off">403</td><td class="c off">403</td></tr>
+    <tr><td>Edit client name</td><td class="c yes">yes</td><td class="c yes">yes</td><td class="c off">403</td><td class="c off">403</td></tr>
+    <tr><td>Assign client to users</td><td class="c yes">yes</td><td class="c yes">yes</td><td class="c off">403</td><td class="c off">403</td></tr>
+    <tr><td>Assign admins</td><td class="c yes">yes</td><td class="c no">403</td><td class="c off">403</td><td class="c off">403</td></tr>
+    <tr><td>Delete client from the database</td><td class="c yes">yes</td><td class="c no">403</td><td class="c off">403</td><td class="c off">403</td></tr>
+    <tr><td>System health widget</td><td class="c yes">yes</td><td class="c no">403</td><td class="c off">403</td><td class="c off">403</td></tr>
+  </tbody>
+</table>
+
+<pre><code><span class="cm">// One helper, used everywhere — do not scatter role string comparisons</span>
+export const isAdmin = (r?: PlatformRole) =&gt;
+  r === 'SUPER_ADMIN' || r === 'AGENCY_ADMIN';
+
+export const isSuperAdmin = (r?: PlatformRole) =&gt; r === 'SUPER_ADMIN';
+
+<span class="cm">// Route guard</span>
+if (!isAdmin(user.platformRole)) return &lt;Navigate to="/" replace /&gt;;
+
+<span class="cm">// Destructive controls</span>
+{isSuperAdmin(user.platformRole) &amp;&amp; &lt;DeleteClientButton clientId={id} /&gt;}</code></pre>
+
+<div class="callout callout--gap">
+  <p class="callout__label">Hiding a button is not a permission</p>
+  <p>Role checks in the frontend are cosmetic — the API enforces the real rule and returns <code>403</code>. Never treat a hidden control as security, and always handle a <code>403</code> gracefully: it means the role changed under the user (see Flow&nbsp;7), not that something is broken.</p>
+</div>
+
+<!-- ============ 3 ============ -->
+<h2><span class="sec">3</span>Conventions</h2>
+
+<h4>Authentication</h4>
+<ul>
+  <li>Send <code>Authorization: Bearer &lt;accessToken&gt;</code> on every admin request.</li>
+  <li>The refresh token is an <strong>httpOnly cookie</strong>, so every call must use <code>credentials: 'include'</code>. Your origin has to be in the API's allow-list or the browser blocks it.</li>
+  <li>On <code>401</code>, call <code>POST /api/auth/refresh</code> once and retry. On a second <code>401</code>, sign out.</li>
+</ul>
+
+<h4>Error responses</h4>
+<table>
+  <thead><tr><th style="width:12%">Status</th><th style="width:34%">Means</th><th>What the UI should do</th></tr></thead>
+  <tbody>
+    <tr><td class="mono">400</td><td>Validation — bad date, bad UUID, unknown body field</td><td>Show the field error. Never retry unchanged</td></tr>
+    <tr><td class="mono">401</td><td>Missing or expired access token</td><td>Refresh once, then retry; otherwise sign out</td></tr>
+    <tr><td class="mono">403</td><td>Role not allowed for this action</td><td>Re-read the role, hide the control, tell the user their access changed</td></tr>
+    <tr><td class="mono">404</td><td>Record not found — or endpoint not built yet</td><td>For <span class="chip chip--spec">spec</span> endpoints treat it as "not shipped" and render the widget's empty state</td></tr>
+    <tr><td class="mono">409</td><td>Conflict — the delete confirmation did not match</td><td>Keep the modal open and explain the mismatch</td></tr>
+  </tbody>
+</table>
+
+<div class="callout callout--warn">
+  <p class="callout__label">Unknown body fields are rejected</p>
+  <p>The API validates with <code>whitelist</code> and <code>forbidNonWhitelisted</code>. An extra property in a request body is a <code>400</code>, not a silently ignored field. Send exactly the documented keys — this is the most common integration mistake.</p>
+</div>
+
+<h4>Shared dashboard filters</h4>
+<p>Every dashboard endpoint accepts the same query parameters. Build one filter object and one query-string serializer, and reuse them for all widgets.</p>
+
+<table>
+  <thead><tr><th style="width:18%">Param</th><th style="width:22%">Type</th><th style="width:20%">Default</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td class="mono">from</td><td class="mono">ISO date</td><td>today</td><td><code>400</code> if unparseable</td></tr>
+    <tr><td class="mono">to</td><td class="mono">ISO date</td><td>today</td><td>Inclusive end of range</td></tr>
+    <tr><td class="mono">clientId</td><td class="mono">uuid</td><td>all clients</td><td>Filters without entering the client workspace</td></tr>
+    <tr><td class="mono">employeeId</td><td class="mono">uuid</td><td>all employees</td><td></td></tr>
+    <tr><td class="mono">status</td><td class="mono">enum</td><td>all</td><td>Meaning depends on the endpoint's domain</td></tr>
+    <tr><td class="mono">priority</td><td class="mono">enum</td><td>all</td><td>Task priorities</td></tr>
+    <tr><td class="mono">page</td><td class="mono">number</td><td><code>1</code></td><td>List endpoints only</td></tr>
+    <tr><td class="mono">limit</td><td class="mono">number</td><td><code>20</code></td><td>List endpoints only</td></tr>
+  </tbody>
+</table>
+
+<pre><code><span class="cm">// Serialize once, reuse for every widget — omit empty values entirely</span>
+const qs = (f: DashboardFilters) =&gt;
+  new URLSearchParams(
+    Object.entries(f).filter(([, v]) =&gt; v !== undefined &amp;&amp; v !== '')
+      .map(([k, v]) =&gt; [k, String(v)]),
+  ).toString();
+
+<span class="cm">// → /api/admin/dashboard/tasks?from=2026-08-01&amp;to=2026-08-31&amp;clientId=uuid</span></code></pre>
+
+<h4>Pagination envelope</h4>
+<p>Every list endpoint returns the same wrapper. Write one hook for it.</p>
+
+<pre><code>{
+  "items": [ /* ... */ ],
+  "pagination": { "page": 1, "limit": 20, "total": 156, "totalPages": 8 }
+}</code></pre>
+
+<!-- ============ 4 ============ -->
+<h2><span class="sec">4</span>Endpoints that already exist and behave differently</h2>
+
+<div class="ep">
+  <p class="ep__head"><span class="verb verb--get">GET</span><span class="ep__url">/api/companies</span><span class="chip chip--live">live</span></p>
+  <p class="ep__who">Who: <b>any signed-in user</b> — but the result depends on the role</p>
+  <p>For <code>SUPER_ADMIN</code> and <code>AGENCY_ADMIN</code> this already returns <strong>every client in the database</strong>, newest first. For an employee it returns only the clients they are assigned to.</p>
+  <p>Use it to populate the dashboard's client filter dropdown — you do not need a separate admin endpoint for the client list. Cache it per session; it changes only when a client is added or deleted.</p>
+  <pre><code>[
+  {
+    "id": "uuid",
+    "name": "Taxero",
+    "industry": null, "website": null, "phone": null, "city": null, "country": null,
+    "status": "ACTIVE",            <span class="cm">// ACTIVE | INACTIVE | ARCHIVED</span>
+    "createdById": "uuid",
+    "createdAt": "2026-08-08T10:00:00.000Z",
+    "updatedAt": "2026-08-08T10:00:00.000Z"
+  }
+]</code></pre>
+</div>
+
+<div class="ep">
+  <p class="ep__head"><span class="verb verb--patch">PATCH</span><span class="ep__url">/api/companies/:companyId</span><span class="chip chip--fix">fix coming</span></p>
+  <p class="ep__who">Who today: <b>any member of that client</b> · Who after the fix: <b>Admin, Super Admin</b></p>
+  <p>This is the "edit client name" endpoint. The permission is tightening — a copywriter on Taxero can rename it today, and will get <code>403</code> once the fix ships.</p>
+  <p><strong>Act now:</strong> move the rename control out of the client workspace and into the admin area, and render it only when <code>isAdmin(role)</code>. Nothing else about the endpoint changes.</p>
+  <pre><code><span class="cm">// Request — send only the keys you are changing</span>
+{ "name": "Taxero Consulting" }
+
+<span class="cm">// 200 → the full updated client object (same shape as GET /api/companies item)</span></code></pre>
+</div>
+
+<div class="ep">
+  <p class="ep__head"><span class="verb verb--patch">PATCH</span><span class="ep__url">/api/users/:userId</span><span class="chip chip--break">breaking</span></p>
+  <p class="ep__who">Who: <b>Admin, Super Admin</b></p>
+  <p>General employee update — name, status, password reset. <strong><code>platformRole</code> is being removed from this body.</strong> Because unknown fields are rejected, sending it after the change is a <code>400</code>, not a no-op.</p>
+  <p>Move every role change to <code>PATCH /api/users/:userId/platform-role</code> (§6). Split your employee-edit form: name/status/password here, role in a separate Super-Admin-only control.</p>
+  <pre><code><span class="cm">// Request — allowed keys after the change</span>
+{
+  "fullName": "Ahmad Al Zaman",      <span class="cm">// optional, 2–120 chars</span>
+  "status": "INACTIVE",              <span class="cm">// optional: ACTIVE | INACTIVE | SUSPENDED</span>
+  "password": "at-least-12-chars"    <span class="cm">// optional, admin-performed reset</span>
+}
+
+<span class="cm">// 200 → employee object with the clients they are assigned to</span>
+{
+  "id": "uuid", "email": "ahmad@solutions.com", "fullName": "Ahmad Al Zaman",
+  "platformRole": "USER", "status": "INACTIVE",
+  "createdAt": "2026-08-08T10:00:00.000Z",
+  "clients": [
+    { "membershipId": "uuid", "companyId": "uuid",
+      "companyName": "Taxero", "role": "DESIGNER" }
+  ]
+}</code></pre>
+</div>
+
+<!-- ============ 5 ============ -->
+<h2><span class="sec">5</span>New API — dashboard reads</h2>
+
+<p>All twelve are <code>GET</code>, all accept the §3 filters, all are open to <strong>Admin and Super Admin</strong>, and none require a client to be selected first. They are independent on purpose: each widget fetches its own endpoint so one slow query cannot block the page.</p>
+
+<div class="ep">
+  <p class="ep__head"><span class="verb verb--get">GET</span><span class="ep__url">/api/admin/dashboard/overview</span><span class="chip chip--spec">spec</span></p>
+  <p class="ep__who">Who: <b>Admin, Super Admin</b> · Filters: all · Cheap — poll this one</p>
+  <p><strong>How the frontend uses it:</strong> the KPI row at the top of the dashboard. Nine numbers, one request. Refresh on mount, on filter change, and every 60&nbsp;s while the tab is visible. Each tile links to the matching drill-down screen.</p>
+  <pre><code>{
+  "activeClients": 18,
+  "activeEmployees": 24,
+  "dueToday": 42,
+  "overdue": 11,
+  "blockedTasks": 4,
+  "waitingClientApproval": 8,
+  "leadFollowUpsToday": 13,
+  "overdueLeadFollowUps": 5,
+  "publishedToday": 9
+}</code></pre>
+</div>
+
+<div class="ep ep--wide">
+  <p class="ep__head"><span class="verb verb--get">GET</span><span class="ep__url">/api/admin/dashboard/attention</span><span class="chip chip--spec">spec</span></p>
+  <p class="ep__who">Who: <b>Admin, Super Admin</b> · Paginated · Ordered by severity, then urgency</p>
+  <p><strong>How the frontend uses it:</strong> the main "Needs attention" feed — the widget people actually work from. Render one row per item, grouped or coloured by <code>severity</code>, and make every row clickable using <code>type</code> + <code>entityId</code> to route into the right client workspace screen. Do not sort client-side; the order is the product rule.</p>
+  <pre><code>{
+  "items": [
+    {
+      "type": "TASK_OVERDUE",        <span class="cm">// see the type table below</span>
+      "severity": "CRITICAL",        <span class="cm">// INFO | WARNING | CRITICAL</span>
+      "client": { "id": "uuid", "name": "Taxero" },
+      "entityId": "uuid",            <span class="cm">// the task/post/lead to open</span>
+      "title": "August carousel — final copy",
+      "owner": { "id": "uuid", "name": "Ahmad" },   <span class="cm">// null when unassigned</span>
+      "dueAt": "2026-08-24T12:00:00.000Z",
+      "waitingSince": "2026-08-23T09:00:00.000Z",
+      "ageMinutes": 1280
+    }
+  ],
+  "pagination": { "page": 1, "limit": 20, "total": 37, "totalPages": 2 }
+}</code></pre>
+  <table>
+    <caption>Item types — map each to a route and an icon</caption>
+    <thead><tr><th style="width:34%">type</th><th style="width:20%">Opens</th><th>Row label suggestion</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">TASK_OVERDUE</td><td>Task</td><td>Overdue · <em>n</em> days late</td></tr>
+      <tr><td class="mono">TASK_BLOCKED</td><td>Task</td><td>Blocked</td></tr>
+      <tr><td class="mono">TASK_UNASSIGNED_URGENT</td><td>Task</td><td>Urgent, nobody assigned</td></tr>
+      <tr><td class="mono">PUBLISHING_DUE</td><td>Post</td><td>Scheduled time passed — publish manually</td></tr>
+      <tr><td class="mono">APPROVAL_WAITING_TOO_LONG</td><td>Post</td><td>Waiting on client · <em>n</em> h</td></tr>
+      <tr><td class="mono">CHANGES_REQUESTED_STALE</td><td>Post</td><td>Changes requested, no action</td></tr>
+      <tr><td class="mono">LEAD_FOLLOW_UP_OVERDUE</td><td>Lead</td><td>Follow-up overdue</td></tr>
+      <tr><td class="mono">CAMPAIGN_ENDING_INCOMPLETE</td><td>Campaign</td><td>Ends soon, work outstanding</td></tr>
+    </tbody>
+  </table>
+  <div class="callout callout--warn">
+    <p class="callout__label">Treat type as an open set</p>
+    <p>New types will be added as the backend grows. Render an unknown <code>type</code> with a generic row and its <code>title</code> rather than dropping it — never <code>switch</code> without a default.</p>
+  </div>
+</div>
+
+<div class="ep">
+  <p class="ep__head"><span class="verb verb--get">GET</span><span class="ep__url">/api/admin/dashboard/content</span><span class="chip chip--spec">spec</span></p>
+  <p class="ep__who">Who: <b>Admin, Super Admin</b></p>
+  <p><strong>How the frontend uses it:</strong> the content pipeline funnel — one bar or column per status, plus the summary strip underneath. <code>publishingDue</code> is the count that also appears in the attention feed as <code>PUBLISHING_DUE</code>; badge it, because those posts need a human to publish them.</p>
+  <pre><code>{
+  "byStatus": {
+    "DRAFT": 14, "IN_INTERNAL_REVIEW": 6, "READY_FOR_CLIENT": 8,
+    "CHANGES_REQUESTED": 3, "APPROVED": 11, "SCHEDULED": 9,
+    "PUBLISHED": 132, "CANCELED": 2
+  },
+  "publishedToday": 9,
+  "scheduledToday": 4,
+  "awaitingClientAction": 11,     <span class="cm">// READY_FOR_CLIENT + CHANGES_REQUESTED</span>
+  "changesRequested": 3,
+  "publishingDue": 2,             <span class="cm">// SCHEDULED and scheduledAt &lt;= now</span>
+  "averageApprovalWaitHours": 18.4
+}</code></pre>
+</div>
+
+<div class="ep">
+  <p class="ep__head"><span class="verb verb--get">GET</span><span class="ep__url">/api/admin/dashboard/approvals</span><span class="chip chip--spec">spec</span></p>
+  <p class="ep__who">Who: <b>Admin, Super Admin</b></p>
+  <p><strong>How the frontend uses it:</strong> the "waiting on clients" table, one row per client, sorted by <code>oldestWaitingHours</code> descending. Colour each row by <code>slaState</code> — never compute the threshold in the frontend, it is configurable on the server.</p>
+  <pre><code>{
+  "waiting": 12,
+  "overThreshold": 3,
+  "averageWaitHours": 21.5,
+  "approvedToday": 5,
+  "rejectedToday": 1,
+  "oldestWaiting": {
+    "postId": "uuid", "title": "Ramadan teaser",
+    "clientId": "uuid", "clientName": "Taxero",
+    "waitingHours": 49, "slaState": "CRITICAL"    <span class="cm">// NORMAL | WARNING | CRITICAL</span>
+  },
+  "clients": [
+    { "clientId": "uuid", "clientName": "Taxero", "waiting": 4,
+      "oldestWaitingHours": 49, "changesRequested": 1, "slaState": "CRITICAL" }
+  ]
+}</code></pre>
+</div>
+
+<div class="ep">
+  <p class="ep__head"><span class="verb verb--get">GET</span><span class="ep__url">/api/admin/dashboard/tasks</span><span class="chip chip--spec">spec</span></p>
+  <p class="ep__who">Who: <b>Admin, Super Admin</b> · Accepts <code>status</code> and <code>priority</code></p>
+  <p><strong>How the frontend uses it:</strong> the task health card. Each number is a link that opens the task drill-down with the same filters pre-applied — pass the filter state through the URL so the drill-down is shareable.</p>
+  <pre><code>{
+  "openTotal": 96,
+  "byStatus": { "TODO": 41, "IN_PROGRESS": 33, "IN_REVIEW": 14, "BLOCKED": 8 },
+  "dueToday": 42, "overdue": 11,
+  "urgent": 6, "highPriority": 19,
+  "unassigned": 7, "completedToday": 23
+}</code></pre>
+</div>
+
+<div class="ep">
+  <p class="ep__head"><span class="verb verb--get">GET</span><span class="ep__url">/api/admin/dashboard/team-workload</span><span class="chip chip--spec">spec</span></p>
+  <p class="ep__who">Who: <b>Admin, Super Admin</b> · Paginated</p>
+  <p><strong>How the frontend uses it:</strong> the team table — one row per employee, columns for each metric. Sort in the UI by whichever column the user clicks.</p>
+  <p><strong>Do not draw a load percentage or a progress bar.</strong> The backend deliberately returns objective counts only; a percentage would need a product rule that does not exist yet. Show the numbers, and let the reader judge.</p>
+  <pre><code>{
+  "items": [
+    { "employeeId": "uuid", "name": "Ahmad", "clients": 3, "openTasks": 12,
+      "dueToday": 4, "overdue": 4, "blocked": 2, "inReview": 1, "urgent": 1 }
+  ],
+  "pagination": { "page": 1, "limit": 20, "total": 24, "totalPages": 2 }
+}</code></pre>
+</div>
+
+<div class="ep">
+  <p class="ep__head"><span class="verb verb--get">GET</span><span class="ep__url">/api/admin/dashboard/leads</span><span class="chip chip--spec">spec</span></p>
+  <p class="ep__who">Who: <b>Admin, Super Admin</b></p>
+  <p><strong>How the frontend uses it:</strong> the sales card — pipeline counts as a funnel, then the today/month strip. <code>conversionRate</code> arrives as a ratio; format it as a percentage yourself and never recompute it from the counts, which are filtered differently.</p>
+  <pre><code>{
+  "byStatus": {
+    "NEW": 23, "CONTACTED": 31, "INTERESTED": 12, "WAITING_DECISION": 8,
+    "WON": 14, "LOST": 26, "FOLLOW_UP_LATER": 9
+  },
+  "newToday": 5,
+  "followUpsToday": 13,
+  "overdueFollowUps": 5,
+  "wonThisMonth": 7, "lostThisMonth": 11,
+  "conversionRate": 0.21
+}</code></pre>
+</div>
+
+<div class="ep">
+  <p class="ep__head"><span class="verb verb--get">GET</span><span class="ep__url">/api/admin/dashboard/leads/overdue</span><span class="chip chip--spec">spec</span></p>
+  <p class="ep__who">Who: <b>Admin, Super Admin</b> · Paginated</p>
+  <p><strong>How the frontend uses it:</strong> the drill-down behind "overdue follow-ups". A lead qualifies when its follow-up date has passed and it is neither <code>WON</code> nor <code>LOST</code>. Each row should offer a direct action — open the lead, or call the assigned employee.</p>
+  <pre><code>{
+  "items": [
+    { "leadId": "uuid", "leadName": "Nour Haddad",
+      "client": { "id": "uuid", "name": "Curby" },
+      "assignedTo": { "id": "uuid", "name": "Dina" },   <span class="cm">// null if unassigned</span>
+      "status": "WAITING_DECISION",
+      "followUpDate": "2026-08-21T09:00:00.000Z",
+      "overdueHours": 106, "overdueDays": 4 }
+  ],
+  "pagination": { "page": 1, "limit": 20, "total": 5, "totalPages": 1 }
+}</code></pre>
+</div>
+
+<div class="ep">
+  <p class="ep__head"><span class="verb verb--get">GET</span><span class="ep__url">/api/admin/dashboard/campaigns</span><span class="chip chip--spec">spec</span></p>
+  <p class="ep__who">Who: <b>Admin, Super Admin</b></p>
+  <p><strong>How the frontend uses it:</strong> counts in a small header strip, then a card per active campaign. Show <code>tasks</code>, <code>posts</code> and <code>leads</code> as three separate "12 of 16" pairs — again, no single blended percentage, because the weighting is undefined.</p>
+  <pre><code>{
+  "counts": { "active": 9, "draft": 3, "paused": 1, "completed": 22,
+              "endingSoon": 2, "withOverdueTasks": 3 },
+  "active": [
+    {
+      "campaignId": "uuid", "name": "Ramadan 2027",
+      "client": { "id": "uuid", "name": "Taxero" },
+      "objective": "LEAD_GENERATION",
+      "startDate": "2026-08-01", "endDate": "2026-09-15",
+      "tasks": { "total": 16, "completed": 12 },
+      "posts": { "total": 10, "published": 8 },
+      "leads": { "total": 43, "won": 7 }
+    }
+  ]
+}</code></pre>
+</div>
+
+<div class="ep">
+  <p class="ep__head"><span class="verb verb--get">GET</span><span class="ep__url">/api/admin/dashboard/content-plans</span><span class="chip chip--spec">spec</span></p>
+  <p class="ep__who">Who: <b>Admin, Super Admin</b> · Extra query: <code>month</code>, <code>year</code></p>
+  <p><strong>How the frontend uses it:</strong> a month grid, one row per client. The important cell is <code>MISSING</code> — a derived state meaning an active client has no plan for the selected month. It is not a database value, so treat it as a first-class status in your UI and make it the most visible one.</p>
+  <pre><code>{
+  "month": 8, "year": 2026,
+  "byStatus": { "DRAFT": 4, "INTERNAL_REVIEW": 2, "CLIENT_REVIEW": 3,
+                "APPROVED": 7, "ARCHIVED": 1, "MISSING": 2 },
+  "clients": [
+    { "clientId": "uuid", "clientName": "Taxero",
+      "planId": "uuid", "status": "APPROVED",
+      "accountManager": { "id": "uuid", "name": "Ahmad" } },
+    { "clientId": "uuid", "clientName": "Curby",
+      "planId": null, "status": "MISSING",          <span class="cm">// ← chase this one</span>
+      "accountManager": null }
+  ]
+}</code></pre>
+</div>
+
+<div class="ep">
+  <p class="ep__head"><span class="verb verb--get">GET</span><span class="ep__url">/api/admin/dashboard/clients</span><span class="chip chip--spec">spec</span></p>
+  <p class="ep__who">Who: <b>Admin, Super Admin</b> · Paginated</p>
+  <p><strong>How the frontend uses it:</strong> the client health table — the row that answers "which client is in trouble". <code>healthInputs</code> carries the raw signals for a future health score; render them as columns or a tooltip, but <strong>do not invent a score or a colour formula</strong> — the Product Owner owns that rule and it will arrive as a server value later.</p>
+  <pre><code>{
+  "items": [
+    {
+      "clientId": "uuid", "clientName": "Taxero", "status": "ACTIVE",
+      "tasks": { "open": 8, "overdue": 1, "blocked": 0 },
+      "content": { "waitingApproval": 2, "changesRequested": 1,
+                   "scheduled": 3, "published": 41 },
+      "leads": { "open": 13, "overdueFollowUps": 1 },
+      "campaigns": { "active": 2 },
+      "contentPlan": { "month": 8, "year": 2026, "status": "APPROVED" },
+      "healthInputs": {
+        "overdueTaskRatio": 0.125, "blockedTaskCount": 0,
+        "oldestApprovalAgeHours": 49, "overdueLeadFollowUps": 1,
+        "contentPlanStatus": "APPROVED", "campaignIssues": 0
+      }
+    }
+  ],
+  "pagination": { "page": 1, "limit": 20, "total": 18, "totalPages": 1 }
+}</code></pre>
+</div>
+
+<div class="ep">
+  <p class="ep__head"><span class="verb verb--get">GET</span><span class="ep__url">/api/admin/dashboard/automations</span><span class="chip chip--spec">spec</span></p>
+  <p class="ep__who">Who: <b>Admin, Super Admin</b></p>
+  <p><strong>How the frontend uses it:</strong> a small reliability card — today's run counts, plus the last failures as a list. Show <code>error</code> when present; it is the only clue for debugging a broken rule.</p>
+  <pre><code>{
+  "runsToday": 42, "successfulRuns": 39, "failedRuns": 3,
+  "activeRules": 12, "inactiveRules": 4,
+  "lastFailedRuns": [
+    { "runId": "uuid", "ruleId": "uuid", "ruleName": "Notify AM on approval",
+      "client": { "id": "uuid", "name": "Curby" },
+      "trigger": "POST_APPROVED", "action": "SEND_NOTIFICATION",
+      "failedAt": "2026-08-25T08:14:00.000Z",
+      "error": "SMTP not configured" }
+  ]
+}</code></pre>
+</div>
+
+<div class="ep">
+  <p class="ep__head"><span class="verb verb--get">GET</span><span class="ep__url">/api/admin/dashboard/activity</span><span class="chip chip--spec">spec</span></p>
+  <p class="ep__who">Who: <b>Admin, Super Admin</b> · Paginated · Newest first</p>
+  <p><strong>How the frontend uses it:</strong> the "recent agency activity" feed in the sidebar, and a full-page audit view with filters. Extra query params beyond §3: <code>userId</code> and <code>entityType</code>. Build the row label from <code>action</code> with a lookup map, and fall back to a readable version of the raw action string for unknown values.</p>
+  <pre><code>{
+  "items": [
+    { "id": "uuid", "action": "POST_APPROVED",
+      "actor": { "id": "uuid", "name": "Ahmad" },
+      "client": { "id": "uuid", "name": "Taxero" },
+      "entityType": "POST", "entityId": "uuid",
+      "metadata": { "from": "READY_FOR_CLIENT", "to": "APPROVED" },
+      "createdAt": "2026-08-25T09:12:00.000Z" }
+  ],
+  "pagination": { "page": 1, "limit": 20, "total": 1204, "totalPages": 61 }
+}</code></pre>
+  <p>Administrative actions appear in the same feed: <code>CLIENT_CREATED</code>, <code>CLIENT_RENAMED</code>, <code>CLIENT_DELETED</code>, <code>MEMBER_ADDED</code>, <code>MEMBER_REMOVED</code>, <code>PLATFORM_ROLE_CHANGED</code>. A deleted client still shows its name from the stored snapshot, so render <code>client.name</code> without assuming the client still exists — do not link that row.</p>
+</div>
+
+<div class="ep">
+  <p class="ep__head"><span class="verb verb--get">GET</span><span class="ep__url">/api/admin/system/health</span><span class="chip chip--spec">spec</span></p>
+  <p class="ep__who">Who: <b>Super Admin only</b> — Admin gets <code>403</code></p>
+  <p><strong>How the frontend uses it:</strong> a status strip rendered only for Super Admin. Values are not just up/down, so map each one to its own label and colour rather than treating anything other than <code>UP</code> as an error — <code>NOT_IN_USE</code> and <code>MOCK</code> are expected states today, not failures.</p>
+  <pre><code>{
+  "api": "UP",
+  "database": "UP",
+  "storage": "UP",
+  "redis": "NOT_IN_USE",
+  "scheduler": "NOT_IMPLEMENTED",
+  "email": "NOT_CONFIGURED",
+  "ai": "MOCK"
+}</code></pre>
+</div>
+
+<!-- ============ 6 ============ -->
+<h2><span class="sec">6</span>New API — client administration writes</h2>
+
+<div class="ep">
+  <p class="ep__head"><span class="verb verb--post">POST</span><span class="ep__url">/api/companies</span><span class="chip chip--live">live</span></p>
+  <p class="ep__who">Who: <b>Admin, Super Admin</b> · This is "add client"</p>
+  <p><strong>Body</strong> — <code>name</code> is the only required field; everything else is optional and can be filled in later from the client's settings screen.</p>
+  <pre><code>{
+  "name": "Taxero",                      <span class="cm">// required, 2–160 chars</span>
+  "industry": "Accounting",              <span class="cm">// optional, ≤120</span>
+  "website": "https://taxero.com",       <span class="cm">// optional — MUST include https://</span>
+  "phone": "+962790000000",              <span class="cm">// optional, ≤40</span>
+  "city": "Amman",                       <span class="cm">// optional, ≤120</span>
+  "country": "Jordan"                    <span class="cm">// optional, ≤120</span>
+}
+
+<span class="cm">// 201 → the created client</span>
+{ "id": "uuid", "name": "Taxero", "status": "ACTIVE",
+  "createdById": "uuid", "createdAt": "...", "updatedAt": "..." }</code></pre>
+  <p><strong>How the frontend uses it:</strong> a short "New client" dialog with one required field. Two things to know:</p>
+  <ul>
+    <li><code>website</code> without a protocol is a <code>400</code>. Prefix <code>https://</code> for the user, or validate before sending.</li>
+    <li>The creator is automatically added to the new client as <code>ACCOUNT_MANAGER</code>. Do not also call the members endpoint for them — you would get a duplicate-membership error. Refresh your client list afterwards, then send the user to the assign-members step (Flow&nbsp;3).</li>
+  </ul>
+</div>
+
+<div class="ep">
+  <p class="ep__head"><span class="verb verb--post">POST</span><span class="ep__url">/api/companies/:companyId/members</span><span class="chip chip--live">live</span></p>
+  <p class="ep__who">Who: <b>Admin, Super Admin</b> · This is "assign client to users"</p>
+  <p><strong>Body</strong> — an existing employee's id plus the role they hold <em>on this client</em>. The same person can hold different roles on different clients.</p>
+  <pre><code>{
+  "userId": "uuid",
+  "role": "DESIGNER"
+}
+
+<span class="cm">// role — one of:</span>
+<span class="cm">// ACCOUNT_MANAGER | COPYWRITER | DESIGNER | SOCIAL_MEDIA_MANAGER</span>
+<span class="cm">// CLIENT_OWNER | CLIENT_REVIEWER | SALES_AGENT</span>
+
+<span class="cm">// 201 → the membership</span>
+{ "id": "uuid", "companyId": "uuid", "userId": "uuid",
+  "role": "DESIGNER", "status": "ACTIVE", "invitedById": "uuid",
+  "createdAt": "...", "updatedAt": "..." }</code></pre>
+  <h4>Companion routes</h4>
+  <pre><code>GET    /api/companies/:companyId/members                  <span class="cm">// list, for the table</span>
+PATCH  /api/companies/:companyId/members/:membershipId    <span class="cm">// { "role": "COPYWRITER" }</span>
+DELETE /api/companies/:companyId/members/:membershipId    <span class="cm">// deactivates the membership</span></code></pre>
+  <p><strong>How the frontend uses it:</strong> an "Assign people" panel on the client — a table of current members from <code>GET</code>, an employee picker fed by <code>GET /api/users</code>, and a role dropdown. Notes:</p>
+  <ul>
+    <li>The employee must already exist. There is no self-sign-up: create them with <code>POST /api/users</code> first.</li>
+    <li>One membership per person per client is enforced by the database. Filter people who are already members out of the picker instead of relying on the error.</li>
+    <li><code>DELETE</code> deactivates rather than erases, so the person disappears from the client but their history stays intact.</li>
+    <li>The permission on <code>PATCH</code> and <code>DELETE</code> is tightening to admin-only alongside <code>POST</code> — keep all three controls in the admin area only.</li>
+  </ul>
+</div>
+
+<div class="ep">
+  <p class="ep__head"><span class="verb verb--patch">PATCH</span><span class="ep__url">/api/users/:userId/platform-role</span><span class="chip chip--spec">spec</span></p>
+  <p class="ep__who">Who: <b>Super Admin only</b> — Admin gets <code>403</code> · This is "assign admins"</p>
+  <pre><code>{
+  "platformRole": "AGENCY_ADMIN"      <span class="cm">// SUPER_ADMIN | AGENCY_ADMIN | USER</span>
+}
+
+<span class="cm">// 200 → the updated employee (same shape as PATCH /api/users/:userId)</span></code></pre>
+  <table>
+    <caption>Errors worth handling explicitly</caption>
+    <thead><tr><th style="width:14%">Status</th><th>Case</th><th>Message to show</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">403</td><td>Caller is an Admin, not a Super Admin</td><td>"Only a Super Admin can change roles"</td></tr>
+      <tr><td class="mono">400/409</td><td>Super Admin demoting themselves</td><td>"You cannot change your own role"</td></tr>
+      <tr><td class="mono">400/409</td><td>Demoting the last Super Admin</td><td>"At least one Super Admin is required"</td></tr>
+    </tbody>
+  </table>
+  <p><strong>How the frontend uses it:</strong> a role control on the employee detail screen, rendered only when <code>isSuperAdmin(me.platformRole)</code> and disabled when the target is the signed-in user. Confirm before promoting — the dialog should say plainly what the new role can do, including that a Super Admin can delete clients permanently.</p>
+  <div class="callout callout--warn">
+    <p class="callout__label">The role lives in the token</p>
+    <p>A role change does not reach an already–signed-in user until their token is re-issued. If you change your own team's roles while they are working, expect a short window where their UI still shows the old capabilities and the API answers <code>403</code>. That is exactly what Flow&nbsp;7 handles.</p>
+  </div>
+</div>
+
+<div class="ep">
+  <p class="ep__head"><span class="verb verb--delete">DELETE</span><span class="ep__url">/api/companies/:companyId?confirm=&lt;client name&gt;</span><span class="chip chip--spec">spec</span></p>
+  <p class="ep__who">Who: <b>Super Admin only</b> — Admin gets <code>403</code> · Permanent</p>
+  <p>No request body. The confirmation travels as a query parameter and must match the client's exact name, or the API answers <code>409</code> and deletes nothing.</p>
+  <pre><code>DELETE /api/companies/8f3c…?confirm=Taxero
+
+<span class="cm">// 200</span>
+{ "deleted": true, "clientId": "uuid", "clientName": "Taxero",
+  "removed": { "tasks": 41, "posts": 132, "leads": 43,
+               "campaigns": 5, "memberships": 6, "files": 88 } }</code></pre>
+  <table>
+    <thead><tr><th style="width:14%">Status</th><th>Case</th><th>What the UI does</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">403</td><td>Caller is an Admin</td><td>Should not have been rendered — hide and explain</td></tr>
+      <tr><td class="mono">409</td><td><code>confirm</code> does not match the name</td><td>Keep the modal open, mark the input invalid</td></tr>
+      <tr><td class="mono">404</td><td>Already deleted</td><td>Treat as success, refresh the list</td></tr>
+    </tbody>
+  </table>
+  <p><strong>How the frontend uses it:</strong> the most dangerous control in the product. Build it as a deliberate, slow path:</p>
+  <ul>
+    <li>Put it in a "Danger zone" block at the bottom of the client settings screen, visually separated from Archive.</li>
+    <li>Require the user to <strong>type the client name</strong> to enable the confirm button; send that exact string as <code>confirm</code>.</li>
+    <li>State the consequence in the dialog using real numbers — fetch the client's row from <code>/dashboard/clients</code> and show the tasks, posts and leads that will be destroyed.</li>
+    <li>Afterwards: clear that client from every cache, drop it from the client switcher, and if the user was inside its workspace, redirect to the dashboard. Report the <code>removed</code> counts in the success toast.</li>
+    <li><strong>Archive is not this.</strong> For a client that is merely finished, use <code>PATCH</code> with <code>{"status": "ARCHIVED"}</code> — available to Admin, and reversible.</li>
+  </ul>
+</div>
+
+<!-- ============ 7 ============ -->
+<h2><span class="sec">7</span>How to use it — screen by screen</h2>
+
+<h3>Dashboard home</h3>
+<p>One screen, one filter bar, many independent requests. Each widget owns its own loading and error state so a slow query degrades one card instead of the page.</p>
+
+<table>
+  <caption>Widget → endpoint map</caption>
+  <thead><tr><th style="width:30%">Widget</th><th style="width:40%">Endpoint</th><th>Refresh</th></tr></thead>
+  <tbody>
+    <tr><td>KPI row (9 tiles)</td><td class="mono">/dashboard/overview</td><td>60 s + on filter change</td></tr>
+    <tr><td>Needs attention feed</td><td class="mono">/dashboard/attention</td><td>60 s + after any action</td></tr>
+    <tr><td>Content pipeline</td><td class="mono">/dashboard/content</td><td>On filter change</td></tr>
+    <tr><td>Waiting on clients</td><td class="mono">/dashboard/approvals</td><td>On filter change</td></tr>
+    <tr><td>Task health</td><td class="mono">/dashboard/tasks</td><td>On filter change</td></tr>
+    <tr><td>Team table</td><td class="mono">/dashboard/team-workload</td><td>On demand (tab)</td></tr>
+    <tr><td>Sales / leads</td><td class="mono">/dashboard/leads</td><td>On filter change</td></tr>
+    <tr><td>Campaigns</td><td class="mono">/dashboard/campaigns</td><td>On demand (tab)</td></tr>
+    <tr><td>Content plans grid</td><td class="mono">/dashboard/content-plans</td><td>On month change</td></tr>
+    <tr><td>Client health table</td><td class="mono">/dashboard/clients</td><td>On demand (tab)</td></tr>
+    <tr><td>Automations card</td><td class="mono">/dashboard/automations</td><td>On demand</td></tr>
+    <tr><td>Activity feed</td><td class="mono">/dashboard/activity</td><td>30 s (sidebar)</td></tr>
+    <tr><td>System health strip</td><td class="mono">/system/health</td><td>Super Admin only, on mount</td></tr>
+  </tbody>
+</table>
+
+<ul>
+  <li><strong>Filter bar</strong> — date range, client, employee. Keep it in the URL query string so a filtered dashboard is a shareable link, and so a refresh does not lose the view.</li>
+  <li><strong>Client filter</strong> — populate from <code>GET /api/companies</code>, which already returns every client for both admin roles. Selecting a client filters the numbers; it does <em>not</em> enter that client's workspace.</li>
+  <li><strong>Empty vs. not-shipped</strong> — while an endpoint is still <span class="chip chip--spec">spec</span>, a <code>404</code> should render "Not available yet", not an error toast. That single decision lets you ship the whole dashboard shell before the backend lands.</li>
+</ul>
+
+<h3>Client administration screen</h3>
+<p>Reachable from the dashboard, listing every client with the actions both roles share, and the Super-Admin-only ones marked.</p>
+<ul>
+  <li>Table of clients from <code>GET /api/companies</code> — name, status, created date.</li>
+  <li><strong>Add client</strong> button — both roles — <code>POST /api/companies</code>.</li>
+  <li>Row actions: <strong>Rename</strong> (both roles), <strong>Assign people</strong> (both roles), <strong>Archive</strong> (both roles, <code>PATCH</code> status).</li>
+  <li>Danger zone inside the client's detail panel: <strong>Delete permanently</strong> — Super Admin only.</li>
+</ul>
+
+<h3>Employees screen</h3>
+<ul>
+  <li>List from <code>GET /api/users</code> — each employee carries the <code>clients</code> array, so you can show "works on 3 clients" without extra requests.</li>
+  <li>Edit name, status, password — <code>PATCH /api/users/:userId</code>, both roles.</li>
+  <li><strong>Role</strong> — <code>PATCH /api/users/:userId/platform-role</code>, Super Admin only. Keep it visually apart from the rest of the form; it is a different kind of decision.</li>
+</ul>
+
+<!-- ============ 8 ============ -->
+<h2><span class="sec">8</span>How to use it — the seven flows</h2>
+
+<div class="step">
+  <div class="step__n">1</div>
+  <div class="step__body">
+    <p class="step__title">Render the dashboard for either admin role</p>
+    <p>Read <code>platformRole</code> from the session. If it is not one of the two admin roles, redirect away — do not fetch. Otherwise fire the widget requests in parallel and let each resolve on its own.</p>
+    <pre><code>const f = { from: today, to: today };            <span class="cm">// defaults = today</span>
+const [overview, attention, tasks] = await Promise.allSettled([
+  api.get(`/admin/dashboard/overview?${qs(f)}`),
+  api.get(`/admin/dashboard/attention?${qs({ ...f, page: 1, limit: 20 })}`),
+  api.get(`/admin/dashboard/tasks?${qs(f)}`),
+]);
+<span class="cm">// allSettled, not all — one failed widget must not blank the page</span></code></pre>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step__n">2</div>
+  <div class="step__body">
+    <p class="step__title">Filter the whole dashboard to one client</p>
+    <p>Add <code>clientId</code> to the shared filter object and refetch every visible widget. No workspace switch, no page reload, and no permission question — both admin roles may filter to any client.</p>
+    <pre><code>setFilters(f =&gt; ({ ...f, clientId }));   <span class="cm">// → all widgets refetch</span>
+router.replace(`/admin/dashboard?${qs({ ...filters, clientId })}`);</code></pre>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step__n">3</div>
+  <div class="step__body">
+    <p class="step__title">Add a client, then staff it</p>
+    <p>Two requests, one wizard. Step one creates the client; step two assigns people. Remember the creator is already an Account Manager on it.</p>
+    <pre><code>const client = await api.post('/companies', { name, industry, website });
+await api.post(`/companies/${client.id}/members`,
+               { userId: designerId, role: 'DESIGNER' });
+invalidate(['companies']);              <span class="cm">// refresh switcher + filter list</span></code></pre>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step__n">4</div>
+  <div class="step__body">
+    <p class="step__title">Rename a client</p>
+    <p>Send only <code>name</code>. Any extra key is a <code>400</code>. Update the client switcher, the dashboard filter label and any open breadcrumb from the response — the name appears in many places.</p>
+    <pre><code>const updated = await api.patch(`/companies/${id}`, { name });
+invalidate(['companies', ['dashboard']]);</code></pre>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step__n">5</div>
+  <div class="step__body">
+    <p class="step__title">Assign a client to a user</p>
+    <p>Pick an existing employee, pick their role on this client, post it. Exclude current members from the picker so you never send a duplicate.</p>
+    <pre><code>const employees = await api.get('/users');
+const members = await api.get(`/companies/${id}/members`);
+const assignable = employees.filter(
+  e =&gt; !members.some(m =&gt; m.userId === e.id &amp;&amp; m.status === 'ACTIVE'));
+
+await api.post(`/companies/${id}/members`, { userId, role });</code></pre>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step__n">6</div>
+  <div class="step__body">
+    <p class="step__title">Promote someone to Admin — Super Admin only</p>
+    <p>Render the control only for a Super Admin, disable it on their own row, and confirm before sending. Handle the two guard-rail errors with clear copy rather than a generic failure toast.</p>
+    <pre><code>if (!isSuperAdmin(me.platformRole)) return null;      <span class="cm">// never render</span>
+
+await api.patch(`/users/${userId}/platform-role`,
+                { platformRole: 'AGENCY_ADMIN' });</code></pre>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step__n">7</div>
+  <div class="step__body">
+    <p class="step__title">Handle a role that changed mid-session</p>
+    <p>A demoted Admin keeps a token that still claims the old role until it is re-issued, so the UI can offer an action the API now refuses. Centralise this in your API client: on any <code>403</code> from an admin route, refresh the session once, and if the role really did change, re-render from the new role instead of showing an error.</p>
+    <pre><code>if (res.status === 403 &amp;&amp; !retried) {
+  const { user } = await api.post('/auth/refresh');    <span class="cm">// re-issues the token</span>
+  setSession(user);
+  if (!isAdmin(user.platformRole)) return redirect('/');
+  return retryOnce();
+}</code></pre>
+  </div>
+</div>
+
+<!-- ============ 9 ============ -->
+<h2><span class="sec">9</span>TypeScript types to paste</h2>
+
+<pre><code>export type PlatformRole = 'SUPER_ADMIN' | 'AGENCY_ADMIN' | 'USER';
+export type Severity = 'INFO' | 'WARNING' | 'CRITICAL';
+export type SlaState = 'NORMAL' | 'WARNING' | 'CRITICAL';
+export type CompanyStatus = 'ACTIVE' | 'INACTIVE' | 'ARCHIVED';
+export type UserStatus = 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
+
+export type MembershipRole =
+  | 'ACCOUNT_MANAGER' | 'COPYWRITER' | 'DESIGNER' | 'SOCIAL_MEDIA_MANAGER'
+  | 'CLIENT_OWNER' | 'CLIENT_REVIEWER' | 'SALES_AGENT';
+
+export type DashboardFilters = {
+  from?: string; to?: string;
+  clientId?: string; employeeId?: string;
+  status?: string; priority?: string;
+  page?: number; limit?: number;
+};
+
+export type Paginated&lt;T&gt; = {
+  items: T[];
+  pagination: { page: number; limit: number; total: number; totalPages: number };
+};
+
+export type Ref = { id: string; name: string };
+
+export type Overview = {
+  activeClients: number; activeEmployees: number;
+  dueToday: number; overdue: number; blockedTasks: number;
+  waitingClientApproval: number;
+  leadFollowUpsToday: number; overdueLeadFollowUps: number;
+  publishedToday: number;
+};
+
+export type AttentionItem = {
+  type: string;                <span class="cm">// open set — always handle the default case</span>
+  severity: Severity;
+  client: Ref;
+  entityId: string;
+  title: string;
+  owner: Ref | null;
+  dueAt: string | null;
+  waitingSince: string | null;
+  ageMinutes: number;
+};
+
+export type ClientHealthRow = {
+  clientId: string; clientName: string; status: CompanyStatus;
+  tasks: { open: number; overdue: number; blocked: number };
+  content: { waitingApproval: number; changesRequested: number;
+             scheduled: number; published: number };
+  leads: { open: number; overdueFollowUps: number };
+  campaigns: { active: number };
+  contentPlan: { month: number; year: number; status: string };
+  healthInputs: Record&lt;string, number | string&gt;;
+};</code></pre>
+
+<!-- ============ 10 ============ -->
+<h2><span class="sec">10</span>Build order and checklist</h2>
+
+<p>Two of these can be done today against the live API; the rest need the backend to ship. Ordered so nothing blocks:</p>
+
+<table>
+  <thead><tr><th style="width:6%">#</th><th style="width:44%">Task</th><th>Depends on</th></tr></thead>
+  <tbody>
+    <tr><td class="mono">1</td><td>Role helpers <code>isAdmin</code> / <code>isSuperAdmin</code>, and the admin route guard</td><td class="yes">nothing — do now</td></tr>
+    <tr><td class="mono">2</td><td>Move rename + assign-members into the admin area; remove <code>platformRole</code> from the user-edit form</td><td class="yes">nothing — do now, prevents future 403/400</td></tr>
+    <tr><td class="mono">3</td><td>Client administration screen: list, add, rename, archive, assign people</td><td class="yes">live endpoints</td></tr>
+    <tr><td class="mono">4</td><td>Shared filter bar, query serializer, pagination hook</td><td class="yes">nothing — do now</td></tr>
+    <tr><td class="mono">5</td><td>Dashboard shell with per-widget loading, error and "not available yet" states</td><td class="off">shell now, data later</td></tr>
+    <tr><td class="mono">6</td><td>KPI row + attention feed</td><td class="off">spec endpoints</td></tr>
+    <tr><td class="mono">7</td><td>Remaining widgets, then drill-downs</td><td class="off">spec endpoints</td></tr>
+    <tr><td class="mono">8</td><td>Super-Admin-only: role control, delete client danger zone, health strip</td><td class="off">spec endpoints</td></tr>
+  </tbody>
+</table>
+
+<h4>Before you call it done</h4>
+<ul>
+  <li>An <code>AGENCY_ADMIN</code> account sees the dashboard, every widget, and all client data — including clients they are not a member of.</li>
+  <li>An <code>AGENCY_ADMIN</code> sees no role control, no delete-client action and no health strip.</li>
+  <li>A <code>USER</code> account cannot reach any admin route, by menu or by typing the URL.</li>
+  <li>Delete requires typing the client name, reports what it removed, and clears the client from every cache and the switcher.</li>
+  <li>Every request body contains only documented keys — no stray fields.</li>
+  <li>A <code>403</code> anywhere in the admin area re-reads the session instead of showing a dead end.</li>
+  <li>Filters live in the URL; reloading a filtered dashboard restores the same view.</li>
+</ul>
+
+<div class="callout">
+  <p class="callout__label">One open question</p>
+  <p><code>GET /api/admin/system/health</code> is written as Super Admin only. If the Product Owner decides Admin should see platform health too, the only frontend change is dropping the <code>isSuperAdmin</code> check around that one widget.</p>
+</div>
+
+<p class="footer-note">Frontend integration guide · 25 August 2026 · Solutions Platform. Companion to “Backend Tasks — Admin &amp; Super Admin Operations Dashboard” revision 2. Source: <code>api/docs/frontend-admin-dashboard-integration.html</code>.</p>

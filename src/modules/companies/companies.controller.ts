@@ -1,10 +1,13 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 
@@ -24,6 +27,7 @@ import { UpdateCompanyDto } from './dto/update-company.dto';
 export class CompaniesController {
   constructor(private readonly companiesService: CompaniesService) {}
 
+  /** Add a client. Both administrator roles. */
   @UseGuards(PlatformRolesGuard)
   @PlatformRoles(PlatformRole.SUPER_ADMIN, PlatformRole.AGENCY_ADMIN)
   @Post()
@@ -45,12 +49,34 @@ export class CompaniesController {
     return this.companiesService.findOneById(companyId);
   }
 
-  @UseGuards(CompanyAccessGuard)
+  /**
+   * Edit a client — the name included. Both administrator roles.
+   *
+   * This used to run on CompanyAccessGuard alone, which let any member of the
+   * client rename it. Deciding what a client is called is a management call,
+   * so it now requires an administrator platform role.
+   */
+  @UseGuards(PlatformRolesGuard)
+  @PlatformRoles(PlatformRole.SUPER_ADMIN, PlatformRole.AGENCY_ADMIN)
   @Patch(':companyId')
   update(
-    @Param('companyId') companyId: string,
+    @Param('companyId', ParseUUIDPipe) companyId: string,
     @Body() dto: UpdateCompanyDto,
   ) {
     return this.companiesService.update(companyId, dto);
+  }
+
+  /**
+   * Permanently delete a client from the database. Super Admin only.
+   * Requires `?confirm=<exact client name>`.
+   */
+  @UseGuards(PlatformRolesGuard)
+  @PlatformRoles(PlatformRole.SUPER_ADMIN)
+  @Delete(':companyId')
+  remove(
+    @Param('companyId', ParseUUIDPipe) companyId: string,
+    @Query('confirm') confirm?: string,
+  ) {
+    return this.companiesService.remove(companyId, confirm);
   }
 }

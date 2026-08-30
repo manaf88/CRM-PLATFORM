@@ -31,6 +31,7 @@ import { CompanyRolesGuard } from '../../common/guards/company-roles.guard';
   exports: [
     FilesService,
     PostAssetsService,
+    StorageService,
   ],
 })
 export class FilesModule {}

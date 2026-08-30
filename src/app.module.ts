@@ -20,18 +20,27 @@ import { LeadsModule } from './modules/leads/leads.module';
 import { FilesModule } from './modules/files/files.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import storageConfig from './config/storage.config';
+import dashboardConfig from './config/dashboard.config';
 import { InvitationsModule } from './modules/invitations/invitations.module';
 import { TasksModule } from './modules/tasks/tasks.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { AutomationsModule } from './modules/automations/automations.module';
 import { CampaignsModule } from './modules/campaigns/campaigns.module';
 import { ResponsibilitiesModule } from './modules/responsibilities/responsibilities.module';
+import { AdminModule } from './modules/admin/admin.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       cache: true,
-      load: [appConfig, databaseConfig, authConfig, aiConfig, storageConfig],
+      load: [
+        appConfig,
+        databaseConfig,
+        authConfig,
+        aiConfig,
+        storageConfig,
+        dashboardConfig,
+      ],
       validationSchema: envValidationSchema,
     }),
     ThrottlerModule.forRoot([
@@ -58,6 +67,7 @@ import { ResponsibilitiesModule } from './modules/responsibilities/responsibilit
     AutomationsModule,
     CampaignsModule,
     ResponsibilitiesModule,
+    AdminModule,
   ],
   providers: [
     {
