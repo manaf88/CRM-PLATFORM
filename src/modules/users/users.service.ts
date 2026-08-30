@@ -155,7 +155,6 @@ export class UsersService {
       Pick<
         User,
         | 'fullName'
-        | 'platformRole'
         | 'status'
         | 'passwordHash'
         | 'refreshTokenHash'
@@ -166,11 +165,19 @@ export class UsersService {
       patch.fullName = dto.fullName.trim();
     }
 
-    if (dto.platformRole !== undefined) {
-      patch.platformRole = dto.platformRole;
-    }
+    // `platformRole` is deliberately not handled here. Role changes go through
+    // changePlatformRole() so that the guard rails — no self-demotion, no
+    // demoting the last Super Admin, and revoking the stale token — apply on
+    // every path rather than only on the dedicated route.
 
     if (dto.status !== undefined) {
+      if (dto.status !== UserStatus.ACTIVE) {
+        await this.assertNotLastSuperAdmin(
+          user,
+          'The last active Super Admin cannot be deactivated',
+        );
+      }
+
       patch.status = dto.status;
 
       // Losing access means the existing session must not survive.
@@ -223,22 +230,11 @@ export class UsersService {
       return this.findOneEmployee(user.id);
     }
 
-    if (
-      user.platformRole === PlatformRole.SUPER_ADMIN &&
-      platformRole !== PlatformRole.SUPER_ADMIN
-    ) {
-      const remainingSuperAdmins = await this.usersRepository.count({
-        where: {
-          platformRole: PlatformRole.SUPER_ADMIN,
-          status: UserStatus.ACTIVE,
-        },
-      });
-
-      if (remainingSuperAdmins <= 1) {
-        throw new ConflictException(
-          'At least one active Super Admin is required',
-        );
-      }
+    if (platformRole !== PlatformRole.SUPER_ADMIN) {
+      await this.assertNotLastSuperAdmin(
+        user,
+        'At least one active Super Admin is required',
+      );
     }
 
     await this.usersRepository.update(
@@ -247,6 +243,36 @@ export class UsersService {
     );
 
     return this.findOneEmployee(user.id);
+  }
+
+  /**
+   * Refuse to remove the platform's last way back in.
+   *
+   * Losing every Super Admin means nobody can assign admins or delete a client
+   * again without editing the database by hand, and it can happen two ways —
+   * demoting them, or deactivating them — so both go through this check.
+   */
+  private async assertNotLastSuperAdmin(
+    user: User,
+    message: string,
+  ): Promise<void> {
+    if (
+      user.platformRole !== PlatformRole.SUPER_ADMIN ||
+      user.status !== UserStatus.ACTIVE
+    ) {
+      return;
+    }
+
+    const remainingSuperAdmins = await this.usersRepository.count({
+      where: {
+        platformRole: PlatformRole.SUPER_ADMIN,
+        status: UserStatus.ACTIVE,
+      },
+    });
+
+    if (remainingSuperAdmins <= 1) {
+      throw new ConflictException(message);
+    }
   }
 
   private toEmployeeBase(

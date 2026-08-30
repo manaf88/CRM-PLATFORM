@@ -58,16 +58,26 @@ export class UsersController {
   }
 
   @Patch(':userId')
-  update(
+  async update(
     @Param('userId', ParseUUIDPipe) userId: string,
     @Body() dto: UpdateUserDto,
     @CurrentUser() currentUser: RequestUser,
   ) {
     // `platformRole` is still accepted here so an existing frontend does not
-    // start failing, but only a Super Admin may use it. New code should call
-    // PATCH /users/:userId/platform-role instead; this field will be dropped
-    // from the body once the frontend has moved over.
+    // start failing, but only a Super Admin may use it, and it is applied
+    // through the same guarded path as the dedicated route — one set of rules
+    // for role changes, whichever way they arrive. New code should call
+    // PATCH /users/:userId/platform-role; this field will be dropped from the
+    // body once the frontend has moved over.
     this.assertMayAssignRole(currentUser, dto.platformRole);
+
+    if (dto.platformRole !== undefined) {
+      await this.usersService.changePlatformRole(
+        currentUser.id,
+        userId,
+        dto.platformRole,
+      );
+    }
 
     return this.usersService.updateEmployee(userId, dto);
   }
