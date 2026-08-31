@@ -51,7 +51,7 @@ export class CompaniesService {
     await this.membershipsService.create({
       companyId: savedCompany.id,
       userId: currentUser.id,
-      role: CompanyMembershipRole.ACCOUNT_MANAGER,
+      roles: [CompanyMembershipRole.ACCOUNT_MANAGER],
       invitedById: currentUser.id,
     });
 

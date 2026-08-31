@@ -282,6 +282,11 @@
       <td><strong>System health stays Super Admin only.</strong></td>
       <td>Render that widget for Super Admin only. <em>Open question — may widen to Admin.</em></td>
     </tr>
+    <tr>
+      <td class="mono">8</td>
+      <td><strong>A person can hold several roles on one client.</strong> Memberships carry a <code>roles</code> list; the old single <code>role</code> still works and mirrors the first entry.</td>
+      <td>Turn the role dropdown in "Assign people" into a multi-select, and render <code>roles</code> wherever a role is shown today.</td>
+    </tr>
   </tbody>
 </table>
 
@@ -771,28 +776,35 @@ const qs = (f: DashboardFilters) =&gt;
 <div class="ep">
   <p class="ep__head"><span class="verb verb--post">POST</span><span class="ep__url">/api/companies/:companyId/members</span><span class="chip chip--live">live</span></p>
   <p class="ep__who">Who: <b>Admin, Super Admin</b> · This is "assign client to users"</p>
-  <p><strong>Body</strong> — an existing employee's id plus the role they hold <em>on this client</em>. The same person can hold different roles on different clients.</p>
+  <p><strong>Body</strong> — an existing employee's id plus <strong>one or more roles</strong> they hold <em>on this client</em>. Somebody can be the Designer and the Copywriter on the same client, and hold a different set again on another client.</p>
   <pre><code>{
   "userId": "uuid",
-  "role": "DESIGNER"
+  "roles": ["DESIGNER", "COPYWRITER"]
 }
 
-<span class="cm">// role — one of:</span>
+<span class="cm">// roles — any combination of:</span>
 <span class="cm">// ACCOUNT_MANAGER | COPYWRITER | DESIGNER | SOCIAL_MEDIA_MANAGER</span>
 <span class="cm">// CLIENT_OWNER | CLIENT_REVIEWER | SALES_AGENT</span>
 
 <span class="cm">// 201 → the membership</span>
 { "id": "uuid", "companyId": "uuid", "userId": "uuid",
-  "role": "DESIGNER", "status": "ACTIVE", "invitedById": "uuid",
+  "roles": ["DESIGNER", "COPYWRITER"],   <span class="cm">// every hat they wear</span>
+  "role": "DESIGNER",                    <span class="cm">// the first one, for older callers</span>
+  "status": "ACTIVE", "invitedById": "uuid",
   "createdAt": "...", "updatedAt": "..." }</code></pre>
   <h4>Companion routes</h4>
   <pre><code>GET    /api/companies/:companyId/members                  <span class="cm">// list, for the table</span>
-PATCH  /api/companies/:companyId/members/:membershipId    <span class="cm">// { "role": "COPYWRITER" }</span>
+PATCH  /api/companies/:companyId/members/:membershipId    <span class="cm">// { "roles": ["COPYWRITER","DESIGNER"] }</span>
 DELETE /api/companies/:companyId/members/:membershipId    <span class="cm">// deactivates the membership</span></code></pre>
-  <p><strong>How the frontend uses it:</strong> an "Assign people" panel on the client — a table of current members from <code>GET</code>, an employee picker fed by <code>GET /api/users</code>, and a role dropdown. Notes:</p>
+  <p><strong>How the frontend uses it:</strong> an "Assign people" panel on the client — a table of current members from <code>GET</code>, an employee picker fed by <code>GET /api/users</code>, and a <strong>multi-select</strong> of roles. Notes:</p>
   <ul>
+    <li><strong><code>roles</code> replaces the whole set.</strong> To add a hat, send the existing roles plus the new one — a <code>PATCH</code> carrying one role leaves that person holding exactly that one.</li>
+    <li>An empty <code>roles</code> array is a <code>400</code>. Somebody on a client with no role would have no permissions at all, so that state is not allowed to exist; remove them with <code>DELETE</code> instead.</li>
+    <li>The single <code>role</code> field is still accepted on <code>POST</code> and <code>PATCH</code> and is treated as a one-item list, so existing screens keep working untouched. Send <code>roles</code> or <code>role</code>, not both.</li>
+    <li>Every response carries both: <code>roles</code> (the full list) and <code>role</code> (its first entry). Render <code>roles</code>; treat <code>role</code> as deprecated.</li>
+    <li>A permission check passes if <strong>any</strong> held role allows the action, and roles are read per request — a new role takes effect immediately, with no re-login.</li>
     <li>The employee must already exist. There is no self-sign-up: create them with <code>POST /api/users</code> first.</li>
-    <li>One membership per person per client is enforced by the database. Filter people who are already members out of the picker instead of relying on the error.</li>
+    <li>One membership per person per client is still enforced by the database — the roles live on that one membership. Filter people who are already members out of the picker.</li>
     <li><code>DELETE</code> deactivates rather than erases, so the person disappears from the client but their history stays intact.</li>
     <li>The permission on <code>PATCH</code> and <code>DELETE</code> is tightening to admin-only alongside <code>POST</code> — keep all three controls in the admin area only.</li>
   </ul>
@@ -933,7 +945,7 @@ router.replace(`/admin/dashboard?${qs({ ...filters, clientId })}`);</code></pre>
     <p>Two requests, one wizard. Step one creates the client; step two assigns people. Remember the creator is already an Account Manager on it.</p>
     <pre><code>const client = await api.post('/companies', { name, industry, website });
 await api.post(`/companies/${client.id}/members`,
-               { userId: designerId, role: 'DESIGNER' });
+               { userId: designerId, roles: ['DESIGNER', 'COPYWRITER'] });
 invalidate(['companies']);              <span class="cm">// refresh switcher + filter list</span></code></pre>
   </div>
 </div>
@@ -952,13 +964,17 @@ invalidate(['companies', ['dashboard']]);</code></pre>
   <div class="step__n">5</div>
   <div class="step__body">
     <p class="step__title">Assign a client to a user</p>
-    <p>Pick an existing employee, pick their role on this client, post it. Exclude current members from the picker so you never send a duplicate.</p>
+    <p>Pick an existing employee, tick every role they will hold on this client, post the list. Exclude current members from the picker so you never send a duplicate.</p>
     <pre><code>const employees = await api.get('/users');
 const members = await api.get(`/companies/${id}/members`);
 const assignable = employees.filter(
   e =&gt; !members.some(m =&gt; m.userId === e.id &amp;&amp; m.status === 'ACTIVE'));
 
-await api.post(`/companies/${id}/members`, { userId, role });</code></pre>
+await api.post(`/companies/${id}/members`, { userId, roles });
+
+<span class="cm">// adding a hat later means sending the whole set, not just the new one</span>
+await api.patch(`/companies/${id}/members/${membershipId}`,
+                { roles: [...member.roles, 'ACCOUNT_MANAGER'] });</code></pre>
   </div>
 </div>
 
@@ -1014,6 +1030,15 @@ export type Paginated&lt;T&gt; = {
 };
 
 export type Ref = { id: string; name: string };
+
+export type Membership = {
+  id: string;
+  companyId: string;
+  userId: string;
+  roles: MembershipRole[];   <span class="cm">// read this one</span>
+  role: MembershipRole;      <span class="cm">// deprecated — always roles[0]</span>
+  status: 'ACTIVE' | 'INVITED' | 'SUSPENDED';
+};
 
 export type Overview = {
   activeClients: number; activeEmployees: number;

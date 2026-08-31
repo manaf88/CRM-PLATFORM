@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -24,13 +25,30 @@ import { PlatformRole } from '../users/enums/platform-role.enum';
 import { AddCompanyMemberDto } from './dto/add-company-member.dto';
 import { UpdateCompanyMemberDto } from './dto/update-company-member.dto';
 
+/**
+ * The request may carry `roles` (a list) or the older `role` (a single value).
+ * Everything past this point deals in lists only.
+ */
+function rolesFrom(dto: {
+  roles?: CompanyMembershipRole[];
+  role?: CompanyMembershipRole;
+}): CompanyMembershipRole[] {
+  if (dto.roles?.length) {
+    return dto.roles;
+  }
+
+  if (dto.role) {
+    return [dto.role];
+  }
+
+  throw new BadRequestException('Provide at least one role in `roles`');
+}
+
 @UseGuards(JwtAuthGuard, CompanyAccessGuard, CompanyRolesGuard)
 @CompanyRoles(CompanyMembershipRole.ACCOUNT_MANAGER)
 @Controller('companies/:companyId/members')
 export class CompanyMembersController {
-  constructor(
-    private readonly membershipsService: MembershipsService,
-  ) {}
+  constructor(private readonly membershipsService: MembershipsService) {}
 
   /**
    * Put an existing employee on this client.
@@ -52,7 +70,7 @@ export class CompanyMembersController {
     return this.membershipsService.assignToCompany({
       companyId,
       userId: dto.userId,
-      role: dto.role,
+      roles: rolesFrom(dto),
       invitedById: currentUser.id,
     });
   }
@@ -68,11 +86,13 @@ export class CompanyMembersController {
     @Param('membershipId', ParseUUIDPipe) membershipId: string,
     @Body() dto: UpdateCompanyMemberDto,
   ) {
-    return this.membershipsService.updateMembership(
-      companyId,
-      membershipId,
-      dto,
-    );
+    const roles =
+      dto.roles ?? (dto.role !== undefined ? [dto.role] : undefined);
+
+    return this.membershipsService.updateMembership(companyId, membershipId, {
+      roles,
+      status: dto.status,
+    });
   }
 
   @Delete(':membershipId')

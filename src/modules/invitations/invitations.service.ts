@@ -194,7 +194,7 @@ export class InvitationsService {
         invitation.companyId,
         existingMembership.id,
         {
-          role: invitation.role,
+          roles: [invitation.role],
           status: CompanyMembershipStatus.ACTIVE,
         },
       );
@@ -202,7 +202,7 @@ export class InvitationsService {
       membership = await this.membershipsService.create({
         companyId: invitation.companyId,
         userId: user.id,
-        role: invitation.role,
+        roles: [invitation.role],
         invitedById: invitation.invitedById,
       });
     }

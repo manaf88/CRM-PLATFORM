@@ -35,7 +35,10 @@ export type EmployeeView = {
     membershipId: string;
     companyId: string;
     companyName: string;
+    /** Primary role — kept for existing callers. Prefer `roles`. */
     role: string;
+    /** Every role this employee holds on that client. */
+    roles: string[];
   }>;
 };
 
@@ -109,6 +112,7 @@ export class UsersService {
           companyId: membership.companyId,
           companyName: membership.company?.name ?? '',
           role: membership.role,
+          roles: membership.effectiveRoles,
         })),
     }));
   }
@@ -132,6 +136,7 @@ export class UsersService {
         companyId: membership.companyId,
         companyName: membership.company?.name ?? '',
         role: membership.role,
+        roles: membership.effectiveRoles,
       })),
     };
   }

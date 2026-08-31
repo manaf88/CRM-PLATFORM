@@ -308,8 +308,8 @@ async findOne(
     ]);
 
     const memberUserIds = memberships.map((m) => m.userId);
-    const roleByUserId = new Map(
-      memberships.map((m) => [m.userId, m.role] as const),
+    const rolesByUserId = new Map(
+      memberships.map((m) => [m.userId, m.effectiveRoles] as const),
     );
 
     const users = memberUserIds.length
@@ -323,7 +323,10 @@ async findOne(
         userId: user.id,
         fullName: user.fullName,
         email: user.email,
-        role: roleByUserId.get(user.id) ?? null,
+        // `role` is the primary one, kept for existing callers; `roles` is
+        // every hat this person wears on the client.
+        role: rolesByUserId.get(user.id)?.[0] ?? null,
+        roles: rolesByUserId.get(user.id) ?? [],
       }))
       .sort((a, b) => a.fullName.localeCompare(b.fullName));
 
