@@ -1,0 +1,540 @@
+<title>Task &amp; Approval Flow — Options</title>
+<style>
+  :root {
+    --ink:      #191C21;
+    --muted:    #5E6672;
+    --faint:    #8A9199;
+    --line:     #DCE0E3;
+    --hairline: #EDF0F1;
+    --surface:  #F4F7F7;
+    --accent:   #0F5D62;
+    --accent-d: #0A4347;
+    --good:     #2C6A4E;
+    --partial:  #8A6212;
+    --gap:      #9C382A;
+    --do:       #1F5C8B;
+
+    --serif: Georgia, "Iowan Old Style", "Palatino Linotype", Palatino, serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: "Cascadia Mono", Consolas, "SF Mono", Menlo, "DejaVu Sans Mono", monospace;
+    --ar: "Segoe UI", Tahoma, "Noto Naskh Arabic", "Traditional Arabic", Arial, sans-serif;
+  }
+
+  @page { size: A4; margin: 16mm 14mm 14mm; }
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0; background: #FFF; color: var(--ink);
+    font-family: var(--sans); font-size: 9.5pt; line-height: 1.55;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+
+  /* ---------- cover ---------- */
+  .cover { page-break-after: always; padding-top: 3mm; }
+  .cover__block { background: var(--accent); color: #FFF; padding: 15mm 12mm 13mm; }
+  .cover__eyebrow {
+    font-family: var(--mono); font-size: 8pt; letter-spacing: .18em;
+    text-transform: uppercase; color: #A7CFD1; margin: 0 0 7mm;
+  }
+  .cover__title { font-family: var(--serif); font-size: 28pt; line-height: 1.1; font-weight: 400; margin: 0 0 3mm; }
+  .cover__title-ar { font-family: var(--ar); font-size: 19pt; margin: 0 0 5mm; direction: rtl; color: #DCEDEE; }
+  .cover__sub { font-size: 10.8pt; line-height: 1.5; color: #CFE3E4; margin: 0; max-width: 118mm; }
+  .cover__meta {
+    margin-top: 11mm; display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 6mm; border-top: 1px solid var(--line); padding-top: 5mm;
+  }
+  .cover__meta dt {
+    font-family: var(--mono); font-size: 7.4pt; letter-spacing: .13em;
+    text-transform: uppercase; color: var(--faint); margin: 0 0 1.5mm;
+  }
+  .cover__meta dd { margin: 0; font-size: 9.5pt; }
+
+  h2 {
+    font-family: var(--serif); font-size: 14pt; font-weight: 400;
+    margin: 9mm 0 3mm; padding-bottom: 1.5mm; border-bottom: 1px solid var(--line);
+    page-break-after: avoid;
+  }
+  h2:first-of-type { margin-top: 0; }
+  h2 .sec { font-family: var(--mono); font-size: 9pt; color: var(--accent); margin-right: 2.5mm; }
+  h3 { font-size: 10.4pt; font-weight: 650; margin: 6mm 0 2mm; page-break-after: avoid; }
+  h4 {
+    font-family: var(--mono); font-size: 8pt; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--muted); font-weight: 600; margin: 4mm 0 1.8mm; page-break-after: avoid;
+  }
+  p { margin: 0 0 2.5mm; max-width: 168mm; }
+  ul, ol { margin: 0 0 3mm; padding-left: 5.5mm; max-width: 168mm; }
+  li { margin-bottom: 1.1mm; }
+  strong { font-weight: 650; }
+  em { color: var(--muted); }
+  code {
+    font-family: var(--mono); font-size: .89em; background: var(--surface);
+    padding: .5pt 2pt; border-radius: 2px;
+  }
+
+  /* ---------- arabic ---------- */
+  .ar {
+    direction: rtl; text-align: right; font-family: var(--ar);
+    font-size: 10.2pt; line-height: 1.85; background: var(--surface);
+    border-right: 2.5pt solid var(--accent); padding: 3.5mm 4.5mm;
+    margin: 0 0 4mm; break-inside: avoid;
+  }
+  .ar p { margin: 0 0 2mm; max-width: none; }
+  .ar p:last-child { margin-bottom: 0; }
+  .ar__label {
+    font-family: var(--mono); direction: ltr; text-align: right;
+    font-size: 7.2pt; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--accent); margin: 0 0 2mm; font-weight: 600;
+  }
+  .ar code { direction: ltr; display: inline-block; }
+
+  /* ---------- flow diagram ---------- */
+  .flow {
+    display: flex; flex-wrap: wrap; align-items: stretch; gap: 0;
+    margin: 0 0 2mm; break-inside: avoid;
+  }
+  .node {
+    border: 1px solid var(--line); border-top: 2.5pt solid var(--do);
+    background: #FFF; padding: 2.2mm 2.8mm; min-width: 27mm; max-width: 40mm;
+  }
+  .node--gate { border-top-color: var(--partial); background: #FDFAF3; }
+  .node--client { border-top-color: var(--accent); background: #F2F7F7; }
+  .node--done { border-top-color: var(--good); background: #F3F8F5; }
+  .node__who {
+    display: block; font-family: var(--mono); font-size: 6.9pt;
+    letter-spacing: .05em; text-transform: uppercase; color: var(--muted); margin-bottom: .8mm;
+  }
+  .node__what { display: block; font-size: 8.6pt; line-height: 1.35; font-weight: 600; }
+  .node__st {
+    display: block; font-family: var(--mono); font-size: 6.8pt;
+    color: var(--do); margin-top: 1mm;
+  }
+  .node--gate .node__st { color: var(--partial); }
+  .node--client .node__st { color: var(--accent); }
+  .node--done .node__st { color: var(--good); }
+  .arr {
+    display: flex; align-items: center; padding: 0 1.6mm;
+    color: var(--faint); font-size: 11pt; line-height: 1;
+  }
+  .backline {
+    font-size: 8.2pt; color: var(--gap); margin: 0 0 4mm;
+    padding-left: 2mm; border-left: 2pt solid #F0DDD9;
+  }
+
+  /* ---------- tables ---------- */
+  table {
+    width: 100%; border-collapse: collapse; margin: 0 0 3.5mm;
+    font-size: 8.5pt; font-variant-numeric: tabular-nums;
+  }
+  caption {
+    caption-side: top; text-align: left; font-family: var(--mono);
+    font-size: 7.5pt; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--muted); padding-bottom: 1.5mm;
+  }
+  th {
+    text-align: left; font-weight: 650; font-size: 8pt;
+    border-bottom: 1.2pt solid var(--ink); padding: 1.7mm 2mm; vertical-align: bottom;
+  }
+  td { border-bottom: 1px solid var(--hairline); padding: 1.6mm 2mm; vertical-align: top; }
+  tbody tr:nth-child(even) { background: #FAFCFC; }
+  tr { break-inside: avoid; }
+  th.c, td.c { text-align: center; }
+  td.mono { font-family: var(--mono); font-size: 7.9pt; }
+  .yes { color: var(--good); font-weight: 650; }
+  .no { color: var(--gap); font-weight: 650; }
+  .mid { color: var(--partial); font-weight: 650; }
+
+  /* ---------- chips ---------- */
+  .chip {
+    display: inline-block; font-family: var(--mono); font-size: 7pt;
+    letter-spacing: .07em; text-transform: uppercase; padding: .7mm 1.7mm;
+    border-radius: 2px; font-weight: 600; white-space: nowrap;
+  }
+  .chip--now { background: #E4EFE9; color: var(--good); }
+  .chip--small { background: #F6EEDC; color: var(--partial); }
+  .chip--big { background: #F6E5E2; color: var(--gap); }
+  .chip--pick { background: var(--accent); color: #FFF; }
+
+  /* ---------- callouts ---------- */
+  .callout {
+    border-left: 2.5pt solid var(--accent); background: var(--surface);
+    padding: 3.5mm 4.5mm; margin: 0 0 4mm; break-inside: avoid;
+  }
+  .callout--warn { border-left-color: var(--partial); background: #FCF8EF; }
+  .callout--good { border-left-color: var(--good); background: #F3F8F5; }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout__label {
+    font-family: var(--mono); font-size: 7.3pt; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--accent); margin: 0 0 1.5mm; font-weight: 600;
+  }
+  .callout--warn .callout__label { color: var(--partial); }
+  .callout--good .callout__label { color: var(--good); }
+
+  .opt {
+    border: 1px solid var(--line); border-left: 3pt solid var(--accent);
+    padding: 4mm 4.5mm 3mm; margin: 0 0 6mm;
+  }
+  .opt__head { display: flex; align-items: baseline; gap: 3mm; flex-wrap: wrap; margin: 0 0 1mm; }
+  .opt__n { font-family: var(--mono); font-size: 12pt; color: var(--accent); }
+  .opt__title { font-size: 11pt; font-weight: 650; }
+  .opt__ar { font-family: var(--ar); direction: rtl; font-size: 10pt; color: var(--muted); }
+
+  .qa { border-bottom: 1px solid var(--hairline); padding: 2.5mm 0; break-inside: avoid; }
+  .qa__q { font-weight: 650; margin: 0 0 1mm; }
+  .qa__ar { font-family: var(--ar); direction: rtl; text-align: right; font-size: 9.6pt; color: var(--muted); margin: 1mm 0 0; }
+
+  .footer-note {
+    margin-top: 8mm; padding-top: 3mm; border-top: 1px solid var(--line);
+    font-size: 8.3pt; color: var(--faint);
+  }
+</style>
+
+<!-- ================= COVER ================= -->
+<section class="cover">
+  <div class="cover__block">
+    <p class="cover__eyebrow">Solutions Platform · Product Decision</p>
+    <h1 class="cover__title">Task &amp; Approval Flow</h1>
+    <p class="cover__title-ar">مسار المهام والموافقات — الخيارات المطروحة</p>
+    <p class="cover__sub">Four ways the work can move from the person who does it to the person who approves it — what each costs, and which one to pick.</p>
+  </div>
+
+  <dl class="cover__meta">
+    <div><dt>For</dt><dd>Solutions management</dd></div>
+    <div><dt>Decision</dt><dd>Pick one flow, then build</dd></div>
+    <div><dt>Date</dt><dd>31 August 2026</dd></div>
+  </dl>
+
+  <div class="ar" style="margin-top:8mm">
+    <p class="ar__label">الخلاصة بالعربي</p>
+    <p>هذا المستند فيه <strong>أربعة مسارات</strong> لحركة الشغل: مين ينفّذ، مين يوافق، وشو يصير لما ترجع ملاحظات. كل مسار مكتوب فيه شو بده تطوير وشو جاهز اليوم، وفي جدول مقارنة بالآخر.</p>
+    <p>توصيتي بصفحة <strong>التوصية</strong>: المسار رقم ٣ للجزء الداخلي مع المسار رقم ٤ للجزء اللي يشوفه العميل — والسبب إنه نص الشغل <em>مبني أصلاً</em> بالمنصة وما حدا منتبه إله.</p>
+  </div>
+</section>
+
+<!-- ================= 1 ================= -->
+<h2><span class="sec">1</span>The flow you described</h2>
+
+<p>Taking the example exactly as it was given — an account manager hands out a task, the copy is written, it comes back for approval, then it goes to design, and the design lead approves before anything leaves the agency:</p>
+
+<div class="flow">
+  <div class="node"><span class="node__who">Account Manager</span><span class="node__what">Creates the task, assigns it</span><span class="node__st">to self or to someone else</span></div>
+  <div class="arr">→</div>
+  <div class="node"><span class="node__who">Jessika · Copywriter</span><span class="node__what">Writes the plan / the copy</span><span class="node__st">doing the work</span></div>
+  <div class="arr">→</div>
+  <div class="node node--gate"><span class="node__who">Account Manager</span><span class="node__what">Approves or sends back</span><span class="node__st">gate 1</span></div>
+  <div class="arr">→</div>
+  <div class="node"><span class="node__who">Omar · Design lead</span><span class="node__what">Passes design to Yasin</span><span class="node__st">hand-off</span></div>
+  <div class="arr">→</div>
+  <div class="node"><span class="node__who">Yasin · Designer</span><span class="node__what">Produces the design</span><span class="node__st">doing the work</span></div>
+  <div class="arr">→</div>
+  <div class="node node--gate"><span class="node__who">Omar · Design lead</span><span class="node__what">Approves or sends back</span><span class="node__st">gate 2</span></div>
+</div>
+<p class="backline">↩ Sent back at either gate → returns to the person who did the work, with a note. Nobody outside the agency sees it until both gates pass.</p>
+
+<div class="ar">
+  <p class="ar__label">المسار كما وصفته</p>
+  <p>مدير الحساب يفتح المهمة ويكلّف حاله أو غيره. جيسيكا تكتب الخطة، ترجع لمدير الحساب يوافق أو يرفض. بعدها تنتقل لعمر — وهو مثل المسؤول عن التصميم — فيمرّرها لياسين، وياسين يصمّم، وترجع لعمر يوافق أو يطلب تعديل. ما بيطلع شي للعميل قبل ما تعدّي البوابتين.</p>
+</div>
+
+<p>Two things in that sentence are worth separating, because they are different problems:</p>
+<ul>
+  <li><strong>The chain</strong> — work moving from person to person in a known order.</li>
+  <li><strong>The gate</strong> — somebody with authority saying yes or no before it moves on.</li>
+</ul>
+<p>The platform today handles the chain informally and has no internal gate on tasks at all. That is the whole gap.</p>
+
+<!-- ================= 2 ================= -->
+<h2><span class="sec">2</span>What the platform already has</h2>
+
+<p>Before choosing, it matters what is already built — one of these is a genuine surprise.</p>
+
+<table>
+  <caption>Building blocks in the system today</caption>
+  <thead><tr><th style="width:26%">Block</th><th style="width:38%">What it does</th><th>Fit for this flow</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>Tasks</strong></td>
+      <td>One assignee, a status (<code>TODO</code>, <code>IN_PROGRESS</code>, <code>IN_REVIEW</code>, <code>BLOCKED</code>, <code>DONE</code>), a type, a due date, comments and a full activity log</td>
+      <td><span class="mid">Partly</span> — carries the work, but has <strong>no approver</strong>. <code>IN_REVIEW</code> does not say who must review</td>
+    </tr>
+    <tr>
+      <td><strong>Post approvals</strong></td>
+      <td>A real state machine: draft → internal review → ready for client → changes requested → approved → scheduled → published, with a signed log of every transition</td>
+      <td><span class="yes">Yes</span> — but only <strong>one</strong> internal gate, and only for content</td>
+    </tr>
+    <tr>
+      <td><strong>Responsibility matrix</strong></td>
+      <td>Per client, per area of work: who is <code>TO_WORK_ON</code>, who is <code>TO_APPROVE</code>, who is <code>TO_SUPERVISE</code>, and seven more relationships</td>
+      <td><span class="yes">Yes</span> — this <em>already</em> models "Omar approves design on this client"</td>
+    </tr>
+    <tr>
+      <td><strong>Multiple roles per person</strong></td>
+      <td>Somebody can be Designer and Copywriter on the same client (shipped this week)</td>
+      <td><span class="yes">Yes</span> — one person can do and approve different things</td>
+    </tr>
+    <tr>
+      <td><strong>Automations</strong></td>
+      <td>Trigger → action rules, e.g. changes requested on a post creates fix-up tasks</td>
+      <td><span class="mid">Partly</span> — the engine exists, only two rules are wired</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout callout--good">
+  <p class="callout__label">The surprise worth reading twice</p>
+  <p>The <strong>responsibility matrix</strong> already stores, per client and per area of work, who has <code>TO_APPROVE</code> and who has <code>TO_WORK_ON</code>. That is precisely "Omar is the boss of the designers on Taxero" — <strong>already modelled, already has a screen, and completely unused by tasks.</strong></p>
+  <p>This is the difference between typing Omar's name onto forty tasks and setting it once for the client. When Omar is on holiday you change one cell instead of chasing every open task.</p>
+</div>
+
+<div class="ar">
+  <p class="ar__label">نقطة مهمة</p>
+  <p>في المنصة شي اسمه <strong>مصفوفة المسؤوليات</strong>، وفيها لكل عميل ولكل مجال شغل: مين <code>TO_WORK_ON</code> ومين <code>TO_APPROVE</code>. يعني فكرة «عمر هو المسؤول عن التصميم عند هذا العميل» <strong>موجودة ومبنية</strong> — بس المهام ما بتستعملها. أهم توصية بهذا الملف إننا نربطهم ببعض، حتى ما نكتب اسم عمر يدوياً بكل مهمة، ولما يسافر نغيّر خانة وحدة بدل ما نلاحق كل المهام المفتوحة.</p>
+</div>
+
+<!-- ================= 3 ================= -->
+<h2><span class="sec">3</span>The four options</h2>
+
+<!-- OPTION 1 -->
+<div class="opt">
+  <div class="opt__head">
+    <span class="opt__n">1</span>
+    <span class="opt__title">Pass the task around</span>
+    <span class="chip chip--now">works today · no build</span>
+  </div>
+  <p class="opt__ar">تمرير المهمة نفسها بين الأشخاص</p>
+
+  <p>One task per deliverable. The chain is expressed by <strong>changing who it is assigned to</strong> and moving the status. Approval is a conversation in the comments.</p>
+
+  <div class="flow">
+    <div class="node"><span class="node__who">Jessika</span><span class="node__what">Writes, then reassigns to the AM</span><span class="node__st">IN_PROGRESS → IN_REVIEW</span></div>
+    <div class="arr">→</div>
+    <div class="node node--gate"><span class="node__who">Account Manager</span><span class="node__what">Reads it, reassigns to Omar</span><span class="node__st">IN_REVIEW → TODO</span></div>
+    <div class="arr">→</div>
+    <div class="node"><span class="node__who">Omar → Yasin</span><span class="node__what">Design, then back to Omar</span><span class="node__st">IN_PROGRESS → IN_REVIEW</span></div>
+    <div class="arr">→</div>
+    <div class="node node--done"><span class="node__who">Omar</span><span class="node__what">Marks it done</span><span class="node__st">DONE</span></div>
+  </div>
+  <p class="backline">↩ Rejection = a comment plus setting the status back and reassigning by hand.</p>
+
+  <p><strong>Good:</strong> you can start on Monday, with zero development. For a small team that talks all day, it is often enough.</p>
+  <p><strong>Bad:</strong> nothing records <em>that Omar approved</em> — only that the status changed. The task's history shows a chain of reassignments, so "who wrote this" is lost once it moves on. The dashboard cannot tell work-in-progress from work-waiting-for-a-boss, so "we are blocked on approvals" never shows up as a number.</p>
+
+  <div class="ar">
+    <p>مهمة وحدة تنتقل بتغيير المسؤول والحالة. يشتغل من اليوم بدون تطوير، بس ما في إثبات إن عمر وافق فعلاً، وبتضيع معرفة مين كتب الأصل، والداشبورد ما بيقدر يقول لك «الشغل واقف على موافقات».</p>
+  </div>
+</div>
+
+<!-- OPTION 2 -->
+<div class="opt">
+  <div class="opt__head">
+    <span class="opt__n">2</span>
+    <span class="opt__title">A separate task for every stage</span>
+    <span class="chip chip--small">small build</span>
+  </div>
+  <p class="opt__ar">مهمة مستقلة لكل مرحلة</p>
+
+  <p>One parent deliverable, and a child task per stage. Each has its own assignee and due date. Finishing one opens the next automatically.</p>
+
+  <div class="flow">
+    <div class="node"><span class="node__who">Jessika</span><span class="node__what">Write copy</span><span class="node__st">task 1</span></div>
+    <div class="arr">→</div>
+    <div class="node node--gate"><span class="node__who">Account Manager</span><span class="node__what">Review copy</span><span class="node__st">task 2</span></div>
+    <div class="arr">→</div>
+    <div class="node"><span class="node__who">Yasin</span><span class="node__what">Design</span><span class="node__st">task 3</span></div>
+    <div class="arr">→</div>
+    <div class="node node--gate"><span class="node__who">Omar</span><span class="node__what">Review design</span><span class="node__st">task 4</span></div>
+    <div class="arr">→</div>
+    <div class="node node--done"><span class="node__who">Social media</span><span class="node__what">Publish</span><span class="node__st">task 5</span></div>
+  </div>
+  <p class="backline">↩ Rejection reopens the previous stage's task and the reviewer's task waits.</p>
+
+  <p><strong>Needs:</strong> a parent/child link on tasks, a rule that opens the next stage, and a <strong>template</strong> so the account manager clicks once instead of creating five tasks.</p>
+  <p><strong>Good:</strong> every person's list contains only their own step. You can measure how long each stage really takes — "design review sits for two days" becomes a fact instead of a feeling.</p>
+  <p><strong>Bad:</strong> five rows for one post. Without a template it is more admin work than it saves, and the task list gets long fast.</p>
+
+  <div class="ar">
+    <p>مهمة لكل مرحلة: كتابة، مراجعة، تصميم، مراجعة تصميم، نشر. كل واحد يشوف مهمته فقط، وبتقدر تقيس كم بتاخد كل مرحلة. العيب: خمس مهام لكل منشور، ولازم قالب جاهز وإلا بيصير شغل إداري أكتر من فايدته.</p>
+  </div>
+</div>
+
+<!-- OPTION 3 -->
+<div class="opt" style="border-left-color:var(--good)">
+  <div class="opt__head">
+    <span class="opt__n">3</span>
+    <span class="opt__title">One task, with a named approver</span>
+    <span class="chip chip--small">small build</span>
+    <span class="chip chip--pick">recommended half</span>
+  </div>
+  <p class="opt__ar">مهمة واحدة مع «مُعتمِد»</p>
+
+  <p>The task keeps one row, but gains a second person: the <strong>approver</strong>. The doer presses <em>Submit for review</em>; it lands in the approver's queue. Approve moves it to the next stage; request changes sends it back with a note and the doer keeps it.</p>
+
+  <div class="flow">
+    <div class="node"><span class="node__who">Jessika · doer</span><span class="node__what">Submits for review</span><span class="node__st">IN_PROGRESS → IN_REVIEW</span></div>
+    <div class="arr">→</div>
+    <div class="node node--gate"><span class="node__who">AM · approver</span><span class="node__what">Approve / request changes</span><span class="node__st">approval queue</span></div>
+    <div class="arr">→</div>
+    <div class="node"><span class="node__who">Yasin · doer</span><span class="node__what">Designs, submits</span><span class="node__st">stage advances</span></div>
+    <div class="arr">→</div>
+    <div class="node node--gate"><span class="node__who">Omar · approver</span><span class="node__what">Approve / request changes</span><span class="node__st">approval queue</span></div>
+    <div class="arr">→</div>
+    <div class="node node--done"><span class="node__who">—</span><span class="node__what">Ready to publish</span><span class="node__st">DONE</span></div>
+  </div>
+  <p class="backline">↩ Request changes → back to <strong>the same doer</strong>, note attached, approval clock stops. The row never changes hands, so history stays intact.</p>
+
+  <p><strong>Needs:</strong> an <code>approver</code> on the task, three actions (<em>submit</em>, <em>approve</em>, <em>request changes</em>), and notifications. The approver is <strong>looked up from the responsibility matrix</strong> instead of typed — Omar approves design on Taxero because the matrix says so.</p>
+  <p><strong>Good:</strong> this is the flow you described, exactly. One row per deliverable. "Approved by Omar at 14:20" becomes a real record. "Waiting for approval" becomes a number the dashboard can show and age, the same way client approvals already age today.</p>
+  <p><strong>Bad:</strong> it needs building — roughly three to four days of backend, plus the screens.</p>
+
+  <div class="ar">
+    <p>مهمة وحدة بس معها «مُعتمِد». المنفّذ يضغط «أرسل للمراجعة»، فتظهر عند المُعتمِد بقائمة الموافقات. يوافق فتنتقل للمرحلة اللي بعدها، أو يطلب تعديل فترجع لنفس المنفّذ مع ملاحظة. المُعتمِد بيتحدّد <strong>تلقائياً من مصفوفة المسؤوليات</strong> مش بالكتابة اليدوية. هذا أقرب مسار لاللي وصفته، وبصير عنا رقم حقيقي اسمه «شغل واقف على موافقة».</p>
+  </div>
+</div>
+
+<!-- OPTION 4 -->
+<div class="opt" style="border-left-color:var(--good)">
+  <div class="opt__head">
+    <span class="opt__n">4</span>
+    <span class="opt__title">Content rides the post, not the task</span>
+    <span class="chip chip--now">works today</span>
+    <span class="chip chip--pick">recommended half</span>
+  </div>
+  <p class="opt__ar">المحتوى يمشي على المنشور نفسه</p>
+
+  <p>For anything that ends as a published post, the <strong>post itself</strong> is the deliverable and already has a full approval machine. Tasks only tell people to go and do the work.</p>
+
+  <div class="flow">
+    <div class="node"><span class="node__who">Copy + design</span><span class="node__what">Built on the post</span><span class="node__st">DRAFT</span></div>
+    <div class="arr">→</div>
+    <div class="node node--gate"><span class="node__who">Internal</span><span class="node__what">Agency review</span><span class="node__st">IN_INTERNAL_REVIEW</span></div>
+    <div class="arr">→</div>
+    <div class="node node--client"><span class="node__who">Client</span><span class="node__what">Approves or asks for changes</span><span class="node__st">READY_FOR_CLIENT</span></div>
+    <div class="arr">→</div>
+    <div class="node node--done"><span class="node__who">Social media</span><span class="node__what">Schedule and publish</span><span class="node__st">SCHEDULED → PUBLISHED</span></div>
+  </div>
+  <p class="backline">↩ The client asking for changes already creates the fix-up tasks automatically, and the waiting time is already measured on the dashboard.</p>
+
+  <p><strong>Needs:</strong> nothing. Every arrow above is built, logged and already counted in the Super Admin dashboard.</p>
+  <p><strong>Good:</strong> the half of the process that touches the client — the risky, slow, "who is sitting on this" half — is done and working.</p>
+  <p><strong>Bad:</strong> only <strong>one</strong> internal gate exists. Omar-approves-Yasin and the AM-approves-Jessika cannot both be internal gates on the post. And it covers content only — reports, follow-ups and ad hoc work still need tasks.</p>
+
+  <div class="ar">
+    <p>المنشور نفسه عنده حالات جاهزة: مسودة ← مراجعة داخلية ← مراجعة العميل ← مجدول ← منشور، وكلها مبنية وشغالة اليوم مع احتساب مدة انتظار العميل. الناقص: بوابة داخلية وحدة بس، يعني ما بتكفّي لموافقة مدير الحساب وموافقة عمر مع بعض — وهون بيجي المسار رقم ٣.</p>
+  </div>
+</div>
+
+<!-- ================= 4 ================= -->
+<h2><span class="sec">4</span>Side by side</h2>
+
+<table>
+  <caption>The same questions asked of each option</caption>
+  <thead>
+    <tr>
+      <th style="width:30%"></th>
+      <th class="c">1 · Pass around</th>
+      <th class="c">2 · Task per stage</th>
+      <th class="c">3 · Task + approver</th>
+      <th class="c">4 · On the post</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>Can we start today?</td><td class="c yes">Yes</td><td class="c no">No</td><td class="c no">No</td><td class="c yes">Yes</td></tr>
+    <tr><td>Build effort</td><td class="c yes">none</td><td class="c mid">~1 week</td><td class="c mid">3–4 days</td><td class="c yes">none</td></tr>
+    <tr><td>Records who approved</td><td class="c no">No</td><td class="c yes">Yes</td><td class="c yes">Yes</td><td class="c yes">Yes</td></tr>
+    <tr><td>Two internal gates (AM + Omar)</td><td class="c mid">by convention</td><td class="c yes">Yes</td><td class="c yes">Yes</td><td class="c no">No</td></tr>
+    <tr><td>"Waiting on approval" measurable</td><td class="c no">No</td><td class="c yes">Yes</td><td class="c yes">Yes</td><td class="c yes">Yes</td></tr>
+    <tr><td>Rows per deliverable</td><td class="c">1</td><td class="c">5+</td><td class="c">1</td><td class="c">1</td></tr>
+    <tr><td>Approver survives a holiday</td><td class="c no">No</td><td class="c mid">if from matrix</td><td class="c yes">from matrix</td><td class="c yes">by role</td></tr>
+    <tr><td>Covers non-content work</td><td class="c yes">Yes</td><td class="c yes">Yes</td><td class="c yes">Yes</td><td class="c no">No</td></tr>
+    <tr><td>Client approval included</td><td class="c no">No</td><td class="c no">No</td><td class="c no">No</td><td class="c yes">Yes</td></tr>
+  </tbody>
+</table>
+
+<!-- ================= 5 ================= -->
+<h2><span class="sec">5</span>Recommendation</h2>
+
+<div class="callout callout--good">
+  <p class="callout__label">Option 3 for inside the agency + Option 4 for the client</p>
+  <p>They are not competitors — they cover different halves. <strong>Option 4 is already built</strong> and handles everything from "the agency is happy" to "it is published, and here is how long the client sat on it". <strong>Option 3</strong> adds the missing half: the internal chain with real gates, which is exactly what was described.</p>
+</div>
+
+<p>Concretely, one post would run like this:</p>
+
+<div class="flow">
+  <div class="node"><span class="node__who">Jessika</span><span class="node__what">Copy task, submits</span><span class="node__st">option 3</span></div>
+  <div class="arr">→</div>
+  <div class="node node--gate"><span class="node__who">AM</span><span class="node__what">Approves</span><span class="node__st">gate 1</span></div>
+  <div class="arr">→</div>
+  <div class="node"><span class="node__who">Yasin</span><span class="node__what">Design task, submits</span><span class="node__st">option 3</span></div>
+  <div class="arr">→</div>
+  <div class="node node--gate"><span class="node__who">Omar</span><span class="node__what">Approves</span><span class="node__st">gate 2</span></div>
+  <div class="arr">→</div>
+  <div class="node node--client"><span class="node__who">Client</span><span class="node__what">Approves</span><span class="node__st">option 4 · built</span></div>
+  <div class="arr">→</div>
+  <div class="node node--done"><span class="node__who">Social media</span><span class="node__what">Publishes</span><span class="node__st">option 4 · built</span></div>
+</div>
+
+<h4>Why not the other two</h4>
+<ul>
+  <li><strong>Option 1</strong> is the honest "start Monday" answer, and it is a reasonable stopgap while Option 3 is built. It is not a destination: the moment somebody asks "why was this late", nothing in it can answer.</li>
+  <li><strong>Option 2</strong> is not wrong — it is Option 3 with more rows. Choose it instead only if you want each stage to carry its own <em>separate due date and separate owner in reporting</em>. If you only want approval gates, Option 3 gives you the same control with a fifth of the clutter.</li>
+</ul>
+
+<h4>Suggested phases</h4>
+<table>
+  <thead><tr><th style="width:12%">Phase</th><th style="width:44%">What ships</th><th>Result</th></tr></thead>
+  <tbody>
+    <tr><td class="mono">Now</td><td>Use Option 1 as-is, and Option 4 for anything that becomes a post</td><td>No waiting; the client-facing half is already correct</td></tr>
+    <tr><td class="mono">Phase 1</td><td>Approver on the task + submit / approve / request-changes + notifications, approver read from the responsibility matrix</td><td>The described flow works properly, with a real record of who approved</td></tr>
+    <tr><td class="mono">Phase 2</td><td>Stage templates: "social post" auto-creates copy → AM gate → design → Omar gate</td><td>The AM stops assembling the chain by hand</td></tr>
+    <tr><td class="mono">Phase 3</td><td>Approval ageing on the dashboard, the same way client approvals age now</td><td>"Design review is our bottleneck" becomes visible</td></tr>
+  </tbody>
+</table>
+
+<div class="ar">
+  <p class="ar__label">التوصية بالعربي</p>
+  <p>ناخد <strong>المسار ٣</strong> للجزء الداخلي (جيسيكا ← مدير الحساب ← ياسين ← عمر) و<strong>المسار ٤</strong> للجزء اللي بيشوفه العميل، لأنه جاهز وشغّال من اليوم. مش خيارين متنافسين — كل واحد بيغطي نص.</p>
+  <p>ومين يوافق ياخده النظام من <strong>مصفوفة المسؤوليات</strong> (<code>TO_APPROVE</code>) بدل ما نكتب اسم عمر بكل مهمة.</p>
+  <p>لحد ما يخلص التطوير، اشتغلوا بالمسار ١ — بس مش حل دائم، لأنه أول ما تسأل «ليش تأخّر هالشغل» ما رح تلاقي جواب مسجّل.</p>
+</div>
+
+<!-- ================= 6 ================= -->
+<h2><span class="sec">6</span>Five things to decide before building</h2>
+
+<p>These are product rules, not technical ones. Each changes what gets built.</p>
+
+<div class="qa">
+  <p class="qa__q">1 · When Omar sends the design back, who gets it?</p>
+  <p>Only Yasin, or does the whole thing restart from Jessika? Sending it back one step is the usual answer; restarting punishes people for someone else's change.</p>
+  <p class="qa__ar">لما عمر يرجّع التصميم — بترجع لياسين بس، ولا بتبلّش من أول وجديد من عند جيسيكا؟</p>
+</div>
+
+<div class="qa">
+  <p class="qa__q">2 · Can the account manager skip a gate when it is urgent?</p>
+  <p>If yes, the skip should be recorded — an override that leaves a trace is fine, one that leaves none is a hole.</p>
+  <p class="qa__ar">هل مدير الحساب يقدر يتخطّى بوابة موافقة وقت الاستعجال؟ إذا آه، لازم يتسجّل إنه تخطّاها.</p>
+</div>
+
+<div class="qa">
+  <p class="qa__q">3 · Is the approver a person or a role?</p>
+  <p>I recommend a role via the responsibility matrix — "whoever approves design for Taxero" — so a holiday is one edit instead of forty. There is no "design lead" role in the system today, so this may mean adding one.</p>
+  <p class="qa__ar">المُعتمِد شخص محدّد ولا دور؟ الأفضل دور من مصفوفة المسؤوليات، حتى لما يسافر عمر نغيّر خانة وحدة. ملاحظة: ما في دور «مسؤول تصميم» بالنظام حالياً — ممكن نحتاج نضيفه.</p>
+</div>
+
+<div class="qa">
+  <p class="qa__q">4 · Does copy need its own gate, or only design?</p>
+  <p>Your example has two gates. Two is fine; four gates on a single Instagram post will feel like paperwork and people will route around it.</p>
+  <p class="qa__ar">هل الكتابة بدها بوابة موافقة كمان، ولا التصميم بس؟ بوابتين منيح — أربعة على منشور واحد بتصير روتين والناس بتلتف عليها.</p>
+</div>
+
+<div class="qa">
+  <p class="qa__q">5 · Who presses publish?</p>
+  <p>Nothing publishes to social networks automatically today — a person still does it, and the dashboard already flags posts whose scheduled time has passed. Decide whether that person is the social media manager or the account manager.</p>
+  <p class="qa__ar">مين يضغط «نشر»؟ النظام ما بينشر لحاله على السوشال — لسه بدها شخص. والداشبورد عم يبيّن المنشورات اللي فات وقتها. قرّروا: مسؤول السوشال ولا مدير الحساب؟</p>
+</div>
+
+<div class="callout callout--warn">
+  <p class="callout__label">One caution from experience</p>
+  <p>Every gate you add is a place where work stops when somebody is busy. Two gates with a visible ageing clock beat four gates that people learn to bypass. Start with the two that were described, and add more only when a real mistake makes the case for one.</p>
+</div>
+
+<p class="footer-note">Task &amp; approval flow options · 31 August 2026 · Solutions Platform. Companion to the Admin &amp; Super Admin dashboard documents. Source: <code>api/docs/task-approval-flow-options.html</code>.</p>
