@@ -1,0 +1,547 @@
+<title>Multiple Roles per Client — Frontend Guide</title>
+<style>
+  :root {
+    --ink:      #191C21;
+    --muted:    #5E6672;
+    --faint:    #8A9199;
+    --line:     #DCE0E3;
+    --hairline: #EDF0F1;
+    --surface:  #F4F7F7;
+    --accent:   #0F5D62;
+    --accent-d: #0A4347;
+    --good:     #2C6A4E;
+    --partial:  #8A6212;
+    --gap:      #9C382A;
+    --get:      #1F5C8B;
+    --post:     #2C6A4E;
+    --patch:    #8A6212;
+    --del:      #9C382A;
+
+    --serif: Georgia, "Iowan Old Style", "Palatino Linotype", Palatino, serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: "Cascadia Mono", Consolas, "SF Mono", Menlo, "DejaVu Sans Mono", monospace;
+    --ar: "Segoe UI", Tahoma, "Noto Naskh Arabic", "Traditional Arabic", Arial, sans-serif;
+  }
+
+  @page { size: A4; margin: 16mm 14mm 14mm; }
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0; background: #FFF; color: var(--ink);
+    font-family: var(--sans); font-size: 9.5pt; line-height: 1.55;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+
+  .cover { page-break-after: always; padding-top: 3mm; }
+  .cover__block { background: var(--accent); color: #FFF; padding: 15mm 12mm 13mm; }
+  .cover__eyebrow {
+    font-family: var(--mono); font-size: 8pt; letter-spacing: .18em;
+    text-transform: uppercase; color: #A7CFD1; margin: 0 0 7mm;
+  }
+  .cover__title { font-family: var(--serif); font-size: 27pt; line-height: 1.1; font-weight: 400; margin: 0 0 3mm; }
+  .cover__title-ar { font-family: var(--ar); font-size: 18pt; margin: 0 0 5mm; direction: rtl; color: #DCEDEE; }
+  .cover__sub { font-size: 10.8pt; line-height: 1.5; color: #CFE3E4; margin: 0; max-width: 118mm; }
+  .cover__meta {
+    margin-top: 11mm; display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 6mm; border-top: 1px solid var(--line); padding-top: 5mm;
+  }
+  .cover__meta dt {
+    font-family: var(--mono); font-size: 7.4pt; letter-spacing: .13em;
+    text-transform: uppercase; color: var(--faint); margin: 0 0 1.5mm;
+  }
+  .cover__meta dd { margin: 0; font-size: 9.5pt; }
+
+  h2 {
+    font-family: var(--serif); font-size: 14pt; font-weight: 400;
+    margin: 9mm 0 3mm; padding-bottom: 1.5mm; border-bottom: 1px solid var(--line);
+    page-break-after: avoid;
+  }
+  h2:first-of-type { margin-top: 0; }
+  h2 .sec { font-family: var(--mono); font-size: 9pt; color: var(--accent); margin-right: 2.5mm; }
+  h3 { font-size: 10.3pt; font-weight: 650; margin: 6mm 0 2mm; page-break-after: avoid; }
+  h4 {
+    font-family: var(--mono); font-size: 8pt; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--muted); font-weight: 600; margin: 4mm 0 1.8mm; page-break-after: avoid;
+  }
+  p { margin: 0 0 2.5mm; max-width: 168mm; }
+  ul, ol { margin: 0 0 3mm; padding-left: 5.5mm; max-width: 168mm; }
+  li { margin-bottom: 1.1mm; }
+  strong { font-weight: 650; }
+  em { color: var(--muted); }
+
+  code {
+    font-family: var(--mono); font-size: .89em; background: var(--surface);
+    padding: .5pt 2pt; border-radius: 2px; word-break: break-word;
+  }
+  pre {
+    font-family: var(--mono); font-size: 7.9pt; line-height: 1.45;
+    background: var(--surface); border-left: 2pt solid var(--accent);
+    padding: 3mm 4mm; margin: 0 0 3mm; white-space: pre-wrap;
+    word-break: break-word; break-inside: avoid;
+  }
+  pre code { background: none; padding: 0; font-size: inherit; }
+  pre .cm { color: var(--faint); }
+  pre .bad { color: var(--gap); }
+  pre .ok { color: var(--good); }
+
+  /* arabic */
+  .ar {
+    direction: rtl; text-align: right; font-family: var(--ar);
+    font-size: 10.2pt; line-height: 1.85; background: var(--surface);
+    border-right: 2.5pt solid var(--accent); padding: 3.5mm 4.5mm;
+    margin: 0 0 4mm; break-inside: avoid;
+  }
+  .ar p { margin: 0 0 2mm; max-width: none; }
+  .ar p:last-child { margin-bottom: 0; }
+  .ar__label {
+    font-family: var(--mono); direction: ltr; text-align: right;
+    font-size: 7.2pt; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--accent); margin: 0 0 2mm; font-weight: 600;
+  }
+  .ar code { direction: ltr; display: inline-block; }
+
+  /* tables */
+  table {
+    width: 100%; border-collapse: collapse; margin: 0 0 3.5mm;
+    font-size: 8.5pt; font-variant-numeric: tabular-nums;
+  }
+  caption {
+    caption-side: top; text-align: left; font-family: var(--mono);
+    font-size: 7.5pt; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--muted); padding-bottom: 1.5mm;
+  }
+  th {
+    text-align: left; font-weight: 650; font-size: 8pt;
+    border-bottom: 1.2pt solid var(--ink); padding: 1.7mm 2mm; vertical-align: bottom;
+  }
+  td { border-bottom: 1px solid var(--hairline); padding: 1.6mm 2mm; vertical-align: top; }
+  tbody tr:nth-child(even) { background: #FAFCFC; }
+  tr { break-inside: avoid; }
+  th.c, td.c { text-align: center; }
+  td.mono, th.mono { font-family: var(--mono); font-size: 7.9pt; }
+  .yes { color: var(--good); font-weight: 650; }
+  .no { color: var(--gap); font-weight: 650; }
+
+  /* endpoint cards */
+  .ep {
+    border: 1px solid var(--line); border-left: 2.5pt solid var(--accent);
+    padding: 3.5mm 4mm 3mm; margin: 0 0 4mm; break-inside: avoid;
+  }
+  .ep--wide { break-inside: auto; }
+  .ep__head { display: flex; align-items: baseline; gap: 2.5mm; margin: 0 0 1.5mm; flex-wrap: wrap; }
+  .ep__url { font-family: var(--mono); font-size: 8.8pt; font-weight: 650; word-break: break-all; }
+  .verb {
+    font-family: var(--mono); font-size: 7.4pt; font-weight: 700; letter-spacing: .08em;
+    color: #FFF; padding: .8mm 2mm; border-radius: 2px;
+  }
+  .verb--get { background: var(--get); }
+  .verb--post { background: var(--post); }
+  .verb--patch { background: var(--patch); }
+  .verb--delete { background: var(--del); }
+  .ep__who {
+    font-family: var(--mono); font-size: 7.6pt; color: var(--muted);
+    margin: 0 0 2.5mm; padding-bottom: 1.5mm; border-bottom: 1px solid var(--hairline);
+  }
+  .ep p:last-child, .ep pre:last-child, .ep ul:last-child { margin-bottom: 0; }
+
+  .chip {
+    display: inline-block; font-family: var(--mono); font-size: 7pt;
+    letter-spacing: .07em; text-transform: uppercase; padding: .7mm 1.7mm;
+    border-radius: 2px; font-weight: 600; white-space: nowrap;
+  }
+  .chip--live { background: #E4EFE9; color: var(--good); }
+  .chip--dep { background: #F6EEDC; color: var(--partial); }
+
+  /* role pills, as the UI should render them */
+  .pill {
+    display: inline-block; font-size: 7.6pt; font-weight: 600;
+    background: #E7EFEF; color: var(--accent-d); border-radius: 9px;
+    padding: .6mm 2.2mm; margin-right: 1.2mm;
+  }
+  .pill--muted { background: var(--hairline); color: var(--muted); }
+
+  .callout {
+    border-left: 2.5pt solid var(--accent); background: var(--surface);
+    padding: 3.5mm 4.5mm; margin: 0 0 4mm; break-inside: avoid;
+  }
+  .callout--warn { border-left-color: var(--partial); background: #FCF8EF; }
+  .callout--good { border-left-color: var(--good); background: #F3F8F5; }
+  .callout--gap { border-left-color: var(--gap); background: #FBF3F1; }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout__label {
+    font-family: var(--mono); font-size: 7.3pt; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--accent); margin: 0 0 1.5mm; font-weight: 600;
+  }
+  .callout--warn .callout__label { color: var(--partial); }
+  .callout--good .callout__label { color: var(--good); }
+  .callout--gap .callout__label { color: var(--gap); }
+
+  .ba { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; margin: 0 0 4mm; break-inside: avoid; }
+  .ba__col { border: 1px solid var(--line); padding: 3mm 3.5mm; }
+  .ba__col h4 { margin-top: 0; }
+  .ba__col--before { border-top: 2.5pt solid var(--faint); }
+  .ba__col--after { border-top: 2.5pt solid var(--good); }
+  .ba__col pre { margin-bottom: 0; border-left-width: 1.5pt; }
+
+  .footer-note {
+    margin-top: 8mm; padding-top: 3mm; border-top: 1px solid var(--line);
+    font-size: 8.3pt; color: var(--faint);
+  }
+</style>
+
+<!-- ================= COVER ================= -->
+<section class="cover">
+  <div class="cover__block">
+    <p class="cover__eyebrow">Frontend Guide · Shipped Change</p>
+    <h1 class="cover__title">Multiple Roles per Client</h1>
+    <p class="cover__title-ar">أكثر من دور للموظّف عند العميل الواحد</p>
+    <p class="cover__sub">One person can now be the Designer <em>and</em> the Copywriter on the same client. Here is exactly what changed in the API and what to build.</p>
+  </div>
+
+  <dl class="cover__meta">
+    <div><dt>Status</dt><dd>Shipped · <code>feat/admin-dashboard</code></dd></div>
+    <div><dt>Breaking?</dt><dd>No — nothing to fix urgently</dd></div>
+    <div><dt>Date</dt><dd>1 September 2026</dd></div>
+  </dl>
+
+  <div class="ar" style="margin-top:8mm">
+    <p class="ar__label">الخلاصة بالعربي</p>
+    <p>صار الموظّف يقدر ياخد <strong>أكثر من دور عند نفس العميل</strong> — مثلاً مصمّم وكاتب محتوى بنفس الوقت. الحقل الجديد اسمه <code>roles</code> وهو <strong>مصفوفة</strong>، والقديم <code>role</code> ما زال شغّال ومساوي دائماً لأول عنصر.</p>
+    <p><strong>ما في شي بينكسر.</strong> الشاشات الحالية بتضل تشتغل زي ما هي. الشغل المطلوب: تحويل قائمة اختيار الدور إلى <strong>اختيار متعدّد</strong>، وعرض <code>roles</code> بدل <code>role</code>.</p>
+    <p>⚠️ أهم نقطة: <code>roles</code> <strong>بتستبدل القائمة كلها</strong> — إذا بدك تضيف دور، ابعت الأدوار القديمة + الجديد مع بعض.</p>
+  </div>
+</section>
+
+<!-- ================= 1 ================= -->
+<h2><span class="sec">1</span>What changed, in one picture</h2>
+
+<div class="ba">
+  <div class="ba__col ba__col--before">
+    <h4>Before</h4>
+    <p>One membership, one role. Ahmad was either the Designer on Taxero or the Copywriter — never both.</p>
+    <pre><code>{
+  "id": "uuid",
+  "userId": "uuid",
+  "companyId": "uuid",
+  "role": "DESIGNER",
+  "status": "ACTIVE"
+}</code></pre>
+  </div>
+  <div class="ba__col ba__col--after">
+    <h4>After</h4>
+    <p>One membership, a list of roles. Both fields come back; <code>role</code> is always <code>roles[0]</code>.</p>
+    <pre><code>{
+  "id": "uuid",
+  "userId": "uuid",
+  "companyId": "uuid",
+  "roles": ["DESIGNER", "COPYWRITER"],
+  "role": "DESIGNER",
+  "status": "ACTIVE"
+}</code></pre>
+  </div>
+</div>
+
+<p>Still <strong>one membership row per person per client</strong> — the roles moved inside it. A person does not appear twice in a member list, and the client switcher is untouched.</p>
+
+<table>
+  <caption>The seven roles — unchanged, any combination is allowed</caption>
+  <thead><tr><th style="width:34%" class="mono">Value</th><th>Meaning</th></tr></thead>
+  <tbody>
+    <tr><td class="mono">ACCOUNT_MANAGER</td><td>Runs the client relationship</td></tr>
+    <tr><td class="mono">COPYWRITER</td><td>Writes copy and plans</td></tr>
+    <tr><td class="mono">DESIGNER</td><td>Produces the visuals</td></tr>
+    <tr><td class="mono">SOCIAL_MEDIA_MANAGER</td><td>Schedules and publishes</td></tr>
+    <tr><td class="mono">SALES_AGENT</td><td>Works the leads</td></tr>
+    <tr><td class="mono">CLIENT_OWNER</td><td>The client's own decision maker — external</td></tr>
+    <tr><td class="mono">CLIENT_REVIEWER</td><td>The client's reviewer — external</td></tr>
+  </tbody>
+</table>
+
+<!-- ================= 2 ================= -->
+<h2><span class="sec">2</span>What you must not miss</h2>
+
+<div class="callout callout--gap">
+  <p class="callout__label">roles replaces the whole set</p>
+  <p><code>PATCH</code> is not "add a role" — it is "these are now their roles". Sending <code>{"roles":["ACCOUNT_MANAGER"]}</code> for somebody who was <code>["DESIGNER","COPYWRITER"]</code> leaves them holding <strong>only Account Manager</strong>. To add a hat, send the existing list plus the new one.</p>
+</div>
+
+<div class="callout callout--good">
+  <p class="callout__label">Nothing you have today breaks</p>
+  <p>Screens still sending <code>{"role":"DESIGNER"}</code> keep working and get <code>roles:["DESIGNER"]</code> back. You can ship the multi-select whenever it suits you — there is no deadline and no coordinated release.</p>
+</div>
+
+<div class="callout callout--warn">
+  <p class="callout__label">Send one or the other</p>
+  <p>Send <code>roles</code> <em>or</em> <code>role</code>, never both in the same body. If both arrive, <code>roles</code> wins — but do not rely on that, it is an accident of the implementation rather than a promise.</p>
+</div>
+
+<div class="ar">
+  <p class="ar__label">تنبيهات مهمة</p>
+  <p>١ — <code>roles</code> <strong>بتستبدل الأدوار كلها</strong>، مش بتضيف. عشان تضيف دور: ابعت القديم + الجديد.</p>
+  <p>٢ — الشاشات القديمة اللي بتبعت <code>role</code> لحالها بتضل شغالة، ما في استعجال.</p>
+  <p>٣ — ابعت <code>roles</code> أو <code>role</code>، مش الاثنين مع بعض.</p>
+</div>
+
+<!-- ================= 3 ================= -->
+<h2><span class="sec">3</span>The endpoints</h2>
+
+<div class="ep ep--wide">
+  <p class="ep__head"><span class="verb verb--post">POST</span><span class="ep__url">/api/companies/:companyId/members</span><span class="chip chip--live">live</span></p>
+  <p class="ep__who">Who: <b>Admin, Super Admin</b> · Put an employee on a client</p>
+
+  <h4>Request</h4>
+  <pre><code>{
+  "userId": "uuid",
+  "roles": ["DESIGNER", "COPYWRITER"]     <span class="cm">// one or more</span>
+}
+
+<span class="cm">// still accepted, treated as a one-item list:</span>
+{ "userId": "uuid", "role": "DESIGNER" }</code></pre>
+
+  <h4>201 Response</h4>
+  <pre><code>{
+  "id": "uuid",
+  "companyId": "uuid",
+  "userId": "uuid",
+  "roles": ["DESIGNER", "COPYWRITER"],
+  "role": "DESIGNER",
+  "status": "ACTIVE",
+  "invitedById": "uuid",
+  "createdAt": "...", "updatedAt": "..."
+}</code></pre>
+
+  <ul>
+    <li>Duplicates in the list are removed server-side — <code>["DESIGNER","DESIGNER"]</code> is stored as one.</li>
+    <li>Order is preserved, and <code>role</code> becomes the <strong>first</strong> entry. Put the person's main hat first if that label matters in your UI.</li>
+    <li>Adding somebody who is <strong>already active</strong> on the client is a <code>409</code>. Filter existing members out of the picker.</li>
+    <li>Adding somebody who was <strong>removed before</strong> reactivates their old membership with the new roles, keeping their history rather than starting a second record.</li>
+  </ul>
+</div>
+
+<div class="ep">
+  <p class="ep__head"><span class="verb verb--patch">PATCH</span><span class="ep__url">/api/companies/:companyId/members/:membershipId</span><span class="chip chip--live">live</span></p>
+  <p class="ep__who">Who: <b>Admin, Super Admin</b> · Change what somebody does on a client</p>
+
+  <pre><code>{ "roles": ["COPYWRITER", "DESIGNER", "SOCIAL_MEDIA_MANAGER"] }
+
+<span class="cm">// also accepts, as before:</span>
+{ "role": "COPYWRITER" }
+{ "status": "SUSPENDED" }        <span class="cm">// ACTIVE | INVITED | SUSPENDED</span>
+
+<span class="cm">// 200 → the full updated membership, both fields present</span></code></pre>
+
+  <p><strong>Remember:</strong> the list you send is the list they end up with.</p>
+</div>
+
+<div class="ep">
+  <p class="ep__head"><span class="verb verb--get">GET</span><span class="ep__url">/api/companies/:companyId/members</span><span class="chip chip--live">live</span></p>
+  <p class="ep__who">Who: <b>Account Manager on that client, or any admin</b> · The members table</p>
+
+  <pre><code>[
+  {
+    "id": "uuid",
+    "userId": "uuid",
+    "roles": ["DESIGNER", "COPYWRITER"],
+    "role": "DESIGNER",
+    "status": "ACTIVE",
+    "user": { "id": "uuid", "fullName": "Ahmad", "email": "ahmad@..." },
+    "createdAt": "...", "updatedAt": "..."
+  }
+]</code></pre>
+  <p>Newest first. Includes non-active memberships, so filter on <code>status === 'ACTIVE'</code> for "who works here now".</p>
+</div>
+
+<div class="ep">
+  <p class="ep__head"><span class="verb verb--get">GET</span><span class="ep__url">/api/users</span><span class="chip chip--live">live</span></p>
+  <p class="ep__who">Who: <b>Admin, Super Admin</b> · The employees screen</p>
+
+  <p>Each employee carries the clients they work on, and each of those now carries <code>roles</code>:</p>
+  <pre><code>{
+  "id": "uuid", "fullName": "Ahmad", "email": "ahmad@solutions.local",
+  "platformRole": "USER", "status": "ACTIVE",
+  "clients": [
+    { "membershipId": "uuid", "companyId": "uuid", "companyName": "Taxero",
+      "roles": ["DESIGNER", "COPYWRITER"],   <span class="cm">// ← render this</span>
+      "role": "DESIGNER" }                   <span class="cm">// ← deprecated</span>
+  ]
+}</code></pre>
+</div>
+
+<div class="ep">
+  <p class="ep__head"><span class="verb verb--delete">DELETE</span><span class="ep__url">/api/companies/:companyId/members/:membershipId</span><span class="chip chip--live">live</span></p>
+  <p class="ep__who">Who: <b>Admin, Super Admin</b> · Take somebody off a client</p>
+  <p>Unchanged, and still the right way to remove a person. <strong>Do not</strong> try to express "no longer works here" by sending an empty <code>roles</code> array — that is rejected. Deactivating keeps their history and lets them be re-added later.</p>
+</div>
+
+<!-- ================= 4 ================= -->
+<h2><span class="sec">4</span>Errors</h2>
+
+<table>
+  <thead><tr><th style="width:12%">Status</th><th style="width:40%">When</th><th>What to show</th></tr></thead>
+  <tbody>
+    <tr><td class="mono">400</td><td><code>"roles": []</code> — empty list</td><td>"Pick at least one role." A member with no role has no permissions, so the state is not allowed</td></tr>
+    <tr><td class="mono">400</td><td>A value not in the seven, e.g. <code>"PRESIDENT"</code></td><td>Shouldn't happen from a fixed multi-select — treat as a bug</td></tr>
+    <tr><td class="mono">400</td><td>Any unknown property in the body</td><td>The API rejects extra fields. Send exactly <code>userId</code>, <code>roles</code> (and optionally <code>status</code> on PATCH)</td></tr>
+    <tr><td class="mono">409</td><td>The person is already active on this client</td><td>"Already on this client." Filter them out of the picker so it doesn't happen</td></tr>
+    <tr><td class="mono">403</td><td>Caller is not an admin</td><td>The control shouldn't have been rendered — re-read the session</td></tr>
+  </tbody>
+</table>
+
+<!-- ================= 5 ================= -->
+<h2><span class="sec">5</span>How permissions behave now</h2>
+
+<p>Three properties worth knowing, because they change what your UI can assume:</p>
+
+<ul>
+  <li><strong>Any role wins.</strong> A check passes if <em>at least one</em> held role allows the action. Ahmad as <code>["DESIGNER","ACCOUNT_MANAGER"]</code> can do everything a Designer can <em>and</em> everything an Account Manager can.</li>
+  <li><strong>Read fresh on every request.</strong> Company roles are not in the JWT. Give somebody a new role and it works on their <strong>very next click</strong> — no logout, no token refresh. <em>Verified: a Designer got 403 on an Account-Manager route, was given the extra role, and the same token got 200.</em></li>
+  <li><strong>Platform role is separate.</strong> <code>platformRole</code> (<code>SUPER_ADMIN</code> / <code>AGENCY_ADMIN</code> / <code>USER</code>) is one value per person and is <strong>not</strong> a list. Only the per-client roles are multiple.</li>
+</ul>
+
+<div class="callout callout--warn">
+  <p class="callout__label">One consequence for the UI</p>
+  <p>If your interface hides or shows things based on "the user's role on this client", it must now check <em>membership</em> in a list, not equality with one value. <code>role === 'DESIGNER'</code> silently becomes wrong the day somebody gets a second hat.</p>
+  <pre style="margin-top:2mm"><code><span class="bad">if (member.role === 'DESIGNER')            // wrong — only sees the first hat</span>
+<span class="ok">if (member.roles.includes('DESIGNER'))     // right</span></code></pre>
+</div>
+
+<div class="ar">
+  <p class="ar__label">سلوك الصلاحيات</p>
+  <p>الصلاحية بتمرّ إذا <strong>أي دور</strong> من أدواره بيسمح بالعملية. والأدوار بتنقرأ مع كل طلب — يعني لما تعطي حدا دور جديد بيشتغل <strong>فوراً</strong> بدون ما يعمل تسجيل خروج ودخول.</p>
+  <p>انتبه بالواجهة: بدل <code>role === 'DESIGNER'</code> استعمل <code>roles.includes('DESIGNER')</code>.</p>
+</div>
+
+<!-- ================= 6 ================= -->
+<h2><span class="sec">6</span>What to build</h2>
+
+<h3>The "Assign people" panel</h3>
+
+<p>One screen changes meaningfully. The role dropdown becomes a multi-select, and the members table shows every hat.</p>
+
+<pre><code>┌──────────────────────────────────────────────────────────────┐
+│  People on Taxero                            [ + Add person ]│
+├──────────────────────────────────────────────────────────────┤
+│  Ahmad      Designer · Copywriter                    [ Edit ]│
+│  Dina       Account Manager                          [ Edit ]│
+│  Yasin      Designer                                 [ Edit ]│
+└──────────────────────────────────────────────────────────────┘
+
+  Edit Ahmad ─────────────────────────────────
+    Roles on this client   ☑ Designer
+                           ☑ Copywriter
+                           ☐ Account Manager
+                           ☐ Social media manager
+                           ☐ Sales agent
+    At least one role is required.
+    [ Cancel ]  [ Save ]</code></pre>
+
+<p>Render the roles as pills so two hats read as clearly as one:</p>
+<p style="margin-bottom:5mm">
+  <span class="pill">Designer</span><span class="pill">Copywriter</span>
+  &nbsp;&nbsp;<span class="pill pill--muted">Account Manager</span>
+</p>
+
+<h4>Rules for the multi-select</h4>
+<ul>
+  <li>Pre-tick the roles the person already holds — the form starts from their current set, because saving replaces it.</li>
+  <li>Disable <em>Save</em> when nothing is ticked, rather than letting the <code>400</code> teach the user the rule.</li>
+  <li>Show the client-side roles (<code>CLIENT_OWNER</code>, <code>CLIENT_REVIEWER</code>) separately, or hide them for employees — mixing "our staff" and "their people" in one list confuses whoever is assigning.</li>
+</ul>
+
+<h3>Everywhere else a role is displayed</h3>
+
+<table>
+  <thead><tr><th style="width:38%">Screen</th><th style="width:30%">Field</th><th>Change</th></tr></thead>
+  <tbody>
+    <tr><td>Members table on a client</td><td class="mono">membership.roles</td><td>Show all, as pills</td></tr>
+    <tr><td>Employees list — "works on"</td><td class="mono">user.clients[].roles</td><td>Show all per client</td></tr>
+    <tr><td>Employee detail</td><td class="mono">user.clients[].roles</td><td>Show all per client</td></tr>
+    <tr><td>Responsibility matrix</td><td class="mono">members[].roles</td><td>Now returns the full list too</td></tr>
+    <tr><td>Anything filtering by role</td><td class="mono">roles.includes(x)</td><td>Switch from <code>===</code> to <code>includes</code></td></tr>
+  </tbody>
+</table>
+
+<!-- ================= 7 ================= -->
+<h2><span class="sec">7</span>Recipes</h2>
+
+<pre><code><span class="cm">// types</span>
+export type MembershipRole =
+  | 'ACCOUNT_MANAGER' | 'COPYWRITER' | 'DESIGNER' | 'SOCIAL_MEDIA_MANAGER'
+  | 'CLIENT_OWNER' | 'CLIENT_REVIEWER' | 'SALES_AGENT';
+
+export type Membership = {
+  id: string;
+  companyId: string;
+  userId: string;
+  roles: MembershipRole[];        <span class="cm">// read this</span>
+  role: MembershipRole;           <span class="cm">// deprecated — always roles[0]</span>
+  status: 'ACTIVE' | 'INVITED' | 'SUSPENDED';
+  user?: { id: string; fullName: string; email: string };
+};</code></pre>
+
+<h4>Add a person with two hats</h4>
+<pre><code>await api.post(`/companies/${clientId}/members`, {
+  userId,
+  roles: ['DESIGNER', 'COPYWRITER'],
+});</code></pre>
+
+<h4>Give an existing member one more hat</h4>
+<pre><code><span class="cm">// send the whole set — the existing roles plus the new one</span>
+await api.patch(`/companies/${clientId}/members/${m.id}`, {
+  roles: [...m.roles, 'ACCOUNT_MANAGER'],
+});</code></pre>
+
+<h4>Take one hat away, keep the rest</h4>
+<pre><code>const next = m.roles.filter((r) =&gt; r !== 'COPYWRITER');
+
+if (next.length === 0) {
+  <span class="cm">// the last role cannot be removed — this means "remove the person"</span>
+  await api.delete(`/companies/${clientId}/members/${m.id}`);
+} else {
+  await api.patch(`/companies/${clientId}/members/${m.id}`, { roles: next });
+}</code></pre>
+
+<h4>Save straight from the multi-select</h4>
+<pre><code>const selected = form.roles;              <span class="cm">// MembershipRole[]</span>
+
+if (selected.length === 0) return setError('Pick at least one role');
+
+await api.patch(`/companies/${clientId}/members/${m.id}`, { roles: selected });
+invalidate(['members', clientId]);        <span class="cm">// and the employees list</span></code></pre>
+
+<h4>Build the picker without duplicates</h4>
+<pre><code>const employees = await api.get('/users');
+const members   = await api.get(`/companies/${clientId}/members`);
+
+const assignable = employees.filter(
+  (e) =&gt; !members.some((m) =&gt; m.userId === e.id &amp;&amp; m.status === 'ACTIVE'),
+);</code></pre>
+
+<!-- ================= 8 ================= -->
+<h2><span class="sec">8</span>Checklist</h2>
+
+<table>
+  <thead><tr><th style="width:6%">#</th><th style="width:52%">Task</th><th>Why</th></tr></thead>
+  <tbody>
+    <tr><td class="mono">1</td><td>Add <code>roles: MembershipRole[]</code> to the membership type</td><td>Everything else follows from it</td></tr>
+    <tr><td class="mono">2</td><td>Replace every <code>role === '…'</code> comparison with <code>roles.includes('…')</code></td><td>The one place a second hat silently breaks logic</td></tr>
+    <tr><td class="mono">3</td><td>Turn the role dropdown into a multi-select, pre-ticked from current roles</td><td>The actual feature</td></tr>
+    <tr><td class="mono">4</td><td>Send the full set on save; block saving an empty set</td><td><code>roles</code> replaces, and empty is a 400</td></tr>
+    <tr><td class="mono">5</td><td>Render roles as pills in the members table and the employees list</td><td>Two hats should read as two hats</td></tr>
+    <tr><td class="mono">6</td><td>"Remove last role" routes to <code>DELETE</code>, not an empty <code>roles</code></td><td>Removing a person is a different action</td></tr>
+    <tr><td class="mono">7</td><td>Keep filtering existing active members out of the add-person picker</td><td>Avoids the 409</td></tr>
+    <tr><td class="mono">8</td><td>Stop reading <code>role</code> once the above is done</td><td>It will be removed eventually</td></tr>
+  </tbody>
+</table>
+
+<div class="callout">
+  <p class="callout__label">Rollout</p>
+  <p>There is no coordinated release. The backend accepts both shapes today, so items 1–2 can ship on their own, and the multi-select can follow whenever it reaches the top of the list. The single <code>role</code> field will only be removed once you confirm nothing sends or reads it.</p>
+</div>
+
+<div class="ar">
+  <p class="ar__label">خطة التنفيذ</p>
+  <p>ما في إصدار متزامن ولا موعد نهائي. الباك إند بيقبل الشكلين. ابدأ بالنقطتين ١ و٢ (النوع، و<code>includes</code> بدل <code>===</code>)، وبعدين الاختيار المتعدّد وقت ما يجي دوره. حقل <code>role</code> القديم رح ينشال بس تأكّدوا إنه ما حدا بيستعمله.</p>
+</div>
+
+<p class="footer-note">Multiple roles per client · 1 September 2026 · Solutions Platform. Companion to the Admin &amp; Super Admin dashboard frontend guide. Source: <code>api/docs/frontend-multiple-roles.html</code>.</p>
