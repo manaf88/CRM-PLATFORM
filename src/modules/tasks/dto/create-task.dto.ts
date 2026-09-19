@@ -36,6 +36,14 @@ export class CreateTaskDto {
   @IsUUID()
   assignedToId?: string;
 
+  /**
+   * Left out on purpose in most cases: when it is absent the approver is read
+   * from the responsibility matrix for this client and task type.
+   */
+  @IsOptional()
+  @IsUUID()
+  approverId?: string;
+
   @IsOptional()
   @IsEnum(TaskRelatedEntityType)
   relatedEntityType?: TaskRelatedEntityType;

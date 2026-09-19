@@ -25,12 +25,18 @@ export class ResponsibilityAreasService {
     currentUser: RequestUser,
   ): Promise<ResponsibilityArea> {
     const name = dto.name.trim();
+    const areaKey = this.cleanAreaKey(dto.areaKey);
 
     await this.assertNameAvailable(companyId, name);
+
+    if (areaKey) {
+      await this.assertKeyAvailable(companyId, areaKey);
+    }
 
     const area = this.areasRepository.create({
       companyId,
       name,
+      areaKey,
       description: this.cleanOptionalString(dto.description),
       sortOrder: dto.sortOrder ?? 0,
       isActive: dto.isActive ?? true,
@@ -108,6 +114,16 @@ export class ResponsibilityAreasService {
       area.name = name;
     }
 
+    if (dto.areaKey !== undefined) {
+      const areaKey = this.cleanAreaKey(dto.areaKey);
+
+      if (areaKey && areaKey !== area.areaKey) {
+        await this.assertKeyAvailable(companyId, areaKey, areaId);
+      }
+
+      area.areaKey = areaKey;
+    }
+
     if (dto.description !== undefined) {
       area.description = this.cleanOptionalString(dto.description);
     }
@@ -129,9 +145,7 @@ export class ResponsibilityAreasService {
    * All active areas for a company, ordered for grid rendering.
    * Unpaginated on purpose — the matrix needs every row.
    */
-  async listActiveForMatrix(
-    companyId: string,
-  ): Promise<ResponsibilityArea[]> {
+  async listActiveForMatrix(companyId: string): Promise<ResponsibilityArea[]> {
     return this.areasRepository.find({
       where: { companyId, isActive: true },
       order: { sortOrder: 'ASC', name: 'ASC' },
@@ -160,10 +174,7 @@ export class ResponsibilityAreasService {
     return new Set(rows.map((row) => row.id));
   }
 
-  async remove(
-    companyId: string,
-    areaId: string,
-  ): Promise<{ success: true }> {
+  async remove(companyId: string, areaId: string): Promise<{ success: true }> {
     const area = await this.findOne(companyId, areaId);
 
     // Assignments for this area are removed via ON DELETE CASCADE.
@@ -193,6 +204,40 @@ export class ResponsibilityAreasService {
         `A responsibility area named "${name}" already exists`,
       );
     }
+  }
+
+  private async assertKeyAvailable(
+    companyId: string,
+    areaKey: string,
+    excludeAreaId?: string,
+  ): Promise<void> {
+    const qb = this.areasRepository
+      .createQueryBuilder('area')
+      .where('area.companyId = :companyId', { companyId })
+      .andWhere('area.areaKey = :areaKey', { areaKey });
+
+    if (excludeAreaId) {
+      qb.andWhere('area.id != :excludeAreaId', { excludeAreaId });
+    }
+
+    const existing = await qb.getOne();
+
+    if (existing) {
+      throw new ConflictException(
+        `Another responsibility area already uses the key "${areaKey}"`,
+      );
+    }
+  }
+
+  /** Keys are compared exactly, so they are stored in one casing. */
+  private cleanAreaKey(value?: string): string | null {
+    if (value === undefined) {
+      return null;
+    }
+
+    const cleaned = value.trim().toUpperCase();
+
+    return cleaned.length > 0 ? cleaned : null;
   }
 
   private cleanOptionalString(value?: string): string | null {

@@ -21,6 +21,8 @@ import { Campaign } from 'src/modules/campaigns/entities/campaign.entity';
 @Index(['companyId', 'status'])
 @Index(['companyId', 'priority'])
 @Index(['assignedToId'])
+@Index(['approverId'])
+@Index(['companyId', 'status', 'approverId'])
 @Index(['dueDate'])
 @Index(['relatedEntityType', 'relatedEntityId'])
 @Index(['companyId', 'campaignId'])
@@ -70,6 +72,36 @@ export class Task {
   @JoinColumn({ name: 'assigned_to_id' })
   assignedTo!: User | null;
 
+  /**
+   * Who says yes before this task is finished. Resolved from the
+   * responsibility matrix at creation when the caller does not name one, and
+   * then left alone: changing the matrix later never rewrites existing tasks.
+   */
+  @Column({ name: 'approver_id', type: 'uuid', nullable: true })
+  approverId!: string | null;
+
+  @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'approver_id' })
+  approver!: User | null;
+
+  /**
+   * When the doer handed it over. This is the clock the dashboard ages, so it
+   * is cleared the moment the task comes back to the doer.
+   */
+  @Column({
+    name: 'submitted_for_review_at',
+    type: 'timestamptz',
+    nullable: true,
+  })
+  submittedForReviewAt!: Date | null;
+
+  @Column({ name: 'reviewed_at', type: 'timestamptz', nullable: true })
+  reviewedAt!: Date | null;
+
+  /** The approver's last note. Every note is kept in the activity log. */
+  @Column({ name: 'review_note', type: 'text', nullable: true })
+  reviewNote!: string | null;
+
   @Column({
     name: 'related_entity_type',
     type: 'enum',
@@ -83,7 +115,7 @@ export class Task {
 
   @Column({ name: 'due_date', type: 'timestamptz', nullable: true })
   dueDate!: Date | null;
-  
+
   @Column({ name: 'campaign_id', type: 'uuid', nullable: true })
   campaignId!: string | null;
 

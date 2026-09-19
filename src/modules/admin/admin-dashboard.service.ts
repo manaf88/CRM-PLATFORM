@@ -43,6 +43,7 @@ import {
   ClientLeadRow,
   ClientPlanRow,
   ClientPostRow,
+  InternalApprovalByApproverRow,
   ClientTaskRow,
   ContentExtrasRow,
   ContentPlanRow,
@@ -349,6 +350,20 @@ export class AdminDashboardService {
         'COUNT(*) FILTER (WHERE t.status = :done AND t.completedAt BETWEEN :start AND :end)',
         'completedToday',
       )
+      // Tasks that reached IN_REVIEW without anybody named to approve them —
+      // every task that predates this feature is one of these.
+      .addSelect(
+        'COUNT(*) FILTER (WHERE t.status = :inReview AND t.approverId IS NULL)',
+        'inReviewWithoutApprover',
+      )
+      // Mean hours the open reviews have been sitting there. Rows with no
+      // submission stamp are left out rather than counted as zero, which would
+      // quietly drag the average down.
+      .addSelect(
+        'AVG(EXTRACT(EPOCH FROM (CAST(:now AS timestamptz) - t.submittedForReviewAt)) / 3600) ' +
+          'FILTER (WHERE t.status = :inReview AND t.submittedForReviewAt IS NOT NULL)',
+        'avgInternalApprovalWaitHours',
+      )
       .setParameters({
         open: OPEN_TASK_STATUSES,
         todo: TaskStatus.TODO,
@@ -381,7 +396,60 @@ export class AdminDashboardService {
       qb.andWhere('t.status = :statusFilter', { statusFilter: filters.status });
     }
 
-    const row = await qb.getRawOne<TaskMetricsRow>();
+    // Who is holding the internal reviews. Scoped to the same client and
+    // priority as the counters above; the employee filter is deliberately not
+    // applied, because it filters by assignee and this is a list of approvers.
+    const byApproverQb = this.tasksRepository
+      .createQueryBuilder('t')
+      .select('t.approverId', 'userId')
+      .addSelect('u.full_name', 'fullName')
+      .addSelect('COUNT(*)', 'count')
+      .addSelect('MIN(t.submittedForReviewAt)', 'oldestSubmittedAt')
+      .addSelect(
+        'COUNT(*) FILTER (WHERE m.id IS NULL)',
+        'inactiveApproverCount',
+      )
+      .innerJoin(User, 'u', 'u.id = t.approverId')
+      // The approver may have left the client while tasks were waiting on
+      // them. The rows stay — they are history — but they must be visible.
+      .leftJoin(
+        CompanyMembership,
+        'm',
+        'm.user_id = t.approverId AND m.company_id = t.companyId AND m.status = :activeMembership',
+      )
+      .where('t.status = :inReview')
+      .andWhere('t.approverId IS NOT NULL')
+      .groupBy('t.approverId')
+      .addGroupBy('u.full_name')
+      .setParameters({
+        inReview: TaskStatus.IN_REVIEW,
+        activeMembership: CompanyMembershipStatus.ACTIVE,
+      });
+
+    this.scopeToClient(byApproverQb, 't', filters.clientId);
+
+    if (filters.priority) {
+      byApproverQb.andWhere('t.priority = :priorityFilter', {
+        priorityFilter: filters.priority,
+      });
+    }
+
+    const [row, approverRows] = await Promise.all([
+      qb.getRawOne<TaskMetricsRow>(),
+      byApproverQb.getRawMany<InternalApprovalByApproverRow>(),
+    ]);
+
+    const internalApprovalByApprover = approverRows
+      .map((approverRow) => ({
+        userId: approverRow.userId,
+        fullName: approverRow.fullName,
+        count: num(approverRow.count),
+        oldestWaitingHours: approverRow.oldestSubmittedAt
+          ? hoursSince(new Date(approverRow.oldestSubmittedAt), now)
+          : 0,
+        approverIsInactive: num(approverRow.inactiveApproverCount) > 0,
+      }))
+      .sort((a, b) => b.oldestWaitingHours - a.oldestWaitingHours);
 
     return {
       openTotal: num(row?.openTotal),
@@ -397,6 +465,20 @@ export class AdminDashboardService {
       highPriority: num(row?.highPriority),
       unassigned: num(row?.unassigned),
       completedToday: num(row?.completedToday),
+
+      // Internal approvals, named to mirror the client-side approval metrics
+      // (waitingClientApproval / averageApprovalWaitHours) they sit beside.
+      waitingInternalApproval: num(row?.inReview),
+      averageInternalApprovalWaitHours: row?.avgInternalApprovalWaitHours
+        ? Number(Number(row.avgInternalApprovalWaitHours).toFixed(1))
+        : 0,
+      internalApprovalByApprover,
+      // The two ways an internal review can be waiting on nobody.
+      internalApprovalWithoutApprover: num(row?.inReviewWithoutApprover),
+      internalApprovalWithInactiveApprover: approverRows.reduce(
+        (sum, approverRow) => sum + num(approverRow.inactiveApproverCount),
+        0,
+      ),
     };
   }
 

@@ -16,6 +16,10 @@ import { User } from '../../users/entities/user.entity';
 @Index(['companyId'])
 @Index(['companyId', 'isActive'])
 @Index(['companyId', 'name'], { unique: true })
+@Index(['companyId', 'areaKey'], {
+  unique: true,
+  where: '"area_key" IS NOT NULL',
+})
 export class ResponsibilityArea {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
@@ -29,6 +33,15 @@ export class ResponsibilityArea {
 
   @Column({ type: 'varchar', length: 120 })
   name!: string;
+
+  /**
+   * Stable machine key for an area whose name is free text and differs per
+   * client ("Design", "Creative", «تصميم» are all the same area). Task types
+   * are matched against this first, so approver resolution does not depend on
+   * how a client happened to spell things. Null for areas nobody has mapped.
+   */
+  @Column({ name: 'area_key', type: 'varchar', length: 60, nullable: true })
+  areaKey!: string | null;
 
   @Column({ type: 'text', nullable: true })
   description!: string | null;

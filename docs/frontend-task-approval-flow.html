@@ -1,0 +1,660 @@
+<title>Task Approval Flow</title>
+<style>
+  :root {
+    --ink:      #191C21;
+    --muted:    #5E6672;
+    --faint:    #8A9199;
+    --line:     #DCE0E3;
+    --hairline: #EDF0F1;
+    --surface:  #F4F7F7;
+    --accent:   #0F5D62;
+    --accent-d: #0A4347;
+    --good:     #2C6A4E;
+    --partial:  #8A6212;
+    --gap:      #9C382A;
+    --get:      #1F5C8B;
+    --post:     #2C6A4E;
+    --patch:    #8A6212;
+    --del:      #9C382A;
+
+    --serif: Georgia, "Iowan Old Style", "Palatino Linotype", Palatino, serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: "Cascadia Mono", Consolas, "SF Mono", Menlo, "DejaVu Sans Mono", monospace;
+    --ar: "Segoe UI", Tahoma, "Noto Naskh Arabic", "Traditional Arabic", Arial, sans-serif;
+  }
+
+  @page { size: A4; margin: 16mm 14mm 14mm; }
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0; background: #FFF; color: var(--ink);
+    font-family: var(--sans); font-size: 9.5pt; line-height: 1.55;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+
+  .cover { page-break-after: always; padding-top: 3mm; }
+  .cover__block { background: var(--accent); color: #FFF; padding: 15mm 12mm 13mm; }
+  .cover__eyebrow {
+    font-family: var(--mono); font-size: 8pt; letter-spacing: .18em;
+    text-transform: uppercase; color: #A7CFD1; margin: 0 0 7mm;
+  }
+  .cover__title { font-family: var(--serif); font-size: 27pt; line-height: 1.1; font-weight: 400; margin: 0 0 3mm; }
+  .cover__title-ar { font-family: var(--ar); font-size: 18pt; margin: 0 0 5mm; direction: rtl; color: #DCEDEE; }
+  .cover__sub { font-size: 10.8pt; line-height: 1.5; color: #CFE3E4; margin: 0; max-width: 118mm; }
+  .cover__meta {
+    margin-top: 11mm; display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 6mm; border-top: 1px solid var(--line); padding-top: 5mm;
+  }
+  .cover__meta dt {
+    font-family: var(--mono); font-size: 7.4pt; letter-spacing: .13em;
+    text-transform: uppercase; color: var(--faint); margin: 0 0 1.5mm;
+  }
+  .cover__meta dd { margin: 0; font-size: 9.5pt; }
+
+  h2 {
+    font-family: var(--serif); font-size: 14pt; font-weight: 400;
+    margin: 9mm 0 3mm; padding-bottom: 1.5mm; border-bottom: 1px solid var(--line);
+    page-break-after: avoid;
+  }
+  h2:first-of-type { margin-top: 0; }
+  h2 .sec { font-family: var(--mono); font-size: 9pt; color: var(--accent); margin-right: 2.5mm; }
+  h3 { font-size: 10.3pt; font-weight: 650; margin: 6mm 0 2mm; page-break-after: avoid; }
+  h4 {
+    font-family: var(--mono); font-size: 8pt; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--muted); font-weight: 600; margin: 4mm 0 1.8mm; page-break-after: avoid;
+  }
+  p { margin: 0 0 2.5mm; max-width: 168mm; }
+  ul, ol { margin: 0 0 3mm; padding-left: 5.5mm; max-width: 168mm; }
+  li { margin-bottom: 1.1mm; }
+  strong { font-weight: 650; }
+  em { color: var(--muted); }
+
+  code {
+    font-family: var(--mono); font-size: .89em; background: var(--surface);
+    padding: .5pt 2pt; border-radius: 2px; word-break: break-word;
+  }
+  pre {
+    font-family: var(--mono); font-size: 7.9pt; line-height: 1.45;
+    background: var(--surface); border-left: 2pt solid var(--accent);
+    padding: 3mm 4mm; margin: 0 0 3mm; white-space: pre-wrap;
+    word-break: break-word; break-inside: avoid;
+  }
+  pre code { background: none; padding: 0; font-size: inherit; }
+  pre .cm { color: var(--faint); }
+  pre .bad { color: var(--gap); }
+  pre .ok { color: var(--good); }
+
+  /* arabic */
+  .ar {
+    direction: rtl; text-align: right; font-family: var(--ar);
+    font-size: 10.2pt; line-height: 1.85; background: var(--surface);
+    border-right: 2.5pt solid var(--accent); padding: 3.5mm 4.5mm;
+    margin: 0 0 4mm; break-inside: avoid;
+  }
+  .ar p { margin: 0 0 2mm; max-width: none; }
+  .ar p:last-child { margin-bottom: 0; }
+  .ar__label {
+    font-family: var(--mono); direction: ltr; text-align: right;
+    font-size: 7.2pt; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--accent); margin: 0 0 2mm; font-weight: 600;
+  }
+  .ar code { direction: ltr; display: inline-block; }
+
+  /* tables */
+  table {
+    width: 100%; border-collapse: collapse; margin: 0 0 3.5mm;
+    font-size: 8.5pt; font-variant-numeric: tabular-nums;
+  }
+  caption {
+    caption-side: top; text-align: left; font-family: var(--mono);
+    font-size: 7.5pt; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--muted); padding-bottom: 1.5mm;
+  }
+  th {
+    text-align: left; font-weight: 650; font-size: 8pt;
+    border-bottom: 1.2pt solid var(--ink); padding: 1.7mm 2mm; vertical-align: bottom;
+  }
+  td { border-bottom: 1px solid var(--hairline); padding: 1.6mm 2mm; vertical-align: top; }
+  tbody tr:nth-child(even) { background: #FAFCFC; }
+  tr { break-inside: avoid; }
+  th.c, td.c { text-align: center; }
+  td.mono, th.mono { font-family: var(--mono); font-size: 7.9pt; }
+  .yes { color: var(--good); font-weight: 650; }
+  .no { color: var(--gap); font-weight: 650; }
+
+  /* endpoint cards */
+  .ep {
+    border: 1px solid var(--line); border-left: 2.5pt solid var(--accent);
+    padding: 3.5mm 4mm 3mm; margin: 0 0 4mm; break-inside: avoid;
+  }
+  .ep--wide { break-inside: auto; }
+  .ep__head { display: flex; align-items: baseline; gap: 2.5mm; margin: 0 0 1.5mm; flex-wrap: wrap; }
+  .ep__url { font-family: var(--mono); font-size: 8.8pt; font-weight: 650; word-break: break-all; }
+  .verb {
+    font-family: var(--mono); font-size: 7.4pt; font-weight: 700; letter-spacing: .08em;
+    color: #FFF; padding: .8mm 2mm; border-radius: 2px;
+  }
+  .verb--get { background: var(--get); }
+  .verb--post { background: var(--post); }
+  .verb--patch { background: var(--patch); }
+  .verb--delete { background: var(--del); }
+  .ep__who {
+    font-family: var(--mono); font-size: 7.6pt; color: var(--muted);
+    margin: 0 0 2.5mm; padding-bottom: 1.5mm; border-bottom: 1px solid var(--hairline);
+  }
+  .ep p:last-child, .ep pre:last-child, .ep ul:last-child { margin-bottom: 0; }
+
+  .chip {
+    display: inline-block; font-family: var(--mono); font-size: 7pt;
+    letter-spacing: .07em; text-transform: uppercase; padding: .7mm 1.7mm;
+    border-radius: 2px; font-weight: 600; white-space: nowrap;
+  }
+  .chip--live { background: #E4EFE9; color: var(--good); }
+  .chip--dep { background: #F6EEDC; color: var(--partial); }
+
+  /* role pills, as the UI should render them */
+  .pill {
+    display: inline-block; font-size: 7.6pt; font-weight: 600;
+    background: #E7EFEF; color: var(--accent-d); border-radius: 9px;
+    padding: .6mm 2.2mm; margin-right: 1.2mm;
+  }
+  .pill--muted { background: var(--hairline); color: var(--muted); }
+
+  .callout {
+    border-left: 2.5pt solid var(--accent); background: var(--surface);
+    padding: 3.5mm 4.5mm; margin: 0 0 4mm; break-inside: avoid;
+  }
+  .callout--warn { border-left-color: var(--partial); background: #FCF8EF; }
+  .callout--good { border-left-color: var(--good); background: #F3F8F5; }
+  .callout--gap { border-left-color: var(--gap); background: #FBF3F1; }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout__label {
+    font-family: var(--mono); font-size: 7.3pt; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--accent); margin: 0 0 1.5mm; font-weight: 600;
+  }
+  .callout--warn .callout__label { color: var(--partial); }
+  .callout--good .callout__label { color: var(--good); }
+  .callout--gap .callout__label { color: var(--gap); }
+
+  .ba { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; margin: 0 0 4mm; break-inside: avoid; }
+  .ba__col { border: 1px solid var(--line); padding: 3mm 3.5mm; }
+  .ba__col h4 { margin-top: 0; }
+  .ba__col--before { border-top: 2.5pt solid var(--faint); }
+  .ba__col--after { border-top: 2.5pt solid var(--good); }
+  .ba__col pre { margin-bottom: 0; border-left-width: 1.5pt; }
+
+  .footer-note {
+    margin-top: 8mm; padding-top: 3mm; border-top: 1px solid var(--line);
+    font-size: 8.3pt; color: var(--faint);
+  }
+
+  /* On a screen this is read in a browser, not printed, so it needs the
+     margins @page only gives to paper. Print output is untouched. */
+  @media screen {
+    body { max-width: 980px; margin: 0 auto; padding: 28px 20px 40px; font-size: 11pt; }
+    pre { font-size: 9.5pt; }
+    table { font-size: 10pt; }
+    .table-wrap { overflow-x: auto; }
+  }
+
+  @media screen and (max-width: 640px) {
+    body { padding: 20px 16px 32px; }
+    .ba, .cover__meta { grid-template-columns: 1fr; }
+    .cover__block { padding: 22px 18px; }
+    .cover__title { font-size: 22pt; }
+    table { display: block; overflow-x: auto; white-space: normal; }
+  }
+</style>
+
+<!-- ================= COVER ================= -->
+<section class="cover">
+  <div class="cover__block">
+    <p class="cover__eyebrow">Frontend Guide · Backend Shipped</p>
+    <h1 class="cover__title">Task Approval Flow</h1>
+    <p class="cover__sub">A task now carries a named <b>approver</b>. The person doing the work submits it for
+      review, the approver approves it or sends it back with a note, and every step is recorded. <code>IN_REVIEW</code>
+      stops being a label anybody can set and becomes a queue somebody owns.</p>
+  </div>
+
+  <dl class="cover__meta">
+    <div><dt>For</dt><dd>Frontend</dd></div>
+    <div><dt>Status</dt><dd>On the backend branch, ready to integrate</dd></div>
+    <div><dt>Date</dt><dd>19 September 2026</dd></div>
+  </dl>
+
+  <div class="callout callout--gap" style="margin-top:8mm">
+    <p class="callout__label">One breaking change — read this first</p>
+    <p>Any status control that offers <code>IN_REVIEW</code> will now fail with <b>409</b>. The status endpoint can
+      no longer move a task into or out of review. That control becomes a <b>Submit for review</b> button, and the
+      approver gets <b>Approve</b> / <b>Request changes</b>. Everything else in this document is additive.</p>
+  </div>
+</section>
+
+<!-- ================= 1 ================= -->
+<h2><span class="sec">1</span>What changed, in one picture</h2>
+
+<div class="ba">
+  <div class="ba__col ba__col--before">
+    <h4>Before</h4>
+    <p>One person on the task. Anybody with a work role could set any status, including <code>IN_REVIEW</code>.</p>
+    <pre><code>PATCH /tasks/:id/status
+{ "status": "IN_REVIEW" }   <span class="cm">// who is it waiting on? nobody knows</span>
+
+<span class="cm">// approval lived in the comments,
+// so nothing recorded that Omar said yes</span></code></pre>
+  </div>
+  <div class="ba__col ba__col--after">
+    <h4>After</h4>
+    <p>Two people on the task: the assignee does the work, the approver says yes. Three actions own the review.</p>
+    <pre><code>POST /tasks/:id/submit-for-review   <span class="cm">// assignee</span>
+POST /tasks/:id/approve             <span class="cm">// approver</span>
+POST /tasks/:id/request-changes     <span class="cm">// approver + note</span>
+
+<span class="ok">// "Approved by Omar at 14:20" is now a real row</span></code></pre>
+  </div>
+</div>
+
+<p>The row itself never changes hands. <code>assignedToId</code> stays on the person who did the work through the
+  whole review, which is what keeps "who wrote this" answerable after three rounds of changes.</p>
+
+<h4>The flow it implements</h4>
+<table>
+  <thead><tr><th style="width:22%">Step</th><th style="width:26%">Who</th><th>What the UI does</th></tr></thead>
+  <tbody>
+    <tr><td>Write the copy</td><td>Jessika · assignee</td><td><b>Submit for review</b> → status becomes <code>IN_REVIEW</code></td></tr>
+    <tr><td>Gate 1</td><td>Account manager · approver</td><td>Task appears in their approval queue → <b>Approve</b> or <b>Request changes</b></td></tr>
+    <tr><td>Design</td><td>Yasin · assignee of the next task</td><td>Same submit button on their own task</td></tr>
+    <tr><td>Gate 2</td><td>Omar · approver</td><td>Same queue, same two buttons</td></tr>
+  </tbody>
+</table>
+
+<div class="callout">
+  <p class="callout__label">Stage hand-off is not automatic yet</p>
+  <p>This release is <b>one approver per task</b>. Moving from the copy task to the design task is done by creating
+    the next task, the same way you do today. Automatic chaining on a post (<code>sequence</code>, blocking stage 2
+    until stage 1 is approved, pushing the post to <code>READY_FOR_CLIENT</code>) is a separate ticket.</p>
+</div>
+
+<!-- ================= 2 ================= -->
+<h2><span class="sec">2</span>The task object</h2>
+
+<p>Five fields are new, and two relation objects are now filled in. Every endpoint that returns a task returns this
+  same shape — list, detail, create, update, status change, and the three review actions.</p>
+
+<pre><code>{
+  "id": "9f1c7c2e-…",
+  "companyId": "2b7d…",                          <span class="cm">// the client</span>
+  "title": "Taxero — May carousel",
+  "description": "Three slides, launch offer",
+  "taskType": "DESIGN",
+  "status": "IN_REVIEW",
+  "priority": "HIGH",
+
+  "assignedToId": "8a10…",                       <span class="cm">// the doer</span>
+  "assignedTo": {                                <span class="ok">// NEW — used to be id only</span>
+    "id": "8a10…", "fullName": "Yasin Haddad",
+    "email": "yasin@agency.com", "status": "ACTIVE"
+  },
+
+  "approverId": "4c93…",                         <span class="ok">// NEW — may be null</span>
+  "approver": {                                  <span class="ok">// NEW — null when approverId is null</span>
+    "id": "4c93…", "fullName": "Omar Khaled",
+    "email": "omar@agency.com", "status": "ACTIVE"
+  },
+  "submittedForReviewAt": "2026-09-19T08:12:04.512Z",  <span class="ok">// NEW — the waiting clock</span>
+  "reviewedAt": null,                            <span class="ok">// NEW</span>
+  "reviewNote": null,                            <span class="ok">// NEW</span>
+
+  "relatedEntityType": "POST",
+  "relatedEntityId": "1d4f…",
+  "dueDate": "2026-09-21T00:00:00.000Z",
+  "campaignId": null,
+  "completedAt": null,
+  "notes": null,
+  "createdById": "6b22…",
+  "updatedById": "8a10…",
+  "createdAt": "2026-09-18T09:02:11.004Z",
+  "updatedAt": "2026-09-19T08:12:04.512Z"
+}</code></pre>
+
+<table>
+  <caption>The five new fields</caption>
+  <thead><tr><th style="width:26%" class="mono">Field</th><th style="width:18%">Type</th><th>What it means for the UI</th></tr></thead>
+  <tbody>
+    <tr><td class="mono">approverId</td><td>uuid · nullable</td><td>Who must say yes. <b>Null means the task cannot be submitted</b> — show "needs an approver" and let the user pick one.</td></tr>
+    <tr><td class="mono">approver</td><td>object · nullable</td><td><code>{ id, fullName, email, status }</code>. Use <code>status !== "ACTIVE"</code> to flag an approver who has been deactivated.</td></tr>
+    <tr><td class="mono">submittedForReviewAt</td><td>ISO date · nullable</td><td>When it was handed over. This is what you age — "waiting 2 days". Cleared on approve, request-changes and cancel.</td></tr>
+    <tr><td class="mono">reviewedAt</td><td>ISO date · nullable</td><td>The last verdict, approve or request-changes.</td></tr>
+    <tr><td class="mono">reviewNote</td><td>string · nullable</td><td>The approver's last note. Show it at the top of the task while the doer is reworking it. Full history is in the activity log.</td></tr>
+  </tbody>
+</table>
+
+<p>There is <b>no new status</b>. <code>IN_REVIEW</code> already existed; it now has an owner.</p>
+
+<!-- ================= 3 ================= -->
+<h2><span class="sec">3</span>The three review actions</h2>
+
+<p>All paths are prefixed with <code>/api</code> and need the usual <code>Authorization: Bearer &lt;token&gt;</code>.
+  Each action returns <b>200</b> with the full task object above.</p>
+
+<div class="ep">
+  <p class="ep__head"><span class="verb verb--post">POST</span><span class="ep__url">/api/companies/:companyId/tasks/:taskId/submit-for-review</span><span class="chip chip--live">new</span></p>
+  <p class="ep__who">Who: <b>the assignee</b>, or Admin / Super Admin · No body</p>
+  <pre><code><span class="cm">// 200 → the task, now IN_REVIEW with submittedForReviewAt set.
+// The approver gets a notification.</span>
+
+<span class="cm">// 422 — the task has nobody to approve it</span>
+{ "statusCode": 422, "error": "Unprocessable Entity",
+  "code": "APPROVER_REQUIRED",
+  "message": "This task has no approver. Set one before submitting it for review." }
+
+<span class="cm">// 409 — wrong status (only TODO and IN_PROGRESS can be submitted)</span>
+{ "statusCode": 409, "error": "Conflict",
+  "code": "INVALID_TRANSITION",
+  "message": "A task in DONE cannot take the action submit-for-review",
+  "from": "DONE", "action": "submit-for-review" }
+
+<span class="cm">// 403 — somebody other than the assignee pressed it</span>
+{ "statusCode": 403, "error": "Forbidden",
+  "message": "Only the person this task is assigned to can submit it for review" }</code></pre>
+</div>
+
+<div class="ep">
+  <p class="ep__head"><span class="verb verb--post">POST</span><span class="ep__url">/api/companies/:companyId/tasks/:taskId/approve</span><span class="chip chip--live">new</span></p>
+  <p class="ep__who">Who: <b>the approver</b>, or Admin / Super Admin · No body</p>
+  <pre><code><span class="cm">// 200 → status DONE, reviewedAt and completedAt set,
+// submittedForReviewAt back to null. The assignee is notified.</span>
+
+<span class="cm">// 409 — the task is not in review (somebody else already decided)</span>
+{ "statusCode": 409, "error": "Conflict", "code": "INVALID_TRANSITION",
+  "message": "A task in IN_PROGRESS cannot take the action approve",
+  "from": "IN_PROGRESS", "action": "approve" }
+
+<span class="cm">// 403 — not the approver</span>
+{ "statusCode": 403, "error": "Forbidden",
+  "message": "Only the approver of this task can approve it" }</code></pre>
+  <p>Two approvers pressing at the same moment is handled: the first wins, the second gets the 409 above. Refresh the
+    task on 409 rather than retrying.</p>
+</div>
+
+<div class="ep">
+  <p class="ep__head"><span class="verb verb--post">POST</span><span class="ep__url">/api/companies/:companyId/tasks/:taskId/request-changes</span><span class="chip chip--live">new</span></p>
+  <p class="ep__who">Who: <b>the approver</b>, or Admin / Super Admin · Note required</p>
+  <pre><code><span class="cm">// request</span>
+{ "note": "Tighten the headline and swap the second slide" }
+
+<span class="cm">// 200 → status back to IN_PROGRESS, same assignee, reviewNote stored,
+// submittedForReviewAt cleared. The assignee is notified with the note.</span>
+
+<span class="cm">// 422 — empty or whitespace-only note</span>
+{ "statusCode": 422, "error": "Unprocessable Entity",
+  "code": "REVIEW_NOTE_REQUIRED",
+  "message": "Say what needs changing: a note is required." }</code></pre>
+  <p>It goes back <b>one step, to the same person</b> — never to the start of the chain. Re-submitting sends it to the
+    same approver unless somebody deliberately changes <code>approverId</code>.</p>
+</div>
+
+<!-- ================= 4 ================= -->
+<h2><span class="sec">4</span>The approval queue</h2>
+
+<div class="ep">
+  <p class="ep__head"><span class="verb verb--get">GET</span><span class="ep__url">/api/companies/:companyId/tasks/approval-queue</span><span class="chip chip--live">new</span></p>
+  <p class="ep__who">Who: any internal member (not client users) · <code>?limit=25&amp;offset=0</code></p>
+  <pre><code><span class="cm">// Tasks where status = IN_REVIEW and approverId = the caller.
+// Oldest submission first — the top row is the one keeping people waiting.</span>
+{
+  "items": [ { …the task object… } ],
+  "total": 7,
+  "limit": 25,
+  "offset": 0
+}</code></pre>
+  <p>Paginated exactly like <code>GET /tasks/my</code>. Age each row from <code>submittedForReviewAt</code>.</p>
+</div>
+
+<div class="callout callout--warn">
+  <p class="callout__label">The queue is per client</p>
+  <p>The path is scoped to one <code>companyId</code>, so somebody who approves on several clients has several
+    queues. A single cross-client queue is not built — if the team wants "everything waiting on me" in one screen,
+    say so and we will add it as its own endpoint rather than have the frontend fan out over every client.</p>
+</div>
+
+<!-- ================= 5 ================= -->
+<h2><span class="sec">5</span>Where the approver comes from</h2>
+
+<p>You normally do not type a name. When a task is created without <code>approverId</code>, the backend reads the
+  <b>responsibility matrix</b>: the task type maps to an area of work, and whoever holds <code>TO_APPROVE</code> in
+  that area for that client becomes the approver. Exactly one active person wins. Zero or several leaves the task
+  with <code>approverId: null</code> — <b>the create still succeeds</b>, and the UI asks for a name.</p>
+
+<div class="ep">
+  <p class="ep__head"><span class="verb verb--get">GET</span><span class="ep__url">/api/companies/:companyId/tasks/resolve-approver?taskType=DESIGN</span><span class="chip chip--live">new</span></p>
+  <p class="ep__who">Who: Account Manager, Social Media Manager, or any admin · Pre-fills the approver picker</p>
+  <pre><code>{
+  "taskType": "DESIGN",
+  "approverId": "4c93…",        <span class="cm">// null unless exactly one active approver</span>
+  "reason": "RESOLVED",
+  "areaId": "7f21…",
+  "areaName": "Design",
+  "candidateUserIds": ["4c93…"] <span class="cm">// everybody holding TO_APPROVE there</span>
+}</code></pre>
+</div>
+
+<table>
+  <caption>reason — what the picker should say</caption>
+  <thead><tr><th style="width:30%" class="mono">reason</th><th>Meaning · suggested UI</th></tr></thead>
+  <tbody>
+    <tr><td class="mono">RESOLVED</td><td>One approver. Pre-select them, still editable.</td></tr>
+    <tr><td class="mono">MULTIPLE_APPROVERS</td><td>Several people approve this area. Show <code>candidateUserIds</code> as the choices — "who approves this one?"</td></tr>
+    <tr><td class="mono">NO_APPROVER_IN_AREA</td><td>The area exists but nobody active holds <code>TO_APPROVE</code>. Offer the full member list, and a link to the matrix screen.</td></tr>
+    <tr><td class="mono">NO_MATCHING_AREA</td><td>This client has no area for that kind of work. Same fallback, and worth nudging an admin to set the area key (section 8).</td></tr>
+    <tr><td class="mono">UNMAPPED_TASK_TYPE</td><td><code>GENERAL</code> tasks have no area by design. Ask for the approver, or leave it empty.</td></tr>
+  </tbody>
+</table>
+
+<div class="ep">
+  <p class="ep__head"><span class="verb verb--post">POST</span><span class="ep__url">/api/companies/:companyId/tasks</span><span class="chip chip--dep">changed</span></p>
+  <p class="ep__who">Who: Account Manager, Social Media Manager, or any admin · <code>approverId</code> is new and optional</p>
+  <pre><code>{
+  "title": "Taxero — May carousel",
+  "taskType": "DESIGN",
+  "assignedToId": "8a10…",
+  "approverId": "4c93…"     <span class="cm">// optional — omit it and the matrix decides</span>
+}
+
+<span class="cm">// 201 → the full task, with assignedTo and approver filled in.
+// 422 if the approver is not an active member of this client:</span>
+{ "statusCode": 422, "error": "Unprocessable Entity",
+  "code": "APPROVER_REQUIRED",
+  "message": "The approver must be an active member of this company" }</code></pre>
+</div>
+
+<div class="callout">
+  <p class="callout__label">The matrix is read once, at creation</p>
+  <p>Changing the matrix later never rewrites tasks that already exist — a task that was waiting on Omar keeps
+    waiting on Omar. To move a waiting task to somebody else, send
+    <code>PATCH /api/companies/:companyId/tasks/:taskId</code> with <code>{ "approverId": "…" }</code>. That is the
+    "Omar is on holiday" button, it is open to the Account Manager and admins, and it writes a
+    <code>TASK_APPROVER_CHANGED</code> row to the activity log.</p>
+</div>
+
+<!-- ================= 6 ================= -->
+<h2><span class="sec">6</span>The status endpoint is now fenced</h2>
+
+<div class="ep">
+  <p class="ep__head"><span class="verb verb--patch">PATCH</span><span class="ep__url">/api/companies/:companyId/tasks/:taskId/status</span><span class="chip chip--dep">changed</span></p>
+  <p class="ep__who">Who: unchanged · <code>IN_REVIEW</code> is no longer a value you may send</p>
+  <pre><code><span class="cm">// 409 — trying to enter review through the back door</span>
+{ "statusCode": 409, "error": "Conflict",
+  "code": "REVIEW_ACTIONS_ONLY",
+  "message": "IN_REVIEW is managed by the review actions. Use submit-for-review, approve or request-changes.",
+  "from": "IN_PROGRESS", "to": "IN_REVIEW",
+  "actions": ["submit-for-review", "approve", "request-changes"] }
+
+<span class="cm">// 409 too — trying to leave review without a verdict</span>
+{ …same code, "from": "IN_REVIEW", "to": "DONE" }
+
+<span class="ok">// still allowed: cancelling a task that is in review</span>
+{ "status": "CANCELED" }   <span class="cm">// → 200, and the waiting clock is cleared</span></code></pre>
+</div>
+
+<p>Practically: remove <code>IN_REVIEW</code> from every status dropdown. A task in review shows its status as
+  read-only, with the two approver buttons for the approver and a "waiting on <i>name</i>" line for everybody else.</p>
+
+<!-- ================= 7 ================= -->
+<h2><span class="sec">7</span>Notifications and the activity log</h2>
+
+<h4>Three new notification types</h4>
+<p>They arrive through the existing <code>/api/notifications</code> feed and need a label and an icon.</p>
+
+<table>
+  <thead><tr><th style="width:34%" class="mono">type</th><th style="width:16%">Goes to</th><th>Example message</th></tr></thead>
+  <tbody>
+    <tr><td class="mono">TASK_SUBMITTED_FOR_REVIEW</td><td>the approver</td><td>Jessika submitted "Taxero — May carousel" for your review</td></tr>
+    <tr><td class="mono">TASK_APPROVED</td><td>the assignee</td><td>Omar approved "Taxero — May carousel"</td></tr>
+    <tr><td class="mono">TASK_CHANGES_REQUESTED</td><td>the assignee</td><td>Omar requested changes on "…": tighten the headline</td></tr>
+  </tbody>
+</table>
+
+<pre><code>{
+  "id": "…", "companyId": "…", "recipientUserId": "4c93…",
+  "type": "TASK_SUBMITTED_FOR_REVIEW",
+  "title": "Task waiting for your review",
+  "message": "Jessika submitted \"Taxero — May carousel\" for your review",
+  "entityType": "TASK",
+  "entityId": "9f1c…",          <span class="cm">// the task — deep-link to it</span>
+  "metadata": {
+    "submittedForReviewAt": "2026-09-19T08:12:04.512Z",
+    "assignedToId": "8a10…", "priority": "HIGH", "dueDate": "…"
+  },
+  "readAt": null, "createdAt": "…"
+}</code></pre>
+
+<h4>Four new activity log actions</h4>
+<p>From <code>GET /api/companies/:companyId/tasks/:taskId/activity-logs</code>, unchanged shape. This is where the
+  audit trail lives — render it as the task's history.</p>
+
+<table>
+  <thead><tr><th style="width:34%" class="mono">action</th><th>metadata</th></tr></thead>
+  <tbody>
+    <tr><td class="mono">TASK_SUBMITTED_FOR_REVIEW</td><td class="mono">{ fromStatus, toStatus, approverId }</td></tr>
+    <tr><td class="mono">TASK_APPROVED</td><td class="mono">{ fromStatus, toStatus, approverId }</td></tr>
+    <tr><td class="mono">TASK_CHANGES_REQUESTED</td><td class="mono">{ fromStatus, toStatus, approverId, note }</td></tr>
+    <tr><td class="mono">TASK_APPROVER_CHANGED</td><td class="mono">{ from, to }</td></tr>
+  </tbody>
+</table>
+
+<p>The existing <code>CREATED</code> row now also carries <code>approverId</code> and
+  <code>approverResolvedFromMatrix</code>, so you can tell a matrix answer from a typed-in name. Every row's
+  <code>userId</code> is the person who actually pressed the button — an admin acting for Omar is visible as the
+  admin.</p>
+
+<!-- ================= 8 ================= -->
+<h2><span class="sec">8</span>Responsibility areas gain a key</h2>
+
+<p>Areas are free text and differ per client — "Design" on one, "Creative" on the next, «تصميم» on the third — so
+  matching a task type to an area by name alone would silently find nothing. Each area now has an optional
+  <b><code>areaKey</code></b>, and that is what the matching actually runs on.</p>
+
+<div class="ep">
+  <p class="ep__head"><span class="verb verb--post">POST</span><span class="ep__url">/api/companies/:companyId/responsibility-areas</span><span class="chip chip--dep">changed</span></p>
+  <p class="ep__who">Also on <code>PATCH …/:areaId</code> · Returned on every area response</p>
+  <pre><code>{
+  "name": "تصميم",
+  "areaKey": "DESIGN"     <span class="cm">// NEW — optional, stored upper-cased, unique per client</span>
+}
+
+<span class="cm">// 409 if another area on this client already uses that key</span></code></pre>
+</div>
+
+<table>
+  <caption>The keys the backend matches on</caption>
+  <thead><tr><th style="width:34%" class="mono">areaKey</th><th>Task type it serves</th></tr></thead>
+  <tbody>
+    <tr><td class="mono">DESIGN</td><td class="mono">DESIGN</td></tr>
+    <tr><td class="mono">COPYWRITING</td><td class="mono">COPYWRITING</td></tr>
+    <tr><td class="mono">PUBLISHING</td><td class="mono">PUBLISHING</td></tr>
+    <tr><td class="mono">REPORTING</td><td class="mono">REPORTING</td></tr>
+    <tr><td class="mono">CLIENT_REVIEW</td><td class="mono">CLIENT_REVIEW</td></tr>
+    <tr><td class="mono">FOLLOW_UP</td><td class="mono">FOLLOW_UP</td></tr>
+  </tbody>
+</table>
+
+<div class="callout callout--good">
+  <p class="callout__label">Please expose this on the matrix screen</p>
+  <p>A small select next to the area name is enough. Without a key the backend falls back to a list of known names
+    in English and Arabic, which works for the common spellings but not for a client who invented their own. This one
+    field is what makes "Omar is on holiday — change one cell instead of forty tasks" actually work.</p>
+</div>
+
+<!-- ================= 9 ================= -->
+<h2><span class="sec">9</span>Admin dashboard — new numbers</h2>
+
+<div class="ep ep--wide">
+  <p class="ep__head"><span class="verb verb--get">GET</span><span class="ep__url">/api/admin/dashboard/tasks</span><span class="chip chip--dep">extended</span></p>
+  <p class="ep__who">Who: Super Admin, Agency Admin · Existing filters unchanged</p>
+  <pre><code>{
+  "openTotal": 42,
+  "byStatus": { "TODO": 12, "IN_PROGRESS": 18, "IN_REVIEW": 9, "BLOCKED": 3 },
+  "dueToday": 5, "overdue": 7, "urgent": 2, "highPriority": 11,
+  "unassigned": 1, "completedToday": 6,
+
+  "waitingInternalApproval": 9,                 <span class="ok">// NEW — all tasks in review</span>
+  "averageInternalApprovalWaitHours": 9.4,      <span class="ok">// NEW — mean age of open reviews</span>
+  "internalApprovalByApprover": [               <span class="ok">// NEW — who is the bottleneck</span>
+    { "userId": "4c93…", "fullName": "Omar Khaled", "count": 5,
+      "oldestWaitingHours": 31, "approverIsInactive": false }
+  ],
+  "internalApprovalWithoutApprover": 3,         <span class="ok">// NEW — in review, nobody named</span>
+  "internalApprovalWithInactiveApprover": 1     <span class="ok">// NEW — waiting on somebody who left</span>
+}</code></pre>
+</div>
+
+<p>These mirror the client-side approval numbers you already render
+  (<code>waitingClientApproval</code>, <code>averageApprovalWaitHours</code>) — the same widget, one row for the
+  client and one for the agency's own gates. <code>internalApprovalByApprover</code> is sorted with the longest wait
+  first and honours the client and priority filters; it deliberately ignores the employee filter, which filters by
+  assignee.</p>
+
+<p>The last two numbers are the "nobody is actually holding this" cases. They are worth surfacing, because every task
+  that was already in review before this release has <code>approverId: null</code> — nothing was backfilled.</p>
+
+<!-- ================= 10 ================= -->
+<h2><span class="sec">10</span>What to build</h2>
+
+<table>
+  <thead><tr><th style="width:8%" class="c">#</th><th style="width:30%">Screen</th><th>Change</th></tr></thead>
+  <tbody>
+    <tr><td class="c">1</td><td>Task detail</td><td><b>Required.</b> Remove <code>IN_REVIEW</code> from the status control. Add <b>Submit for review</b> (assignee), <b>Approve</b> / <b>Request changes</b> (approver). Show the approver, and <code>reviewNote</code> when the task has come back.</td></tr>
+    <tr><td class="c">2</td><td>Task create / edit</td><td><b>Required.</b> Approver picker, pre-filled from <code>resolve-approver</code>. Handle each <code>reason</code> from section 5.</td></tr>
+    <tr><td class="c">3</td><td>Approval queue</td><td>New page or tab next to "My tasks", ordered oldest-first, with the waiting age on each row.</td></tr>
+    <tr><td class="c">4</td><td>Task list</td><td>An "awaiting my approval" filter, and a "needs an approver" marker for <code>status = IN_REVIEW</code> with <code>approverId: null</code>.</td></tr>
+    <tr><td class="c">5</td><td>Notifications</td><td>Labels and icons for the three new types; deep-link on <code>entityId</code>.</td></tr>
+    <tr><td class="c">6</td><td>Responsibility matrix</td><td><code>areaKey</code> select on the area form (section 8).</td></tr>
+    <tr><td class="c">7</td><td>Admin dashboard</td><td>Internal approval tile beside the client approval one, plus the per-approver breakdown.</td></tr>
+  </tbody>
+</table>
+
+<div class="callout callout--warn">
+  <p class="callout__label">Error handling, once, in the API layer</p>
+  <p>The approval endpoints return a <code>code</code> in the body alongside <code>message</code>. Switch on the code,
+    not the message text: <code>APPROVER_REQUIRED</code> and <code>REVIEW_NOTE_REQUIRED</code> (422),
+    <code>INVALID_TRANSITION</code> and <code>REVIEW_ACTIONS_ONLY</code> (409). On any 409 the right move is to
+    refresh the task — it means somebody else already acted.</p>
+</div>
+
+<!-- ================= 11 ================= -->
+<h2><span class="sec">11</span>Not in this release</h2>
+
+<ul>
+  <li><b>Chained tasks on a post.</b> <code>sequence</code>, blocking a stage until the previous one is approved, and
+    moving the post to <code>READY_FOR_CLIENT</code> when the last gate passes. Separate ticket — the post flow needs
+    two decisions from product first.</li>
+  <li><b>A cross-client approval queue.</b> Today the queue is per client.</li>
+  <li><b>Email digests</b> for ageing approvals.</li>
+  <li><b>Swagger.</b> The API has no OpenAPI setup at all yet, so this document is the contract. Tell me if anything
+    here does not match what you see and I will fix the backend, not the document.</li>
+</ul>
+
+<p class="footer-note">Task approval flow · frontend integration guide · 19 September 2026 · Solutions Platform.
+  Companion to the task &amp; approval flow options document. Source:
+  <code>api/docs/frontend-task-approval-flow.html</code>.</p>

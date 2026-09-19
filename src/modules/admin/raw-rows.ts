@@ -42,6 +42,17 @@ export type TaskMetricsRow = {
   highPriority: string;
   unassigned: string;
   completedToday: string;
+  inReviewWithoutApprover: string;
+  avgInternalApprovalWaitHours: string | null;
+};
+
+/** One approver's internal review pile, for the tasks dashboard. */
+export type InternalApprovalByApproverRow = {
+  userId: string;
+  fullName: string;
+  count: string;
+  oldestSubmittedAt: string | null;
+  inactiveApproverCount: string;
 };
 
 export type WorkloadTaskRow = {

@@ -3,6 +3,8 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   ParseUUIDPipe,
   Patch,
@@ -18,10 +20,13 @@ import { CompanyRolesGuard } from '../../common/guards/company-roles.guard';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import type { RequestUser } from '../auth/types/request-user.type';
 import { CompanyMembershipRole } from '../memberships/enums/company-membership-role.enum';
+import { ApprovalQueueQueryDto } from './dto/approval-queue-query.dto';
 import { AttachTaskFileDto } from './dto/attach-task-file.dto';
 import { CreateTaskCommentDto } from './dto/create-task-comment.dto';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { FindTasksQueryDto } from './dto/find-tasks-query.dto';
+import { RequestTaskChangesDto } from './dto/request-task-changes.dto';
+import { ResolveApproverQueryDto } from './dto/resolve-approver-query.dto';
 import { UpdateTaskStatusDto } from './dto/update-task-status.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { TasksService } from './tasks.service';
@@ -52,7 +57,7 @@ const TASK_WORK_ROLES = [
 @UseGuards(JwtAuthGuard, CompanyAccessGuard, CompanyRolesGuard)
 @Controller('companies/:companyId/tasks')
 export class TasksController {
-  constructor(private readonly tasksService: TasksService) { }
+  constructor(private readonly tasksService: TasksService) {}
 
   @CompanyRoles(...TASK_ASSIGN_ROLES)
   @Post()
@@ -84,6 +89,30 @@ export class TasksController {
       assignedToId: currentUser.id,
     });
   }
+  /**
+   * Everything waiting on the caller. Kept to the people who do the work:
+   * an internal approval queue is not something a client should see.
+   */
+  @CompanyRoles(...TASK_WORK_ROLES)
+  @Get('approval-queue')
+  findApprovalQueue(
+    @Param('companyId', ParseUUIDPipe) companyId: string,
+    @Query() query: ApprovalQueueQueryDto,
+    @CurrentUser() currentUser: RequestUser,
+  ) {
+    return this.tasksService.findApprovalQueue(companyId, query, currentUser);
+  }
+
+  /** What the create form should pre-fill its approver picker with. */
+  @CompanyRoles(...TASK_ASSIGN_ROLES)
+  @Get('resolve-approver')
+  resolveApprover(
+    @Param('companyId', ParseUUIDPipe) companyId: string,
+    @Query() query: ResolveApproverQueryDto,
+  ) {
+    return this.tasksService.resolveApprover(companyId, query.taskType);
+  }
+
   @CompanyRoles(...TASK_VIEW_ROLES)
   @Get(':taskId')
   findOne(
@@ -101,12 +130,7 @@ export class TasksController {
     @Body() dto: UpdateTaskDto,
     @CurrentUser() currentUser: RequestUser,
   ) {
-    return this.tasksService.update(
-      companyId,
-      taskId,
-      dto,
-      currentUser,
-    );
+    return this.tasksService.update(companyId, taskId, dto, currentUser);
   }
 
   @CompanyRoles(...TASK_WORK_ROLES)
@@ -117,7 +141,41 @@ export class TasksController {
     @Body() dto: UpdateTaskStatusDto,
     @CurrentUser() currentUser: RequestUser,
   ) {
-    return this.tasksService.updateStatus(
+    return this.tasksService.updateStatus(companyId, taskId, dto, currentUser);
+  }
+
+  @CompanyRoles(...TASK_WORK_ROLES)
+  @HttpCode(HttpStatus.OK)
+  @Post(':taskId/submit-for-review')
+  submitForReview(
+    @Param('companyId', ParseUUIDPipe) companyId: string,
+    @Param('taskId', ParseUUIDPipe) taskId: string,
+    @CurrentUser() currentUser: RequestUser,
+  ) {
+    return this.tasksService.submitForReview(companyId, taskId, currentUser);
+  }
+
+  @CompanyRoles(...TASK_WORK_ROLES)
+  @HttpCode(HttpStatus.OK)
+  @Post(':taskId/approve')
+  approve(
+    @Param('companyId', ParseUUIDPipe) companyId: string,
+    @Param('taskId', ParseUUIDPipe) taskId: string,
+    @CurrentUser() currentUser: RequestUser,
+  ) {
+    return this.tasksService.approve(companyId, taskId, currentUser);
+  }
+
+  @CompanyRoles(...TASK_WORK_ROLES)
+  @HttpCode(HttpStatus.OK)
+  @Post(':taskId/request-changes')
+  requestChanges(
+    @Param('companyId', ParseUUIDPipe) companyId: string,
+    @Param('taskId', ParseUUIDPipe) taskId: string,
+    @Body() dto: RequestTaskChangesDto,
+    @CurrentUser() currentUser: RequestUser,
+  ) {
+    return this.tasksService.requestChanges(
       companyId,
       taskId,
       dto,
@@ -133,12 +191,7 @@ export class TasksController {
     @Body() dto: CreateTaskCommentDto,
     @CurrentUser() currentUser: RequestUser,
   ) {
-    return this.tasksService.addComment(
-      companyId,
-      taskId,
-      dto,
-      currentUser,
-    );
+    return this.tasksService.addComment(companyId, taskId, dto, currentUser);
   }
 
   @CompanyRoles(...TASK_VIEW_ROLES)
@@ -158,12 +211,7 @@ export class TasksController {
     @Body() dto: AttachTaskFileDto,
     @CurrentUser() currentUser: RequestUser,
   ) {
-    return this.tasksService.attachFile(
-      companyId,
-      taskId,
-      dto,
-      currentUser,
-    );
+    return this.tasksService.attachFile(companyId, taskId, dto, currentUser);
   }
 
   @CompanyRoles(...TASK_VIEW_ROLES)

@@ -62,6 +62,10 @@ export class AdminActivityService {
     [TaskActivityAction.COMMENTED]: 'TASK_COMMENTED',
     [TaskActivityAction.ATTACHMENT_ADDED]: 'TASK_ATTACHMENT_ADDED',
     [TaskActivityAction.ATTACHMENT_REMOVED]: 'TASK_ATTACHMENT_REMOVED',
+    [TaskActivityAction.TASK_SUBMITTED_FOR_REVIEW]: 'TASK_SUBMITTED_FOR_REVIEW',
+    [TaskActivityAction.TASK_APPROVED]: 'TASK_APPROVED',
+    [TaskActivityAction.TASK_CHANGES_REQUESTED]: 'TASK_CHANGES_REQUESTED',
+    [TaskActivityAction.TASK_APPROVER_CHANGED]: 'TASK_APPROVER_CHANGED',
   };
 
   async getActivity(filters: ActivityFilterDto) {

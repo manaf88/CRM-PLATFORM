@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { AddMembershipRoles1756900000000 } from './migrations/1756900000000-AddMembershipRoles';
+import { AddTaskApprovalFlow1789776000000 } from './migrations/1789776000000-AddTaskApprovalFlow';
 
 @Module({
   imports: [
@@ -21,7 +22,10 @@ import { AddMembershipRoles1756900000000 } from './migrations/1756900000000-AddM
         // Migrations are listed explicitly rather than by glob: the build
         // output layout differs from src, and a glob that silently matches
         // nothing in production is the worst possible failure here.
-        migrations: [AddMembershipRoles1756900000000],
+        migrations: [
+          AddMembershipRoles1756900000000,
+          AddTaskApprovalFlow1789776000000,
+        ],
 
         // Production has no other way to change the schema — there is no
         // deploy step that runs migrations — so the app applies pending ones
