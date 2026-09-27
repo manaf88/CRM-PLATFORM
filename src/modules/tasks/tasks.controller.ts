@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -21,7 +20,6 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import type { RequestUser } from '../auth/types/request-user.type';
 import { CompanyMembershipRole } from '../memberships/enums/company-membership-role.enum';
 import { ApprovalQueueQueryDto } from './dto/approval-queue-query.dto';
-import { AttachTaskFileDto } from './dto/attach-task-file.dto';
 import { CreateTaskCommentDto } from './dto/create-task-comment.dto';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { FindTasksQueryDto } from './dto/find-tasks-query.dto';
@@ -203,41 +201,8 @@ export class TasksController {
     return this.tasksService.findComments(companyId, taskId);
   }
 
-  @CompanyRoles(...TASK_WORK_ROLES)
-  @Post(':taskId/attachments')
-  attachFile(
-    @Param('companyId', ParseUUIDPipe) companyId: string,
-    @Param('taskId', ParseUUIDPipe) taskId: string,
-    @Body() dto: AttachTaskFileDto,
-    @CurrentUser() currentUser: RequestUser,
-  ) {
-    return this.tasksService.attachFile(companyId, taskId, dto, currentUser);
-  }
-
-  @CompanyRoles(...TASK_VIEW_ROLES)
-  @Get(':taskId/attachments')
-  findAttachments(
-    @Param('companyId', ParseUUIDPipe) companyId: string,
-    @Param('taskId', ParseUUIDPipe) taskId: string,
-  ) {
-    return this.tasksService.findAttachments(companyId, taskId);
-  }
-
-  @CompanyRoles(...TASK_WORK_ROLES)
-  @Delete(':taskId/attachments/:attachmentId')
-  removeAttachment(
-    @Param('companyId', ParseUUIDPipe) companyId: string,
-    @Param('taskId', ParseUUIDPipe) taskId: string,
-    @Param('attachmentId', ParseUUIDPipe) attachmentId: string,
-    @CurrentUser() currentUser: RequestUser,
-  ) {
-    return this.tasksService.removeAttachment(
-      companyId,
-      taskId,
-      attachmentId,
-      currentUser,
-    );
-  }
+  // Attachments live in the attachments module now — same three paths, one
+  // implementation shared with posts, campaigns, leads and the brand profile.
 
   @CompanyRoles(...TASK_VIEW_ROLES)
   @Get(':taskId/activity-logs')

@@ -1,0 +1,628 @@
+<title>Backend Seams</title>
+<style>
+  :root {
+    --ink:      #191C21;
+    --muted:    #5E6672;
+    --faint:    #8A9199;
+    --line:     #DCE0E3;
+    --hairline: #EDF0F1;
+    --surface:  #F4F7F7;
+    --accent:   #0F5D62;
+    --accent-d: #0A4347;
+    --good:     #2C6A4E;
+    --partial:  #8A6212;
+    --gap:      #9C382A;
+    --get:      #1F5C8B;
+    --post:     #2C6A4E;
+    --patch:    #8A6212;
+    --del:      #9C382A;
+
+    --serif: Georgia, "Iowan Old Style", "Palatino Linotype", Palatino, serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: "Cascadia Mono", Consolas, "SF Mono", Menlo, "DejaVu Sans Mono", monospace;
+    --ar: "Segoe UI", Tahoma, "Noto Naskh Arabic", "Traditional Arabic", Arial, sans-serif;
+  }
+
+  @page { size: A4; margin: 16mm 14mm 14mm; }
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0; background: #FFF; color: var(--ink);
+    font-family: var(--sans); font-size: 9.5pt; line-height: 1.55;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+
+  .cover { page-break-after: always; padding-top: 3mm; }
+  .cover__block { background: var(--accent); color: #FFF; padding: 15mm 12mm 13mm; }
+  .cover__eyebrow {
+    font-family: var(--mono); font-size: 8pt; letter-spacing: .18em;
+    text-transform: uppercase; color: #A7CFD1; margin: 0 0 7mm;
+  }
+  .cover__title { font-family: var(--serif); font-size: 27pt; line-height: 1.1; font-weight: 400; margin: 0 0 3mm; }
+  .cover__title-ar { font-family: var(--ar); font-size: 18pt; margin: 0 0 5mm; direction: rtl; color: #DCEDEE; }
+  .cover__sub { font-size: 10.8pt; line-height: 1.5; color: #CFE3E4; margin: 0; max-width: 118mm; }
+  .cover__meta {
+    margin-top: 11mm; display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 6mm; border-top: 1px solid var(--line); padding-top: 5mm;
+  }
+  .cover__meta dt {
+    font-family: var(--mono); font-size: 7.4pt; letter-spacing: .13em;
+    text-transform: uppercase; color: var(--faint); margin: 0 0 1.5mm;
+  }
+  .cover__meta dd { margin: 0; font-size: 9.5pt; }
+
+  h2 {
+    font-family: var(--serif); font-size: 14pt; font-weight: 400;
+    margin: 9mm 0 3mm; padding-bottom: 1.5mm; border-bottom: 1px solid var(--line);
+    page-break-after: avoid;
+  }
+  h2:first-of-type { margin-top: 0; }
+  h2 .sec { font-family: var(--mono); font-size: 9pt; color: var(--accent); margin-right: 2.5mm; }
+  h3 { font-size: 10.3pt; font-weight: 650; margin: 6mm 0 2mm; page-break-after: avoid; }
+  h4 {
+    font-family: var(--mono); font-size: 8pt; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--muted); font-weight: 600; margin: 4mm 0 1.8mm; page-break-after: avoid;
+  }
+  p { margin: 0 0 2.5mm; max-width: 168mm; }
+  ul, ol { margin: 0 0 3mm; padding-left: 5.5mm; max-width: 168mm; }
+  li { margin-bottom: 1.1mm; }
+  strong { font-weight: 650; }
+  em { color: var(--muted); }
+
+  code {
+    font-family: var(--mono); font-size: .89em; background: var(--surface);
+    padding: .5pt 2pt; border-radius: 2px; word-break: break-word;
+  }
+  pre {
+    font-family: var(--mono); font-size: 7.9pt; line-height: 1.45;
+    background: var(--surface); border-left: 2pt solid var(--accent);
+    padding: 3mm 4mm; margin: 0 0 3mm; white-space: pre-wrap;
+    word-break: break-word; break-inside: avoid;
+  }
+  pre code { background: none; padding: 0; font-size: inherit; }
+  pre .cm { color: var(--faint); }
+  pre .bad { color: var(--gap); }
+  pre .ok { color: var(--good); }
+
+  /* arabic */
+  .ar {
+    direction: rtl; text-align: right; font-family: var(--ar);
+    font-size: 10.2pt; line-height: 1.85; background: var(--surface);
+    border-right: 2.5pt solid var(--accent); padding: 3.5mm 4.5mm;
+    margin: 0 0 4mm; break-inside: avoid;
+  }
+  .ar p { margin: 0 0 2mm; max-width: none; }
+  .ar p:last-child { margin-bottom: 0; }
+  .ar__label {
+    font-family: var(--mono); direction: ltr; text-align: right;
+    font-size: 7.2pt; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--accent); margin: 0 0 2mm; font-weight: 600;
+  }
+  .ar code { direction: ltr; display: inline-block; }
+
+  /* tables */
+  table {
+    width: 100%; border-collapse: collapse; margin: 0 0 3.5mm;
+    font-size: 8.5pt; font-variant-numeric: tabular-nums;
+  }
+  caption {
+    caption-side: top; text-align: left; font-family: var(--mono);
+    font-size: 7.5pt; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--muted); padding-bottom: 1.5mm;
+  }
+  th {
+    text-align: left; font-weight: 650; font-size: 8pt;
+    border-bottom: 1.2pt solid var(--ink); padding: 1.7mm 2mm; vertical-align: bottom;
+  }
+  td { border-bottom: 1px solid var(--hairline); padding: 1.6mm 2mm; vertical-align: top; }
+  tbody tr:nth-child(even) { background: #FAFCFC; }
+  tr { break-inside: avoid; }
+  th.c, td.c { text-align: center; }
+  td.mono, th.mono { font-family: var(--mono); font-size: 7.9pt; }
+  .yes { color: var(--good); font-weight: 650; }
+  .no { color: var(--gap); font-weight: 650; }
+
+  /* endpoint cards */
+  .ep {
+    border: 1px solid var(--line); border-left: 2.5pt solid var(--accent);
+    padding: 3.5mm 4mm 3mm; margin: 0 0 4mm; break-inside: avoid;
+  }
+  .ep--wide { break-inside: auto; }
+  .ep__head { display: flex; align-items: baseline; gap: 2.5mm; margin: 0 0 1.5mm; flex-wrap: wrap; }
+  .ep__url { font-family: var(--mono); font-size: 8.8pt; font-weight: 650; word-break: break-all; }
+  .verb {
+    font-family: var(--mono); font-size: 7.4pt; font-weight: 700; letter-spacing: .08em;
+    color: #FFF; padding: .8mm 2mm; border-radius: 2px;
+  }
+  .verb--get { background: var(--get); }
+  .verb--post { background: var(--post); }
+  .verb--patch { background: var(--patch); }
+  .verb--delete { background: var(--del); }
+  .ep__who {
+    font-family: var(--mono); font-size: 7.6pt; color: var(--muted);
+    margin: 0 0 2.5mm; padding-bottom: 1.5mm; border-bottom: 1px solid var(--hairline);
+  }
+  .ep p:last-child, .ep pre:last-child, .ep ul:last-child { margin-bottom: 0; }
+
+  .chip {
+    display: inline-block; font-family: var(--mono); font-size: 7pt;
+    letter-spacing: .07em; text-transform: uppercase; padding: .7mm 1.7mm;
+    border-radius: 2px; font-weight: 600; white-space: nowrap;
+  }
+  .chip--live { background: #E4EFE9; color: var(--good); }
+  .chip--dep { background: #F6EEDC; color: var(--partial); }
+
+  /* role pills, as the UI should render them */
+  .pill {
+    display: inline-block; font-size: 7.6pt; font-weight: 600;
+    background: #E7EFEF; color: var(--accent-d); border-radius: 9px;
+    padding: .6mm 2.2mm; margin-right: 1.2mm;
+  }
+  .pill--muted { background: var(--hairline); color: var(--muted); }
+
+  .callout {
+    border-left: 2.5pt solid var(--accent); background: var(--surface);
+    padding: 3.5mm 4.5mm; margin: 0 0 4mm; break-inside: avoid;
+  }
+  .callout--warn { border-left-color: var(--partial); background: #FCF8EF; }
+  .callout--good { border-left-color: var(--good); background: #F3F8F5; }
+  .callout--gap { border-left-color: var(--gap); background: #FBF3F1; }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout__label {
+    font-family: var(--mono); font-size: 7.3pt; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--accent); margin: 0 0 1.5mm; font-weight: 600;
+  }
+  .callout--warn .callout__label { color: var(--partial); }
+  .callout--good .callout__label { color: var(--good); }
+  .callout--gap .callout__label { color: var(--gap); }
+
+  .ba { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; margin: 0 0 4mm; break-inside: avoid; }
+  .ba__col { border: 1px solid var(--line); padding: 3mm 3.5mm; }
+  .ba__col h4 { margin-top: 0; }
+  .ba__col--before { border-top: 2.5pt solid var(--faint); }
+  .ba__col--after { border-top: 2.5pt solid var(--good); }
+  .ba__col pre { margin-bottom: 0; border-left-width: 1.5pt; }
+
+  .footer-note {
+    margin-top: 8mm; padding-top: 3mm; border-top: 1px solid var(--line);
+    font-size: 8.3pt; color: var(--faint);
+  }
+
+  /* On a screen this is read in a browser, not printed, so it needs the
+     margins @page only gives to paper. Print output is untouched. */
+  @media screen {
+    body { max-width: 980px; margin: 0 auto; padding: 28px 20px 40px; font-size: 11pt; }
+    pre { font-size: 9.5pt; }
+    table { font-size: 10pt; }
+    .table-wrap { overflow-x: auto; }
+  }
+
+  @media screen and (max-width: 640px) {
+    body { padding: 20px 16px 32px; }
+    .ba, .cover__meta { grid-template-columns: 1fr; }
+    .cover__block { padding: 22px 18px; }
+    .cover__title { font-size: 22pt; }
+    table { display: block; overflow-x: auto; white-space: normal; }
+  }
+</style>
+
+<!-- ================= COVER ================= -->
+<section class="cover">
+  <div class="cover__block">
+    <p class="cover__eyebrow">Frontend Guide · Backend Shipped</p>
+    <h1 class="cover__title">Backend Seams</h1>
+    <p class="cover__sub">Everything the frontend was waiting on: the cross-client approval queue, notification
+      preferences, ageing reminders and the daily digest, password reset, public report links, lead outcomes, post
+      stage chaining, and attachments on every record.</p>
+  </div>
+
+  <dl class="cover__meta">
+    <div><dt>For</dt><dd>Frontend</dd></div>
+    <div><dt>Status</dt><dd>On the backend branch, ready to integrate</dd></div>
+    <div><dt>Date</dt><dd>27 September 2026</dd></div>
+  </dl>
+
+  <div class="callout">
+    <p class="callout__label">Reads with the approval flow guide</p>
+    <p>The task approval contract dated 19 September stands unchanged — approver, submit / approve / request-changes,
+      the per-client queue, the error codes. This document adds to it. Where the two disagree, this one is newer:
+      section 7 here replaces "not in this release" there.</p>
+  </div>
+</section>
+
+<!-- ================= 0 ================= -->
+<h2><span class="sec">0</span>The four questions, answered</h2>
+
+<table>
+  <thead><tr><th style="width:6%" class="c">#</th><th style="width:40%">Question</th><th>Answer</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="c">A</td>
+      <td>Can every role upload files?</td>
+      <td><b>Now yes, for every internal role.</b> It was Account Manager, Designer and Social Media Manager only —
+        Copywriter and Sales Agent have been added, because a copywriter attaches a brief and a sales agent attaches
+        what a lead sent them. <b>Client roles cannot upload</b>: they read attachments on posts, they do not add
+        them. The per-file limit is now <b>25MB</b> (was 20).</td>
+    </tr>
+    <tr>
+      <td class="c">B</td>
+      <td>Backfill approvers on old <code>IN_REVIEW</code> tasks?</td>
+      <td><b>No.</b> Nobody agreed to approve work submitted before there was anything to agree to. They stay
+        <code>approverId: null</code>; admins name approvers by hand. Your "Needs an approver" tile is the right
+        behaviour, and the dashboard counts them (<code>internalApprovalWithoutApprover</code>).</td>
+    </tr>
+    <tr>
+      <td class="c">C</td>
+      <td>Is the task comment shape stable?</td>
+      <td><b>Yes.</b> <code>{ id, companyId, taskId, userId, comment, createdAt }</code>. <code>user</code> is never
+        embedded today. If that changes it will be additive — keep your normaliser.</td>
+    </tr>
+    <tr>
+      <td class="c">D</td>
+      <td>Should clients receive <code>DRAFT</code> posts?</td>
+      <td><b>No, and the backend now enforces it.</b> A member whose only roles are <code>CLIENT_OWNER</code> /
+        <code>CLIENT_REVIEWER</code> no longer sees <code>DRAFT</code> or <code>IN_INTERNAL_REVIEW</code> posts in
+        the list, and asking for one by id answers <b>404</b> — not 403, which would confirm it exists. Anybody
+        holding an agency role, and platform admins, see everything as before.</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- ================= 1 ================= -->
+<h2><span class="sec">1</span>Cross-client approval queue</h2>
+
+<div class="ep">
+  <p class="ep__head"><span class="verb verb--get">GET</span><span class="ep__url">/api/me/approval-queue?limit=25&amp;offset=0</span><span class="chip chip--live">new</span></p>
+  <p class="ep__who">Who: any signed-in user · One request replaces the fan-out over every membership</p>
+  <pre><code>{
+  "items": [
+    {
+      <span class="cm">// the full task object, same as GET /companies/:id/tasks/:taskId</span>
+      "id": "9f1c…", "companyId": "2b7d…", "title": "Taxero — May carousel",
+      "status": "IN_REVIEW", "approverId": "&lt;caller&gt;",
+      "submittedForReviewAt": "2026-09-19T08:12:04.512Z",
+      "assignedTo": { "id": "…", "fullName": "Jessika", "email": "…", "status": "ACTIVE" },
+      "approver":   { "id": "…", "fullName": "Omar",    "email": "…", "status": "ACTIVE" },
+      "company": { "id": "2b7d…", "name": "Taxero" }   <span class="ok">// only on this endpoint</span>
+    }
+  ],
+  "total": 7, "limit": 25, "offset": 0
+}</code></pre>
+  <p>Covers every client the caller is an <i>active</i> member of, ordered oldest submission first, paged on the
+    server. Verdicts still go to the per-client endpoints — each row carries its <code>companyId</code>.</p>
+</div>
+
+<!-- ================= 2 ================= -->
+<h2><span class="sec">2</span>Notification preferences</h2>
+
+<div class="ep">
+  <p class="ep__head"><span class="verb verb--get">GET</span><span class="ep__url">/api/me/notification-preferences</span><span class="chip chip--live">new</span></p>
+  <p class="ep__head"><span class="verb verb--patch">PUT</span><span class="ep__url">/api/me/notification-preferences</span></p>
+  <p class="ep__who">Who: the signed-in user, own settings only</p>
+  <pre><code><span class="cm">// both directions, and what GET returns for somebody who has never saved</span>
+{
+  "mutedTypes": ["TASK_STATUS_CHANGED", "POST_COMMENTED"],
+  "emailDigest": true
+}
+
+<span class="cm">// PUT replaces the whole object — a missing key means off, not "leave it".
+// An unknown notification type is a 400.</span></code></pre>
+</div>
+
+<div class="callout callout--good">
+  <p class="callout__label">The bell now respects mutes — delete your workaround</p>
+  <p><code>GET /api/notifications</code> and <code>GET /api/notifications/unread-count</code> both exclude muted
+    types. Pass <code>?includeMuted=true</code> on the list to see them anyway. The count no longer needs to be
+    derived from the list.</p>
+</div>
+
+<!-- ================= 3 ================= -->
+<h2><span class="sec">3</span>Ageing reminders and the daily digest</h2>
+
+<table>
+  <thead><tr><th style="width:26%" class="mono">type</th><th style="width:20%">Goes to</th><th>When</th></tr></thead>
+  <tbody>
+    <tr><td class="mono">REVIEW_WAITING_24H</td><td>the approver</td><td>24h after <code>submittedForReviewAt</code>, still <code>IN_REVIEW</code></td></tr>
+    <tr><td class="mono">REVIEW_WAITING_48H</td><td>every Account Manager on that client</td><td>48h after, still <code>IN_REVIEW</code></td></tr>
+  </tbody>
+</table>
+
+<pre><code>{
+  "type": "REVIEW_WAITING_24H",
+  "title": "A review has been waiting a day",
+  "message": "Jessika's \"Taxero — May carousel\" has waited a day for your review",
+  "entityType": "TASK", "entityId": "&lt;taskId&gt;",
+  "metadata": { "submittedForReviewAt": "…", "approverId": "…", "waitingHours": 26 }
+}</code></pre>
+
+<p>A sweep runs every 15 minutes. Exactly one notice per task per threshold <i>per round</i> — re-submitting after
+  changes re-stamps the clock, so the task can earn a fresh 24h notice next round. Approving, requesting changes or
+  cancelling clears the clock, and nothing further fires.</p>
+
+<h4>The email digest</h4>
+<p>One email per person per day at <b>08:00</b> in the agency timezone (<code>DIGEST_HOUR</code>,
+  <code>DASHBOARD_TIMEZONE</code>), and only to people with something waiting: a review sitting on them, one of their
+  own tasks sent back in the last 24 hours, or — for client users — a post that has been
+  <code>READY_FOR_CLIENT</code> for more than 48 hours. Nothing waiting, nothing sent. A muted type is left out of
+  the email too, and <code>emailDigest: false</code> turns it off entirely.</p>
+
+<div class="callout callout--warn">
+  <p class="callout__label">SMTP is optional, and unset today</p>
+  <p>With no <code>SMTP_HOST</code> configured the API writes each email to the log instead of sending it and carries
+    on. That keeps password reset and the digest working end to end on staging — the reset link is in the log — but
+    <b>no real email leaves the server until SMTP is configured</b>: <code>SMTP_HOST</code>, <code>SMTP_PORT</code>,
+    <code>SMTP_SECURE</code>, <code>SMTP_USER</code>, <code>SMTP_PASSWORD</code>, <code>MAIL_FROM</code>.</p>
+</div>
+
+<!-- ================= 4 ================= -->
+<h2><span class="sec">4</span>Forgot and reset password</h2>
+
+<div class="ep">
+  <p class="ep__head"><span class="verb verb--post">POST</span><span class="ep__url">/api/auth/forgot-password</span><span class="chip chip--live">new</span></p>
+  <p class="ep__who">No session · 5 requests per minute · Always 200</p>
+  <pre><code>{ "email": "jessika@agency.com" }
+
+<span class="cm">// 200 { "success": true } — whether or not that address has an account.
+// The endpoint never says which, so it cannot be used to find out who works here.</span></code></pre>
+</div>
+
+<div class="ep">
+  <p class="ep__head"><span class="verb verb--post">POST</span><span class="ep__url">/api/auth/reset-password</span><span class="chip chip--live">new</span></p>
+  <p class="ep__who">No session · 10 requests per minute</p>
+  <pre><code>{ "token": "&lt;from the emailed link&gt;", "password": "a new password" }
+
+<span class="cm">// 200 { "success": true }
+// 400 for a token that is wrong, already used, or older than an hour:</span>
+{ "statusCode": 400, "message": "This reset link is no longer valid. Ask for a new one." }</code></pre>
+  <p>The email links to <code>&lt;FRONTEND_URL&gt;/forgot-password?token=…</code>. Tokens are single-use, valid one
+    hour, stored hashed. A successful reset signs the account out everywhere.</p>
+</div>
+
+<div class="callout callout--gap">
+  <p class="callout__label">Minimum password length is 12, not 8</p>
+  <p>Creating a user, accepting an invitation and the bootstrap admin all require twelve characters. A reset that
+    accepted eight would be the short way round all three. Please raise the frontend rule to <b>12</b> — or say the
+    word and we drop every rule to 8 together.</p>
+</div>
+
+<!-- ================= 5 ================= -->
+<h2><span class="sec">5</span>Public report links</h2>
+
+<div class="ep ep--wide">
+  <p class="ep__head"><span class="verb verb--post">POST</span><span class="ep__url">/api/companies/:companyId/reports/:reportId/share</span><span class="chip chip--live">new</span></p>
+  <p class="ep__who">Who: Account Manager, or any admin</p>
+  <pre><code><span class="cm">// 201 — a link was minted. This is the only time the URL is ever shown.</span>
+{ "url": "https://app…/r/&lt;token&gt;", "created": true,
+  "expiresAt": "2026-12-26T…", "createdAt": "2026-09-27T…" }
+
+<span class="cm">// 201 — a link already exists. No URL: only its hash is stored.</span>
+{ "url": null, "created": false, "expiresAt": "…", "createdAt": "…" }
+
+<span class="cm">// POST …/share?rotate=true — replaces it, revoking the old link.</span></code></pre>
+</div>
+
+<div class="callout callout--warn">
+  <p class="callout__label">Why a second POST does not hand back the same URL</p>
+  <p>The ticket asked for the token to be <i>stored hashed</i> and for a repeat POST to <i>return the existing
+    link</i>. Those cannot both be true — a hash cannot be turned back into a URL. Hashing won, because a leaked
+    database row must not open a client's reports. So: the first POST gives you the URL, a repeat POST tells you one
+    exists, and <code>?rotate=true</code> mints a new one and kills the old. Suggested UI: "A public link already
+    exists (expires 26 Dec). Replace it?"</p>
+</div>
+
+<div class="ep">
+  <p class="ep__head"><span class="verb verb--get">GET</span><span class="ep__url">/api/companies/:companyId/reports/:reportId/share</span></p>
+  <p class="ep__who">Whether a link is out there, and how it is being used</p>
+  <pre><code>{ "active": true, "expiresAt": "…", "createdAt": "…",
+  "createdById": "…", "lastViewedAt": "…", "viewCount": 4 }
+
+<span class="cm">// or simply</span>
+{ "active": false }</code></pre>
+</div>
+
+<div class="ep">
+  <p class="ep__head"><span class="verb verb--delete">DELETE</span><span class="ep__url">/api/companies/:companyId/reports/:reportId/share</span></p>
+  <p class="ep__who">204, and the link stops working immediately</p>
+</div>
+
+<div class="ep">
+  <p class="ep__head"><span class="verb verb--get">GET</span><span class="ep__url">/api/public/reports/:token</span><span class="chip chip--live">no auth</span></p>
+  <p class="ep__who">Anybody with the link · 20 requests per minute</p>
+  <pre><code>{
+  "id": "…", "companyId": "…",
+  "company": { "name": "Taxero" },
+  "month": 5, "year": 2026, "title": "…", "summary": "…",
+  "metrics": { … }, "recommendations": [ … ],
+  "status": "GENERATED", "createdAt": "…", "updatedAt": "…",
+  "sharedUntil": "2026-12-26T…"
+}
+
+<span class="cm">// Left out on purpose: createdById and notes — notes read as the agency's
+// own working remarks. Say the word if the client should see them.
+// A wrong, revoked or expired token is 404, never 403.</span></code></pre>
+</div>
+
+<!-- ================= 6 ================= -->
+<h2><span class="sec">6</span>Lead outcomes</h2>
+
+<div class="ep">
+  <p class="ep__head"><span class="verb verb--patch">PATCH</span><span class="ep__url">/api/companies/:companyId/leads/:leadId/status</span><span class="chip chip--dep">extended</span></p>
+  <pre><code>{ "status": "LOST", "lostReason": "PRICE", "note": "Went with a cheaper agency" }
+{ "status": "WON",  "dealValue": 4500.00 }
+
+<span class="cm">// 400 when the field does not match the status:
+//   "lostReason can only be set when the lead is moved to LOST"
+//   "dealValue can only be set when the lead is moved to WON"</span></code></pre>
+  <p><code>lostReason</code> is one of <code class="mono">PRICE</code>, <code class="mono">TIMING</code>,
+    <code class="mono">WENT_ELSEWHERE</code>, <code class="mono">NO_RESPONSE</code>,
+    <code class="mono">NOT_A_FIT</code>, <code class="mono">OTHER</code>. Both fields are returned on the lead, and
+    both are <b>cleared when the lead leaves that status</b> — a lead that stops being lost stops having a reason,
+    so the reports never count yesterday's answer.</p>
+  <p>The <code>[Reason]</code> prefix on the note can go: the reason is a real field now.</p>
+</div>
+
+<h4>Reports</h4>
+<pre><code><span class="cm">// GET …/reports/overview → leads</span>
+"leads": {
+  "total": 40, "byStatus": { … }, "bySource": { … },
+  "byLostReason": {                 <span class="ok">// NEW</span>
+    "PRICE": 3, "TIMING": 1, "WENT_ELSEWHERE": 2, "NO_RESPONSE": 4,
+    "NOT_A_FIT": 0, "OTHER": 1,
+    "UNSPECIFIED": 5                <span class="cm">// lost before the field existed, or skipped</span>
+  },
+  "wonValue": 18500,                <span class="ok">// NEW — sum of dealValue on won leads</span>
+  "won": 7, "lost": 16, "conversionRate": 17.5, "activePipeline": 17
+}</code></pre>
+
+<!-- ================= 7 ================= -->
+<h2><span class="sec">7</span>Post stage chaining</h2>
+
+<p>Built to the decisions in the handoff, <b>not</b> to section 7 of the original approval ticket: the order is a
+  gate on submitting, and <b>the post never moves on its own</b>.</p>
+
+<table>
+  <thead><tr><th style="width:26%">Change</th><th>Behaviour</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="mono">Task.sequence</td>
+      <td>Integer, nullable, 1–50. Accepted on <code>POST /tasks</code> and <code>PATCH /tasks/:id</code>. Only
+        meaningful with <code>relatedEntityType: "POST"</code> — otherwise <b>422</b>
+        <code>SEQUENCE_NEEDS_POST</code>. Two tasks on one post may not share a number — <b>409</b>
+        <code>SEQUENCE_TAKEN</code>, with the id of the task that holds it.</td>
+    </tr>
+    <tr>
+      <td>Submitting</td>
+      <td><b>409</b> <code>PREVIOUS_STAGE_OPEN</code> while any task on the same post with a <i>lower</i> sequence is
+        not <code>DONE</code> or <code>CANCELED</code>. Body carries <code>openTaskIds</code>. Starting work is not
+        blocked — people prepare in parallel.</td>
+    </tr>
+    <tr>
+      <td>The post gate</td>
+      <td><code>POST /posts/:id/submit-review</code> answers <b>409</b> <code>STAGES_OPEN</code> with
+        <code>openTaskIds</code> and the full <code>stages</code> object while any staged task is still open. A post
+        with no staged tasks behaves exactly as today.</td>
+    </tr>
+    <tr>
+      <td>Read model</td>
+      <td><code>GET /posts/:id</code> gains <code>stages</code>.</td>
+    </tr>
+  </tbody>
+</table>
+
+<pre><code><span class="cm">// on GET /api/companies/:companyId/posts/:postId</span>
+"stages": {
+  "total": 2,
+  "done": 1,
+  "open": [
+    { "taskId": "…", "title": "Design the carousel", "sequence": 2, "status": "IN_PROGRESS" }
+  ]
+}
+
+<span class="cm">// 409 on submitting stage two too early</span>
+{ "statusCode": 409, "error": "Conflict",
+  "code": "PREVIOUS_STAGE_OPEN",
+  "message": "An earlier stage on this post is still open: Write the copy",
+  "from": "IN_PROGRESS", "action": "submit-for-review",
+  "openTaskIds": ["copy-task-id"] }</code></pre>
+
+<p><code>done + open.length === total</code> always: a <b>cancelled stage is counted in none of the three</b>, so a
+  progress bar built from these reaches the end instead of sticking at "1 of 2". <code>stages</code> is on the
+  single-post read only — the list would need a query per row.</p>
+
+<!-- ================= 8 ================= -->
+<h2><span class="sec">8</span>Attachments on every record</h2>
+
+<p>One shape, five parents. Type it once.</p>
+
+<pre><code>GET    /api/companies/:cid/{tasks|posts|campaigns|leads}/:id/attachments
+POST   /api/companies/:cid/{tasks|posts|campaigns|leads}/:id/attachments   { fileId, label? }
+DELETE /api/companies/:cid/{tasks|posts|campaigns|leads}/:id/attachments/:attachmentId
+
+GET    /api/companies/:cid/brand-profile/attachments
+POST   /api/companies/:cid/brand-profile/attachments
+DELETE /api/companies/:cid/brand-profile/attachments/:attachmentId</code></pre>
+
+<pre><code><span class="cm">// every list item, everywhere</span>
+{
+  "id": "…", "entityType": "LEAD", "entityId": "…", "label": null,
+  "uploadedById": "…",
+  "uploadedBy": { "id": "…", "fullName": "Maria Haddad" },
+  "createdAt": "2026-09-27T…",
+  "file": { "id": "…", "originalName": "brief.pdf",
+            "mimeType": "application/pdf", "size": 182000 }
+}</code></pre>
+
+<div class="callout callout--gap">
+  <p class="callout__label">The task attachment response changed shape</p>
+  <p>The three task attachment paths are unchanged, but they are served by the new code and return the object above
+    instead of the old <code>{ id, companyId, taskId, fileId, createdAt }</code>. Old rows were copied across, so
+    nothing is lost — but the task attachment list needs the new type.</p>
+</div>
+
+<h4>Attaching while creating</h4>
+<p>The record does not exist yet when somebody picks files in a create modal, so: upload each file on selection, then
+  send the ids with the create.</p>
+
+<pre><code><span class="cm">// POST /tasks, /posts, /campaigns, /leads all accept</span>
+{ …, "attachmentFileIds": ["file-a", "file-b"] }   <span class="cm">// max 20</span>
+
+<span class="cm">// The record and its attachments are written in one transaction: a create
+// that fails validation leaves zero attachment rows behind.</span></code></pre>
+
+<h4>Preview without downloading</h4>
+<pre><code>GET /api/companies/:cid/files/:fileId/download-url?disposition=inline
+
+{ "url": "https://…signed…", "expiresInSeconds": 900, "disposition": "inline" }
+
+<span class="cm">// The signed URL carries Content-Disposition: inline and the real
+// Content-Type, so images and PDFs open in a tab. Omit the parameter and
+// you get the download behaviour you have today.</span></code></pre>
+
+<h4>Rules</h4>
+<table>
+  <thead><tr><th style="width:26%">Rule</th><th>Detail</th></tr></thead>
+  <tbody>
+    <tr><td>Who can list</td><td>Anyone who can read the parent. <b>Posts only</b> for client users — never leads, campaigns, tasks or the brand profile.</td></tr>
+    <tr><td>Who can add</td><td>The roles that edit that parent (posts: AM, SMM, designer, copywriter · leads: AM, sales agent · campaigns: AM, SMM · brand profile: AM, designer · tasks: any internal role).</td></tr>
+    <tr><td>Who can delete</td><td>The person who attached it, an Account Manager on that client, or a platform admin — otherwise <b>403</b>. Answers <b>204</b>.</td></tr>
+    <tr><td>Limits</td><td><b>25MB</b> per file → 422 <code>FILE_TOO_LARGE</code> · <b>20</b> attachments per record → 422 <code>ATTACHMENT_LIMIT</code>.</td></tr>
+    <tr><td>Types</td><td>Images, PDF, Office documents, CSV/text, MP4/MOV, ZIP. Anything else is refused at upload. Executables are not on the list.</td></tr>
+    <tr><td>The same file twice</td><td>Attaching a file that is already on that record returns the existing row rather than a duplicate.</td></tr>
+    <tr><td>Deleting the file itself</td><td>The file leaves storage only when the last thing pointing at it lets go — a file on a task and its post survives either one being removed.</td></tr>
+    <tr><td>Abandoned uploads</td><td>Swept nightly at 03:30: files older than 24 hours with no references are deleted and the count logged.</td></tr>
+  </tbody>
+</table>
+
+<p>Activity log rows <code>ATTACHMENT_ADDED</code> / <code>ATTACHMENT_REMOVED</code> are written for tasks, which is
+  the only one of the five with an activity log. Posts, leads and campaigns have none to write to — tell us if that
+  matters and it becomes its own small ticket.</p>
+
+<!-- ================= 9 ================= -->
+<h2><span class="sec">9</span>What is deliberately not here</h2>
+
+<ul>
+  <li><b><code>post_review_gates</code> — the separate multi-gate ticket.</b> It solves the same problem as section 7
+    by a different route: gates stored on the post, rather than tasks with a sequence. Building both would give the
+    platform two internal review machines. Section 7 is what the frontend is built against, so that is what shipped.
+    Say the word if the gate table is still wanted and we will reconcile them properly.</li>
+  <li><b>The post moving itself to <code>READY_FOR_CLIENT</code></b>, and the
+    <code>INTERNAL_REVIEW_COMPLETED</code> approval log row from the original ticket. The handoff replaced both:
+    a person presses submit, the backend only decides whether to allow the press.</li>
+  <li><b>Swagger.</b> The project still has no OpenAPI setup. This document and the 19 September one are the
+    contract.</li>
+  <li><b>End-to-end tests.</b> The new logic is covered by unit tests (66 across 9 suites); there is still no e2e
+    harness in the repo.</li>
+</ul>
+
+<h4>New environment variables — all optional</h4>
+<pre><code>SMTP_HOST, SMTP_PORT (587), SMTP_SECURE (false), SMTP_USER, SMTP_PASSWORD
+MAIL_FROM   "Solutions Platform &lt;no-reply@localhost&gt;"
+DIGEST_HOUR 8            <span class="cm">// in DASHBOARD_TIMEZONE</span></code></pre>
+
+<p>Three migrations run at boot: the approval flow one from 19 September, the seams in this document, and the
+  attachments table — which copies the existing task attachments across and leaves the old table in place, unread,
+  so this release can be rolled back without losing anything.</p>
+
+<p class="footer-note">Backend seams · frontend integration guide · 27 September 2026 · Solutions Platform.
+  Companion to the task approval flow guide of 19 September. Source:
+  <code>api/docs/frontend-backend-seams.html</code>.</p>

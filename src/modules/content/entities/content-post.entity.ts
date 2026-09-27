@@ -98,11 +98,24 @@ export class ContentPost {
   @JoinColumn({ name: 'updated_by_id' })
   updatedBy!: User | null;
 
+  /**
+   * How far the post's internal task chain has got. Computed on a
+   * single-post read and never stored — the tasks are the source of truth.
+   */
+  stages?: {
+    total: number;
+    done: number;
+    open: {
+      taskId: string;
+      title: string;
+      sequence: number | null;
+      status: string;
+    }[];
+  };
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt!: Date;
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt!: Date;
-
-
 }

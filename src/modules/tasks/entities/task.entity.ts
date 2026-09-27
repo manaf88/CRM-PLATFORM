@@ -25,6 +25,7 @@ import { Campaign } from 'src/modules/campaigns/entities/campaign.entity';
 @Index(['companyId', 'status', 'approverId'])
 @Index(['dueDate'])
 @Index(['relatedEntityType', 'relatedEntityId'])
+@Index(['relatedEntityId', 'sequence'])
 @Index(['companyId', 'campaignId'])
 export class Task {
   @PrimaryGeneratedColumn('uuid')
@@ -112,6 +113,17 @@ export class Task {
 
   @Column({ name: 'related_entity_id', type: 'uuid', nullable: true })
   relatedEntityId!: string | null;
+
+  /**
+   * Where this task sits in its post's internal chain — copy is 1, design is
+   * 2. Null means the task is not part of a chain and answers to nobody.
+   *
+   * The order is a gate on *submitting for review*, not on starting work:
+   * people prepare the design while the copy is still being written, they
+   * just cannot hand it over before the copy has been approved.
+   */
+  @Column({ type: 'int', nullable: true })
+  sequence!: number | null;
 
   @Column({ name: 'due_date', type: 'timestamptz', nullable: true })
   dueDate!: Date | null;

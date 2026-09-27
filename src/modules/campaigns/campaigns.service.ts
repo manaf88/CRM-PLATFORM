@@ -4,9 +4,11 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Brackets, Repository } from 'typeorm';
+import { Brackets, DataSource, Repository } from 'typeorm';
 
 import { RequestUser } from '../auth/types/request-user.type';
+import { AttachmentsService } from '../attachments/attachments.service';
+import { AttachmentEntityType } from '../attachments/enums/attachment-entity-type.enum';
 import { ContentPost } from '../content/entities/content-post.entity';
 import { ContentPostStatus } from '../content/enums/content-post-status.enum';
 import { Lead } from '../leads/entities/lead.entity';
@@ -35,6 +37,9 @@ export class CampaignsService {
 
     @InjectRepository(Task)
     private readonly tasksRepository: Repository<Task>,
+
+    private readonly attachmentsService: AttachmentsService,
+    private readonly dataSource: DataSource,
   ) {}
 
   async create(
@@ -60,7 +65,21 @@ export class CampaignsService {
       updatedById: currentUser.id,
     });
 
-    return this.campaignsRepository.save(campaign);
+    return this.dataSource.transaction(async (manager) => {
+      const savedCampaign = await manager
+        .getRepository(Campaign)
+        .save(campaign);
+
+      await this.attachmentsService.attachMany(manager, {
+        companyId,
+        entityType: AttachmentEntityType.CAMPAIGN,
+        entityId: savedCampaign.id,
+        fileIds: dto.attachmentFileIds ?? [],
+        uploadedById: currentUser.id,
+      });
+
+      return savedCampaign;
+    });
   }
 
   async findAll(companyId: string, query: FindCampaignsQueryDto) {
@@ -97,9 +116,7 @@ export class CampaignsService {
       );
     }
 
-    qb.orderBy('campaign.createdAt', 'DESC')
-      .take(limit)
-      .skip(offset);
+    qb.orderBy('campaign.createdAt', 'DESC').take(limit).skip(offset);
 
     const [items, total] = await qb.getManyAndCount();
 
@@ -111,10 +128,7 @@ export class CampaignsService {
     };
   }
 
-  async findOne(
-    companyId: string,
-    campaignId: string,
-  ): Promise<Campaign> {
+  async findOne(companyId: string, campaignId: string): Promise<Campaign> {
     const campaign = await this.campaignsRepository.findOne({
       where: {
         id: campaignId,
@@ -141,9 +155,7 @@ export class CampaignsService {
       ? new Date(dto.startDate)
       : campaign.startDate;
 
-    const nextEndDate = dto.endDate
-      ? new Date(dto.endDate)
-      : campaign.endDate;
+    const nextEndDate = dto.endDate ? new Date(dto.endDate) : campaign.endDate;
 
     this.validateDateRange(
       nextStartDate?.toISOString(),
@@ -469,10 +481,7 @@ export class CampaignsService {
     return result;
   }
 
-  private validateDateRange(
-    startDate?: string,
-    endDate?: string,
-  ): void {
+  private validateDateRange(startDate?: string, endDate?: string): void {
     if (!startDate || !endDate) {
       return;
     }

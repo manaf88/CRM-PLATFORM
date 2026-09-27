@@ -9,6 +9,8 @@ import { Brackets, DataSource, Repository } from 'typeorm';
 
 import { AutomationEngineService } from '../automations/automation-engine.service';
 import { RequestUser } from '../auth/types/request-user.type';
+import { AttachmentsService } from '../attachments/attachments.service';
+import { AttachmentEntityType } from '../attachments/enums/attachment-entity-type.enum';
 import { MembershipsService } from '../memberships/memberships.service';
 import { NotificationEntityType } from '../notifications/enums/notification-entity-type.enum';
 import { NotificationType } from '../notifications/enums/notification-type.enum';
@@ -39,6 +41,7 @@ export class LeadsService {
     private readonly leadStatusHistoryRepository: Repository<LeadStatusHistory>,
 
     private readonly membershipsService: MembershipsService,
+    private readonly attachmentsService: AttachmentsService,
     private readonly dataSource: DataSource,
     private readonly notificationsService: NotificationsService,
     private readonly automationEngineService: AutomationEngineService,
@@ -59,9 +62,7 @@ export class LeadsService {
       source: dto.source ?? LeadSource.MANUAL,
       interestedService: this.cleanOptionalString(dto.interestedService),
       assignedToId: dto.assignedToId ?? null,
-      nextFollowUpAt: dto.nextFollowUpAt
-        ? new Date(dto.nextFollowUpAt)
-        : null,
+      nextFollowUpAt: dto.nextFollowUpAt ? new Date(dto.nextFollowUpAt) : null,
       notes: this.cleanOptionalString(dto.notes),
       createdById: currentUser.id,
       updatedById: currentUser.id,
@@ -69,6 +70,14 @@ export class LeadsService {
 
     const savedLead = await this.dataSource.transaction(async (manager) => {
       const savedLead = await manager.getRepository(Lead).save(lead);
+
+      await this.attachmentsService.attachMany(manager, {
+        companyId,
+        entityType: AttachmentEntityType.LEAD,
+        entityId: savedLead.id,
+        fileIds: dto.attachmentFileIds ?? [],
+        uploadedById: currentUser.id,
+      });
 
       const history = manager.getRepository(LeadStatusHistory).create({
         companyId,
@@ -131,10 +140,7 @@ export class LeadsService {
       );
     }
 
-    queryBuilder
-      .orderBy('lead.createdAt', 'DESC')
-      .take(limit)
-      .skip(offset);
+    queryBuilder.orderBy('lead.createdAt', 'DESC').take(limit).skip(offset);
 
     const [items, total] = await queryBuilder.getManyAndCount();
 
@@ -248,8 +254,19 @@ export class LeadsService {
 
       const fromStatus = lead.status;
 
+      this.validateOutcomeFields(dto);
+
       lead.status = dto.status;
       lead.updatedById = currentUser.id;
+
+      // The outcome fields belong to the outcome they describe: a lead that
+      // stops being lost stops having a reason, and one that stops being won
+      // stops having a value. Otherwise the reports count yesterday's answer.
+      lead.lostReason =
+        dto.status === LeadStatus.LOST ? (dto.lostReason ?? null) : null;
+
+      lead.dealValue =
+        dto.status === LeadStatus.WON ? (dto.dealValue ?? null) : null;
 
       if (
         dto.status === LeadStatus.CONTACTED ||
@@ -507,15 +524,28 @@ export class LeadsService {
       return;
     }
 
-    const hasMembership =
-      await this.membershipsService.existsActiveMembership(
-        assignedToId,
-        companyId,
-      );
+    const hasMembership = await this.membershipsService.existsActiveMembership(
+      assignedToId,
+      companyId,
+    );
 
     if (!hasMembership) {
       throw new BadRequestException(
         'Assigned user is not an active member of this company',
+      );
+    }
+  }
+
+  private validateOutcomeFields(dto: UpdateLeadStatusDto): void {
+    if (dto.lostReason !== undefined && dto.status !== LeadStatus.LOST) {
+      throw new BadRequestException(
+        'lostReason can only be set when the lead is moved to LOST',
+      );
+    }
+
+    if (dto.dealValue !== undefined && dto.status !== LeadStatus.WON) {
+      throw new BadRequestException(
+        'dealValue can only be set when the lead is moved to WON',
       );
     }
   }

@@ -4,6 +4,7 @@ import {
   Param,
   ParseUUIDPipe,
   Post,
+  Query,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -24,18 +25,23 @@ import { CompanyMembershipRole } from '../memberships/enums/company-membership-r
 @Controller('companies/:companyId/files')
 export class FilesController {
   constructor(private readonly filesService: FilesService) {}
-@UseGuards(CompanyRolesGuard)
-@CompanyRoles(
-  CompanyMembershipRole.ACCOUNT_MANAGER,
-  CompanyMembershipRole.DESIGNER,
-  CompanyMembershipRole.SOCIAL_MEDIA_MANAGER,
-)
+  @UseGuards(CompanyRolesGuard)
+  // Every internal role uploads: a copywriter attaches a brief, a sales agent
+  // attaches the screenshot a lead sent them. Client roles are left out — they
+  // read attachments on posts, they do not add them.
+  @CompanyRoles(
+    CompanyMembershipRole.ACCOUNT_MANAGER,
+    CompanyMembershipRole.COPYWRITER,
+    CompanyMembershipRole.DESIGNER,
+    CompanyMembershipRole.SOCIAL_MEDIA_MANAGER,
+    CompanyMembershipRole.SALES_AGENT,
+  )
   @Post('upload')
   @UseInterceptors(
     FileInterceptor('file', {
       storage: memoryStorage(),
       limits: {
-        fileSize: 20 * 1024 * 1024,
+        fileSize: 25 * 1024 * 1024,
       },
     }),
   )
@@ -44,11 +50,7 @@ export class FilesController {
     @UploadedFile() file: Express.Multer.File,
     @CurrentUser() currentUser: RequestUser,
   ) {
-    return this.filesService.uploadCompanyFile(
-      companyId,
-      file,
-      currentUser,
-    );
+    return this.filesService.uploadCompanyFile(companyId, file, currentUser);
   }
 
   @Get(':fileId')
@@ -63,7 +65,12 @@ export class FilesController {
   getDownloadUrl(
     @Param('companyId', ParseUUIDPipe) companyId: string,
     @Param('fileId', ParseUUIDPipe) fileId: string,
+    @Query('disposition') disposition?: string,
   ) {
-    return this.filesService.getDownloadUrl(companyId, fileId);
+    return this.filesService.getDownloadUrl(
+      companyId,
+      fileId,
+      disposition === 'inline' ? 'inline' : 'attachment',
+    );
   }
 }

@@ -4,6 +4,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { AddMembershipRoles1756900000000 } from './migrations/1756900000000-AddMembershipRoles';
 import { AddTaskApprovalFlow1789776000000 } from './migrations/1789776000000-AddTaskApprovalFlow';
+import { AddFrontendSeams1790000000000 } from './migrations/1790000000000-AddFrontendSeams';
+import { AddEntityAttachments1790100000000 } from './migrations/1790100000000-AddEntityAttachments';
 
 @Module({
   imports: [
@@ -25,6 +27,8 @@ import { AddTaskApprovalFlow1789776000000 } from './migrations/1789776000000-Add
         migrations: [
           AddMembershipRoles1756900000000,
           AddTaskApprovalFlow1789776000000,
+          AddFrontendSeams1790000000000,
+          AddEntityAttachments1790100000000,
         ],
 
         // Production has no other way to change the schema — there is no

@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { CompanyAccessGuard } from '../../common/guards/company-access.guard';
 import { CompanyRolesGuard } from '../../common/guards/company-roles.guard';
 import { FileEntity } from '../files/entities/file.entity';
+import { AttachmentsModule } from '../attachments/attachments.module';
 import { MembershipsModule } from '../memberships/memberships.module';
 import { ResponsibilityArea } from '../responsibilities/entities/responsibility-area.entity';
 import { ResponsibilityAssignment } from '../responsibilities/entities/responsibility-assignment.entity';
@@ -12,6 +13,7 @@ import { TaskAttachment } from './entities/task-attachment.entity';
 import { TaskComment } from './entities/task-comment.entity';
 import { Task } from './entities/task.entity';
 import { TasksController } from './tasks.controller';
+import { MyApprovalQueueController } from './my-approval-queue.controller';
 import { TaskApproverResolverService } from './task-approver-resolver.service';
 import { TasksService } from './tasks.service';
 import { NotificationsModule } from '../notifications/notifications.module';
@@ -31,8 +33,9 @@ import { NotificationsModule } from '../notifications/notifications.module';
     ]),
     MembershipsModule,
     NotificationsModule,
+    AttachmentsModule,
   ],
-  controllers: [TasksController],
+  controllers: [TasksController, MyApprovalQueueController],
   providers: [
     TasksService,
     TaskApproverResolverService,

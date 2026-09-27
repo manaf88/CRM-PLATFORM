@@ -12,6 +12,10 @@ import {
   Brackets,
   DataSource,
   EntityManager,
+  In,
+  IsNull,
+  LessThan,
+  Not,
   Repository,
   SelectQueryBuilder,
 } from 'typeorm';
@@ -22,9 +26,10 @@ import { MembershipsService } from '../memberships/memberships.service';
 import { NotificationEntityType } from '../notifications/enums/notification-entity-type.enum';
 import { NotificationType } from '../notifications/enums/notification-type.enum';
 import { NotificationsService } from '../notifications/notifications.service';
+import { AttachmentsService } from '../attachments/attachments.service';
+import { AttachmentEntityType } from '../attachments/enums/attachment-entity-type.enum';
 import { PlatformRole } from '../users/enums/platform-role.enum';
 import { ApprovalQueueQueryDto } from './dto/approval-queue-query.dto';
-import { AttachTaskFileDto } from './dto/attach-task-file.dto';
 import { CreateTaskCommentDto } from './dto/create-task-comment.dto';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { FindTasksQueryDto } from './dto/find-tasks-query.dto';
@@ -38,6 +43,7 @@ import { Task } from './entities/task.entity';
 import { TaskActivityAction } from './enums/task-activity-action.enum';
 import { TaskApprovalErrorCode } from './enums/task-approval-error-code.enum';
 import { TaskPriority } from './enums/task-priority.enum';
+import { TaskRelatedEntityType } from './enums/task-related-entity-type.enum';
 import { TaskStatus } from './enums/task-status.enum';
 import { TaskType } from './enums/task-type.enum';
 import { TaskApproverResolverService } from './task-approver-resolver.service';
@@ -69,6 +75,7 @@ export class TasksService {
     private readonly dataSource: DataSource,
     private readonly notificationsService: NotificationsService,
     private readonly approverResolver: TaskApproverResolverService,
+    private readonly attachmentsService: AttachmentsService,
   ) {}
 
   async create(
@@ -91,6 +98,13 @@ export class TasksService {
 
     this.warnIfSelfApproval(approverId, dto.assignedToId ?? null);
 
+    await this.assertSequenceIsFree(this.tasksRepository, {
+      companyId,
+      relatedEntityType: dto.relatedEntityType ?? null,
+      relatedEntityId: dto.relatedEntityId ?? null,
+      sequence: dto.sequence ?? null,
+    });
+
     const savedTask = await this.dataSource.transaction(async (manager) => {
       const taskRepository = manager.getRepository(Task);
       const activityRepository = manager.getRepository(TaskActivityLog);
@@ -105,6 +119,7 @@ export class TasksService {
         approverId,
         relatedEntityType: dto.relatedEntityType ?? null,
         relatedEntityId: dto.relatedEntityId ?? null,
+        sequence: dto.sequence ?? null,
         dueDate: dto.dueDate ? new Date(dto.dueDate) : null,
         notes: this.cleanOptionalString(dto.notes),
         createdById: currentUser.id,
@@ -131,6 +146,16 @@ export class TasksService {
       });
 
       await activityRepository.save(activity);
+
+      // Same transaction as the task: a create that fails leaves no
+      // attachment rows pointing at a task that does not exist.
+      await this.attachmentsService.attachMany(manager, {
+        companyId,
+        entityType: AttachmentEntityType.TASK,
+        entityId: savedTask.id,
+        fileIds: dto.attachmentFileIds ?? [],
+        uploadedById: currentUser.id,
+      });
 
       return savedTask;
     });
@@ -304,6 +329,27 @@ export class TasksService {
         task.relatedEntityId = dto.relatedEntityId ?? null;
       }
 
+      if (dto.sequence !== undefined) {
+        task.sequence = dto.sequence ?? null;
+      }
+
+      if (
+        dto.sequence !== undefined ||
+        dto.relatedEntityType !== undefined ||
+        dto.relatedEntityId !== undefined
+      ) {
+        await this.assertSequenceIsFree(
+          manager.getRepository(Task),
+          {
+            companyId,
+            relatedEntityType: task.relatedEntityType,
+            relatedEntityId: task.relatedEntityId,
+            sequence: task.sequence,
+          },
+          task.id,
+        );
+      }
+
       if (dto.dueDate !== undefined) {
         task.dueDate = dto.dueDate ? new Date(dto.dueDate) : null;
       }
@@ -474,6 +520,8 @@ export class TasksService {
         [TaskStatus.TODO, TaskStatus.IN_PROGRESS],
         'submit-for-review',
       );
+
+      await this.assertPreviousStagesClosed(manager, task);
 
       const fromStatus = task.status;
 
@@ -659,6 +707,61 @@ export class TasksService {
   }
 
   /**
+   * The same queue, across every client the caller works on. The client's name
+   * rides along on each row so the list can say which account a task belongs
+   * to without a second request per row.
+   */
+  async findApprovalQueueAcrossCompanies(
+    query: ApprovalQueueQueryDto,
+    currentUser: RequestUser,
+  ) {
+    const limit = query.limit ?? 25;
+    const offset = query.offset ?? 0;
+
+    const memberships =
+      await this.membershipsService.findActiveMembershipsForUser(
+        currentUser.id,
+      );
+
+    const companyIds = [
+      ...new Set(memberships.map((membership) => membership.companyId)),
+    ];
+
+    if (companyIds.length === 0) {
+      return { items: [], total: 0, limit, offset };
+    }
+
+    const qb = this.tasksRepository
+      .createQueryBuilder('task')
+      .where('task.companyId IN (:...companyIds)', { companyIds })
+      .andWhere('task.status = :inReview', { inReview: TaskStatus.IN_REVIEW })
+      .andWhere('task.approverId = :approverId', {
+        approverId: currentUser.id,
+      });
+
+    this.selectTaskPeople(qb);
+
+    qb.leftJoin('task.company', 'company').addSelect([
+      'company.id',
+      'company.name',
+    ]);
+
+    qb.orderBy('task.submittedForReviewAt', 'ASC', 'NULLS LAST')
+      .addOrderBy('task.createdAt', 'ASC')
+      .take(limit)
+      .skip(offset);
+
+    const [items, total] = await qb.getManyAndCount();
+
+    return {
+      items,
+      total,
+      limit,
+      offset,
+    };
+  }
+
+  /**
    * The same lookup the create path uses, exposed so the frontend can pre-fill
    * its approver picker with the matrix's answer instead of guessing.
    */
@@ -725,105 +828,6 @@ export class TasksService {
       order: {
         createdAt: 'ASC',
       },
-    });
-  }
-
-  async attachFile(
-    companyId: string,
-    taskId: string,
-    dto: AttachTaskFileDto,
-    currentUser: RequestUser,
-  ): Promise<TaskAttachment> {
-    await this.findOne(companyId, taskId);
-    await this.ensureFileExists(companyId, dto.fileId);
-
-    return this.dataSource.transaction(async (manager) => {
-      const attachmentRepository = manager.getRepository(TaskAttachment);
-      const activityRepository = manager.getRepository(TaskActivityLog);
-
-      const attachment = attachmentRepository.create({
-        companyId,
-        taskId,
-        fileId: dto.fileId,
-      });
-
-      const savedAttachment = await attachmentRepository.save(attachment);
-
-      const activity = activityRepository.create({
-        companyId,
-        taskId,
-        userId: currentUser.id,
-        action: TaskActivityAction.ATTACHMENT_ADDED,
-        metadata: {
-          attachmentId: savedAttachment.id,
-          fileId: dto.fileId,
-        },
-      });
-
-      await activityRepository.save(activity);
-
-      return savedAttachment;
-    });
-  }
-
-  async findAttachments(
-    companyId: string,
-    taskId: string,
-  ): Promise<TaskAttachment[]> {
-    await this.findOne(companyId, taskId);
-
-    return this.taskAttachmentsRepository.find({
-      where: {
-        companyId,
-        taskId,
-      },
-      relations: {
-        file: true,
-      },
-      order: {
-        createdAt: 'ASC',
-      },
-    });
-  }
-
-  async removeAttachment(
-    companyId: string,
-    taskId: string,
-    attachmentId: string,
-    currentUser: RequestUser,
-  ): Promise<{ success: true }> {
-    return this.dataSource.transaction(async (manager) => {
-      const attachmentRepository = manager.getRepository(TaskAttachment);
-      const activityRepository = manager.getRepository(TaskActivityLog);
-
-      const attachment = await attachmentRepository.findOne({
-        where: {
-          id: attachmentId,
-          companyId,
-          taskId,
-        },
-      });
-
-      if (!attachment) {
-        throw new NotFoundException('Task attachment not found');
-      }
-
-      await attachmentRepository.remove(attachment);
-
-      const activity = activityRepository.create({
-        companyId,
-        taskId,
-        userId: currentUser.id,
-        action: TaskActivityAction.ATTACHMENT_REMOVED,
-        metadata: {
-          attachmentId,
-          fileId: attachment.fileId,
-        },
-      });
-
-      await activityRepository.save(activity);
-
-      return { success: true };
     });
   }
 
@@ -1062,6 +1066,143 @@ export class TasksService {
         error instanceof Error ? error.stack : String(error),
       );
     }
+  }
+
+  /**
+   * How far a post's internal chain has got.
+   *
+   * `total` counts the stages that still matter — a cancelled stage is not
+   * one of them — so `done + open.length === total` and a progress bar made
+   * of these two numbers can actually reach the end.
+   */
+  async findPostStages(companyId: string, postId: string) {
+    const tasks = await this.tasksRepository.find({
+      where: {
+        companyId,
+        relatedEntityType: TaskRelatedEntityType.POST,
+        relatedEntityId: postId,
+        sequence: Not(IsNull()),
+      },
+      order: {
+        sequence: 'ASC',
+      },
+    });
+
+    const live = tasks.filter((task) => task.status !== TaskStatus.CANCELED);
+
+    const open = live.filter((task) => task.status !== TaskStatus.DONE);
+
+    return {
+      total: live.length,
+      done: live.length - open.length,
+      open: open.map((task) => ({
+        taskId: task.id,
+        title: task.title,
+        sequence: task.sequence,
+        status: task.status,
+      })),
+    };
+  }
+
+  /**
+   * Nobody hands over stage two while stage one is still being written.
+   * Starting the work is not blocked — only submitting it for review is.
+   */
+  private async assertPreviousStagesClosed(
+    manager: EntityManager,
+    task: Task,
+  ): Promise<void> {
+    if (
+      task.sequence === null ||
+      task.relatedEntityType !== TaskRelatedEntityType.POST ||
+      !task.relatedEntityId
+    ) {
+      return;
+    }
+
+    const blocking = await manager.getRepository(Task).find({
+      where: {
+        companyId: task.companyId,
+        relatedEntityType: TaskRelatedEntityType.POST,
+        relatedEntityId: task.relatedEntityId,
+        sequence: LessThan(task.sequence),
+        status: Not(In([TaskStatus.DONE, TaskStatus.CANCELED])),
+      },
+      order: {
+        sequence: 'ASC',
+      },
+    });
+
+    if (blocking.length === 0) {
+      return;
+    }
+
+    throw new ConflictException({
+      statusCode: 409,
+      error: 'Conflict',
+      code: TaskApprovalErrorCode.PREVIOUS_STAGE_OPEN,
+      message: `An earlier stage on this post is still open: ${blocking
+        .map((earlier) => earlier.title)
+        .join(', ')}`,
+      from: task.status,
+      action: 'submit-for-review',
+      openTaskIds: blocking.map((earlier) => earlier.id),
+    });
+  }
+
+  /**
+   * A stage number belongs to one task per post. Two tasks claiming stage 2
+   * would make "the previous stage" meaningless.
+   */
+  private async assertSequenceIsFree(
+    repository: Repository<Task>,
+    input: {
+      companyId: string;
+      relatedEntityType: TaskRelatedEntityType | null;
+      relatedEntityId: string | null;
+      sequence: number | null;
+    },
+    excludeTaskId?: string,
+  ): Promise<void> {
+    if (input.sequence === null || input.sequence === undefined) {
+      return;
+    }
+
+    if (
+      input.relatedEntityType !== TaskRelatedEntityType.POST ||
+      !input.relatedEntityId
+    ) {
+      throw new UnprocessableEntityException({
+        statusCode: 422,
+        error: 'Unprocessable Entity',
+        code: TaskApprovalErrorCode.SEQUENCE_NEEDS_POST,
+        message:
+          'A stage number only means something on a task linked to a post',
+      });
+    }
+
+    const clash = await repository.findOne({
+      where: {
+        companyId: input.companyId,
+        relatedEntityType: TaskRelatedEntityType.POST,
+        relatedEntityId: input.relatedEntityId,
+        sequence: input.sequence,
+        ...(excludeTaskId ? { id: Not(excludeTaskId) } : {}),
+      },
+    });
+
+    if (!clash) {
+      return;
+    }
+
+    throw new ConflictException({
+      statusCode: 409,
+      error: 'Conflict',
+      code: TaskApprovalErrorCode.SEQUENCE_TAKEN,
+      message: `Stage ${input.sequence} on this post is already taken by "${clash.title}"`,
+      sequence: input.sequence,
+      taskId: clash.id,
+    });
   }
 
   /** The two people on a task, on every response that carries a task. */

@@ -1,5 +1,6 @@
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
+  IsBoolean,
   IsEnum,
   IsInt,
   IsOptional,
@@ -23,6 +24,12 @@ export class FindNotificationsQueryDto {
   @IsOptional()
   @IsEnum(NotificationType)
   type?: NotificationType;
+
+  /** Show the types this user has muted as well. Off by default. */
+  @IsOptional()
+  @Transform(({ value }) => value === true || value === 'true')
+  @IsBoolean()
+  includeMuted?: boolean;
 
   @IsOptional()
   @Type(() => Number)

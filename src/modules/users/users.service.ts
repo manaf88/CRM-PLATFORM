@@ -157,13 +157,7 @@ export class UsersService {
     // refreshTokenHash are `select: false`, so a loaded entity does not carry
     // them and saving it whole risks writing them away.
     const patch: Partial<
-      Pick<
-        User,
-        | 'fullName'
-        | 'status'
-        | 'passwordHash'
-        | 'refreshTokenHash'
-      >
+      Pick<User, 'fullName' | 'status' | 'passwordHash' | 'refreshTokenHash'>
     > = {};
 
     if (dto.fullName !== undefined) {
@@ -280,9 +274,7 @@ export class UsersService {
     }
   }
 
-  private toEmployeeBase(
-    user: User,
-  ): Omit<EmployeeView, 'clients'> {
+  private toEmployeeBase(user: User): Omit<EmployeeView, 'clients'> {
     return {
       id: user.id,
       email: user.email,
@@ -320,9 +312,7 @@ export class UsersService {
     });
   }
 
-  async findActiveByIdWithRefreshTokenHash(
-    id: string,
-  ): Promise<User | null> {
+  async findActiveByIdWithRefreshTokenHash(id: string): Promise<User | null> {
     return this.usersRepository
       .createQueryBuilder('user')
       .addSelect('user.refreshTokenHash')
@@ -335,9 +325,21 @@ export class UsersService {
     userId: string,
     refreshTokenHash: string,
   ): Promise<void> {
+    await this.usersRepository.update({ id: userId }, { refreshTokenHash });
+  }
+
+  /**
+   * Sets a new password and signs the account out everywhere — whoever asked
+   * for the reset may not be the person holding the old session.
+   */
+  async replacePassword(userId: string, password: string): Promise<void> {
+    const passwordHash = await argon2.hash(password, {
+      type: argon2.argon2id,
+    });
+
     await this.usersRepository.update(
       { id: userId },
-      { refreshTokenHash },
+      { passwordHash, refreshTokenHash: null },
     );
   }
 

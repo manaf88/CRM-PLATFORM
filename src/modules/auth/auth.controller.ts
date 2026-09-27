@@ -2,6 +2,8 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
+  HttpStatus,
   Post,
   Req,
   Res,
@@ -15,7 +17,10 @@ import type { CookieOptions, Request, Response } from 'express';
 
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { AuthService } from './auth.service';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { LoginDto } from './dto/login.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import { PasswordResetService } from './password-reset.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import type { RequestUser } from './types/request-user.type';
 
@@ -23,8 +28,28 @@ import type { RequestUser } from './types/request-user.type';
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
+    private readonly passwordResetService: PasswordResetService,
     private readonly configService: ConfigService,
   ) {}
+
+  /**
+   * Answers 200 whether or not the address has an account, so the endpoint
+   * cannot be used to find out who has one. Throttled hard for the same
+   * reason: it sends email to an address the caller chose.
+   */
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  @HttpCode(HttpStatus.OK)
+  @Post('forgot-password')
+  forgotPassword(@Body() dto: ForgotPasswordDto) {
+    return this.passwordResetService.requestReset(dto);
+  }
+
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @HttpCode(HttpStatus.OK)
+  @Post('reset-password')
+  resetPassword(@Body() dto: ResetPasswordDto) {
+    return this.passwordResetService.resetPassword(dto);
+  }
 
   @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @Post('login')
@@ -106,9 +131,7 @@ export class AuthController {
   }
 
   private getRefreshCookieName(): string {
-    return this.configService.getOrThrow<string>(
-      'auth.refreshTokenCookieName',
-    );
+    return this.configService.getOrThrow<string>('auth.refreshTokenCookieName');
   }
 
   private getRefreshCookieOptions(): CookieOptions {

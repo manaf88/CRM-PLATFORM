@@ -1,16 +1,10 @@
-import {
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import {
-  IsNull,
-  Not,
-  Repository,
-} from 'typeorm';
+import { In, IsNull, Not, Repository } from 'typeorm';
 
 import { RequestUser } from '../auth/types/request-user.type';
 import { FindNotificationsQueryDto } from './dto/find-notifications-query.dto';
+import { NotificationPreferencesService } from './notification-preferences.service';
 import { Notification } from './entities/notification.entity';
 import { NotificationEntityType } from './enums/notification-entity-type.enum';
 import { NotificationReadStatus } from './enums/notification-read-status.enum';
@@ -32,6 +26,8 @@ export class NotificationsService {
   constructor(
     @InjectRepository(Notification)
     private readonly notificationsRepository: Repository<Notification>,
+
+    private readonly preferencesService: NotificationPreferencesService,
   ) {}
 
   async create(input: CreateNotificationInput): Promise<Notification> {
@@ -54,9 +50,7 @@ export class NotificationsService {
     return this.notificationsRepository.save(notification);
   }
 
-  async createMany(
-    inputs: CreateNotificationInput[],
-  ): Promise<Notification[]> {
+  async createMany(inputs: CreateNotificationInput[]): Promise<Notification[]> {
     const validInputs = inputs.filter((input) => input.recipientUserId);
 
     if (validInputs.length === 0) {
@@ -80,10 +74,7 @@ export class NotificationsService {
     return this.notificationsRepository.save(notifications);
   }
 
-  async findMine(
-    currentUser: RequestUser,
-    query: FindNotificationsQueryDto,
-  ) {
+  async findMine(currentUser: RequestUser, query: FindNotificationsQueryDto) {
     const limit = query.limit ?? 25;
     const offset = query.offset ?? 0;
 
@@ -95,8 +86,20 @@ export class NotificationsService {
       where.companyId = query.companyId;
     }
 
+    // A muted type is still stored — the person can go and look for it — but
+    // it does not reach the bell unless they ask for it.
+    const mutedTypes = query.includeMuted
+      ? []
+      : await this.preferencesService.findMutedTypes(currentUser.id);
+
     if (query.type) {
+      if (mutedTypes.includes(query.type)) {
+        return { items: [], total: 0, limit, offset };
+      }
+
       where.type = query.type;
+    } else if (mutedTypes.length > 0) {
+      where.type = Not(In(mutedTypes));
     }
 
     if (query.readStatus === NotificationReadStatus.READ) {
@@ -125,11 +128,21 @@ export class NotificationsService {
   }
 
   async getUnreadCount(currentUser: RequestUser) {
+    const mutedTypes = await this.preferencesService.findMutedTypes(
+      currentUser.id,
+    );
+
+    const where: Record<string, unknown> = {
+      recipientUserId: currentUser.id,
+      readAt: IsNull(),
+    };
+
+    if (mutedTypes.length > 0) {
+      where.type = Not(In(mutedTypes));
+    }
+
     const count = await this.notificationsRepository.count({
-      where: {
-        recipientUserId: currentUser.id,
-        readAt: IsNull(),
-      },
+      where,
     });
 
     return {
@@ -160,9 +173,7 @@ export class NotificationsService {
     return notification;
   }
 
-  async markAllAsRead(
-    currentUser: RequestUser,
-  ): Promise<{ updated: number }> {
+  async markAllAsRead(currentUser: RequestUser): Promise<{ updated: number }> {
     const result = await this.notificationsRepository.update(
       {
         recipientUserId: currentUser.id,

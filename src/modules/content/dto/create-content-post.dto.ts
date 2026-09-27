@@ -1,4 +1,6 @@
 import {
+  ArrayMaxSize,
+  IsArray,
   IsDateString,
   IsEnum,
   IsOptional,
@@ -46,4 +48,15 @@ export class CreateContentPostDto {
   @IsUrl({ require_protocol: true })
   @MaxLength(1000)
   publishedUrl?: string;
+
+  /**
+   * Files the user picked in the create form. They are uploaded first and
+   * attached with the record in one transaction, so a rejected create leaves
+   * no half-attached files behind.
+   */
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(20)
+  @IsUUID('4', { each: true })
+  attachmentFileIds?: string[];
 }

@@ -36,7 +36,7 @@ export const envValidationSchema = Joi.object({
   S3_BUCKET: Joi.string().required(),
   S3_REGION: Joi.string().default('us-east-1'),
   S3_FORCE_PATH_STYLE: Joi.boolean().default(true),
-  
+
   FRONTEND_URL: Joi.string().uri().required(),
 
   // First platform administrator, created on boot when it does not exist yet.
@@ -54,4 +54,17 @@ export const envValidationSchema = Joi.object({
   APPROVAL_SLA_WARNING_HOURS: Joi.number().min(1).default(24),
   APPROVAL_SLA_CRITICAL_HOURS: Joi.number().min(1).default(48),
   CHANGES_REQUESTED_STALE_HOURS: Joi.number().min(1).default(24),
+
+  // Outgoing mail. All optional: with no SMTP_HOST the API writes each message
+  // to the log instead of sending it, so password resets and the daily digest
+  // still work end to end on a server with no relay.
+  SMTP_HOST: Joi.string().optional(),
+  SMTP_PORT: Joi.number().default(587),
+  SMTP_SECURE: Joi.boolean().default(false),
+  SMTP_USER: Joi.string().optional(),
+  SMTP_PASSWORD: Joi.string().optional(),
+  MAIL_FROM: Joi.string().default('Solutions Platform <no-reply@localhost>'),
+
+  // Daily digest send hour, in DASHBOARD_TIMEZONE.
+  DIGEST_HOUR: Joi.number().min(0).max(23).default(8),
 });

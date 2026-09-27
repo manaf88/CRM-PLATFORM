@@ -11,25 +11,18 @@ import { PostApprovalsService } from './post-approvals.service';
 import { CompanyRolesGuard } from '../../common/guards/company-roles.guard';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { AutomationsModule } from '../automations/automations.module';
+import { TasksModule } from '../tasks/tasks.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      ContentPost,
-      PostComment,
-      PostApprovalLog,
-    ]),
+    TypeOrmModule.forFeature([ContentPost, PostComment, PostApprovalLog]),
     MembershipsModule,
     NotificationsModule,
     AutomationsModule,
+    TasksModule,
   ],
   controllers: [PostApprovalsController],
-  providers: [
-    PostApprovalsService,
-    CompanyAccessGuard,
-      CompanyRolesGuard,
-
-  ],
+  providers: [PostApprovalsService, CompanyAccessGuard, CompanyRolesGuard],
   exports: [PostApprovalsService],
 })
 export class ApprovalsModule {}

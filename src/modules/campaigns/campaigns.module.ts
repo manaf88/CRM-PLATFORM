@@ -5,6 +5,7 @@ import { CompanyAccessGuard } from '../../common/guards/company-access.guard';
 import { CompanyRolesGuard } from '../../common/guards/company-roles.guard';
 import { ContentPost } from '../content/entities/content-post.entity';
 import { Lead } from '../leads/entities/lead.entity';
+import { AttachmentsModule } from '../attachments/attachments.module';
 import { MembershipsModule } from '../memberships/memberships.module';
 import { Task } from '../tasks/entities/task.entity';
 import { CampaignsController } from './campaigns.controller';
@@ -13,20 +14,12 @@ import { Campaign } from './entities/campaign.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      Campaign,
-      ContentPost,
-      Lead,
-      Task,
-    ]),
+    TypeOrmModule.forFeature([Campaign, ContentPost, Lead, Task]),
     MembershipsModule,
+    AttachmentsModule,
   ],
   controllers: [CampaignsController],
-  providers: [
-    CampaignsService,
-    CompanyAccessGuard,
-    CompanyRolesGuard,
-  ],
+  providers: [CampaignsService, CompanyAccessGuard, CompanyRolesGuard],
   exports: [CampaignsService],
 })
 export class CampaignsModule {}

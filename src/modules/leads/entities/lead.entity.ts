@@ -11,6 +11,7 @@ import {
 
 import { Company } from '../../companies/entities/company.entity';
 import { User } from '../../users/entities/user.entity';
+import { LeadLostReason } from '../enums/lead-lost-reason.enum';
 import { LeadSource } from '../enums/lead-source.enum';
 import { LeadStatus } from '../enums/lead-status.enum';
 import { Campaign } from '../../campaigns/entities/campaign.entity';
@@ -49,7 +50,12 @@ export class Lead {
   })
   source!: LeadSource;
 
-  @Column({ name: 'interested_service', type: 'varchar', length: 180, nullable: true })
+  @Column({
+    name: 'interested_service',
+    type: 'varchar',
+    length: 180,
+    nullable: true,
+  })
   interestedService!: string | null;
 
   @Column({
@@ -74,7 +80,33 @@ export class Lead {
 
   @Column({ type: 'text', nullable: true })
   notes!: string | null;
-  
+
+  /** Set when the lead is moved to LOST, cleared if it moves on again. */
+  @Column({
+    name: 'lost_reason',
+    type: 'enum',
+    enum: LeadLostReason,
+    nullable: true,
+  })
+  lostReason!: LeadLostReason | null;
+
+  /**
+   * What the won deal is worth. Numeric rather than float — money that is
+   * summed in reports must not drift.
+   */
+  @Column({
+    name: 'deal_value',
+    type: 'numeric',
+    precision: 12,
+    scale: 2,
+    nullable: true,
+    transformer: {
+      to: (value: number | null) => value,
+      from: (value: string | null) => (value === null ? null : Number(value)),
+    },
+  })
+  dealValue!: number | null;
+
   @Column({ name: 'campaign_id', type: 'uuid', nullable: true })
   campaignId!: string | null;
 

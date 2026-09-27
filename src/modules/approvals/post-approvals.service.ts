@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   Logger,
   NotFoundException,
@@ -20,7 +21,9 @@ import { PostApprovalNoteDto } from './dto/post-approval-note.dto';
 import { PublishPostDto } from './dto/publish-post.dto';
 import { PostApprovalLog } from './entities/post-approval-log.entity';
 import { PostComment } from './entities/post-comment.entity';
+import { TasksService } from '../tasks/tasks.service';
 import { PostApprovalAction } from './enums/post-approval-action.enum';
+import { PostApprovalErrorCode } from './enums/post-approval-error-code.enum';
 import { AutomationEngineService } from '../automations/automation-engine.service';
 @Injectable()
 export class PostApprovalsService {
@@ -40,7 +43,8 @@ export class PostApprovalsService {
     private readonly membershipsService: MembershipsService,
     private readonly dataSource: DataSource,
     private readonly automationEngineService: AutomationEngineService,
-  ) { }
+    private readonly tasksService: TasksService,
+  ) {}
 
   async addComment(
     companyId: string,
@@ -100,6 +104,8 @@ export class PostApprovalsService {
       ContentPostStatus.CHANGES_REQUESTED,
       ContentPostStatus.APPROVED,
     ]);
+
+    await this.assertInternalStagesClosed(companyId, post.id);
 
     const result = await this.transitionPostStatus({
       post,
@@ -279,6 +285,35 @@ export class PostApprovalsService {
     }
 
     return post;
+  }
+
+  /**
+   * Nothing goes to the client while the agency's own chain is unfinished.
+   *
+   * The post still only moves when a person presses submit — this is a gate
+   * on that press, not an automatic hand-off. A post with no staged tasks is
+   * unaffected, which is every post that existed before chaining.
+   */
+  private async assertInternalStagesClosed(
+    companyId: string,
+    postId: string,
+  ): Promise<void> {
+    const stages = await this.tasksService.findPostStages(companyId, postId);
+
+    if (stages.open.length === 0) {
+      return;
+    }
+
+    throw new ConflictException({
+      statusCode: 409,
+      error: 'Conflict',
+      code: PostApprovalErrorCode.STAGES_OPEN,
+      message: `The internal chain is not finished: ${stages.open
+        .map((stage) => stage.title)
+        .join(', ')}`,
+      openTaskIds: stages.open.map((stage) => stage.taskId),
+      stages,
+    });
   }
 
   private assertStatusIn(

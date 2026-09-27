@@ -3,7 +3,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { CompanyAccessGuard } from '../../common/guards/company-access.guard';
 import { CompaniesModule } from '../companies/companies.module';
+import { AttachmentsModule } from '../attachments/attachments.module';
 import { MembershipsModule } from '../memberships/memberships.module';
+import { TasksModule } from '../tasks/tasks.module';
 import { ContentPlansController } from './content-plans.controller';
 import { ContentPlansService } from './content-plans.service';
 import { ContentPostsController } from './content-posts.controller';
@@ -16,21 +18,16 @@ import { CompanyRolesGuard } from '../../common/guards/company-roles.guard';
     TypeOrmModule.forFeature([ContentPlan, ContentPost]),
     CompaniesModule,
     MembershipsModule,
+    TasksModule,
+    AttachmentsModule,
   ],
-  controllers: [
-    ContentPlansController,
-    ContentPostsController,
-  ],
+  controllers: [ContentPlansController, ContentPostsController],
   providers: [
     ContentPlansService,
     ContentPostsService,
     CompanyAccessGuard,
-      CompanyRolesGuard,
-
+    CompanyRolesGuard,
   ],
-  exports: [
-    ContentPlansService,
-    ContentPostsService,
-  ],
+  exports: [ContentPlansService, ContentPostsService],
 })
 export class ContentModule {}

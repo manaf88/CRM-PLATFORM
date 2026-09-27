@@ -11,16 +11,34 @@ import { RequestUser } from '../auth/types/request-user.type';
 import { FileEntity } from './entities/file.entity';
 import { StorageService } from './storage.service';
 
-const MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024;
+const MAX_FILE_SIZE_BYTES = 25 * 1024 * 1024;
 
+/**
+ * What work actually arrives as: pictures, documents, the odd video, and a
+ * zip of a logo pack. Anything executable is refused — this list is an
+ * allowlist for that reason, not a formality.
+ */
 const ALLOWED_MIME_TYPES = new Set([
   'image/jpeg',
   'image/png',
   'image/webp',
   'image/gif',
+  'image/svg+xml',
   'application/pdf',
   'video/mp4',
   'video/quicktime',
+  // Office documents, old and new.
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/vnd.ms-powerpoint',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  'text/csv',
+  'text/plain',
+  // Logo packs and the like.
+  'application/zip',
+  'application/x-zip-compressed',
 ]);
 
 @Injectable()
@@ -78,28 +96,44 @@ export class FilesService {
     return file;
   }
 
-  async getDownloadUrl(companyId: string, fileId: string) {
+  /**
+   * A link to the file. `inline` asks the browser to render it — images and
+   * PDFs open in a tab instead of landing in the downloads folder — which is
+   * what a preview pane needs.
+   */
+  async getDownloadUrl(
+    companyId: string,
+    fileId: string,
+    disposition: 'attachment' | 'inline' = 'attachment',
+  ) {
     const file = await this.findOne(companyId, fileId);
+
+    const expiresInSeconds = 15 * 60;
 
     const url = await this.storageService.getSignedDownloadUrl(
       file.storageKey,
+      expiresInSeconds,
+      {
+        disposition,
+        fileName: file.originalName,
+        mimeType: file.mimeType,
+      },
     );
 
     return {
       url,
-      expiresInSeconds: 600,
+      expiresInSeconds,
+      disposition,
     };
   }
 
   private validateFile(file: Express.Multer.File): void {
     if (file.size > MAX_FILE_SIZE_BYTES) {
-      throw new BadRequestException('File size exceeds 20MB limit');
+      throw new BadRequestException('File size exceeds 25MB limit');
     }
 
     if (!ALLOWED_MIME_TYPES.has(file.mimetype)) {
-      throw new BadRequestException(
-        `Unsupported file type: ${file.mimetype}`,
-      );
+      throw new BadRequestException(`Unsupported file type: ${file.mimetype}`);
     }
 
     if (!file.buffer || file.buffer.length === 0) {

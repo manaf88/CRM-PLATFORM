@@ -25,14 +25,12 @@ import { CompanyMembershipRole } from '../memberships/enums/company-membership-r
 @UseGuards(JwtAuthGuard, CompanyAccessGuard)
 @Controller('companies/:companyId/posts')
 export class ContentPostsController {
-  constructor(
-    private readonly contentPostsService: ContentPostsService,
-  ) {}
-@UseGuards(CompanyRolesGuard)
-@CompanyRoles(
-  CompanyMembershipRole.ACCOUNT_MANAGER,
-  CompanyMembershipRole.SOCIAL_MEDIA_MANAGER,
-)
+  constructor(private readonly contentPostsService: ContentPostsService) {}
+  @UseGuards(CompanyRolesGuard)
+  @CompanyRoles(
+    CompanyMembershipRole.ACCOUNT_MANAGER,
+    CompanyMembershipRole.SOCIAL_MEDIA_MANAGER,
+  )
   @Post()
   create(
     @Param('companyId', ParseUUIDPipe) companyId: string,
@@ -46,22 +44,24 @@ export class ContentPostsController {
   findAll(
     @Param('companyId', ParseUUIDPipe) companyId: string,
     @Query() query: FindContentPostsQueryDto,
+    @CurrentUser() currentUser: RequestUser,
   ) {
-    return this.contentPostsService.findAll(companyId, query);
+    return this.contentPostsService.findAll(companyId, query, currentUser);
   }
 
   @Get(':postId')
   findOne(
     @Param('companyId', ParseUUIDPipe) companyId: string,
     @Param('postId', ParseUUIDPipe) postId: string,
+    @CurrentUser() currentUser: RequestUser,
   ) {
-    return this.contentPostsService.findOne(companyId, postId);
+    return this.contentPostsService.findOne(companyId, postId, currentUser);
   }
-@UseGuards(CompanyRolesGuard)
-@CompanyRoles(
-  CompanyMembershipRole.ACCOUNT_MANAGER,
-  CompanyMembershipRole.SOCIAL_MEDIA_MANAGER,
-)
+  @UseGuards(CompanyRolesGuard)
+  @CompanyRoles(
+    CompanyMembershipRole.ACCOUNT_MANAGER,
+    CompanyMembershipRole.SOCIAL_MEDIA_MANAGER,
+  )
   @Patch(':postId')
   update(
     @Param('companyId', ParseUUIDPipe) companyId: string,
@@ -69,11 +69,6 @@ export class ContentPostsController {
     @Body() dto: UpdateContentPostDto,
     @CurrentUser() currentUser: RequestUser,
   ) {
-    return this.contentPostsService.update(
-      companyId,
-      postId,
-      dto,
-      currentUser,
-    );
+    return this.contentPostsService.update(companyId, postId, dto, currentUser);
   }
 }

@@ -1,10 +1,16 @@
+import { Type } from 'class-transformer';
 import {
+  ArrayMaxSize,
+  IsArray,
   IsDateString,
   IsEnum,
+  IsInt,
   IsOptional,
   IsString,
   IsUUID,
+  Max,
   MaxLength,
+  Min,
   MinLength,
   ValidateIf,
 } from 'class-validator';
@@ -52,9 +58,31 @@ export class CreateTaskDto {
   @IsUUID()
   relatedEntityId?: string;
 
+  /**
+   * Position in the post's internal chain. Only accepted on a task linked to
+   * a post, and no two tasks on one post may claim the same number.
+   */
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(50)
+  sequence?: number;
+
   @IsOptional()
   @IsDateString()
   dueDate?: string;
+
+  /**
+   * Files the user picked in the create form. They are uploaded first and
+   * attached with the record in one transaction, so a rejected create leaves
+   * no half-attached files behind.
+   */
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(20)
+  @IsUUID('4', { each: true })
+  attachmentFileIds?: string[];
 
   @IsOptional()
   @IsString()

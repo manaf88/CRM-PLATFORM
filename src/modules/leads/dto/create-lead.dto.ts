@@ -1,4 +1,6 @@
 import {
+  ArrayMaxSize,
+  IsArray,
   IsDateString,
   IsEmail,
   IsEnum,
@@ -48,4 +50,15 @@ export class CreateLeadDto {
   @IsString()
   @MaxLength(3000)
   notes?: string;
+
+  /**
+   * Files the user picked in the create form. They are uploaded first and
+   * attached with the record in one transaction, so a rejected create leaves
+   * no half-attached files behind.
+   */
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(20)
+  @IsUUID('4', { each: true })
+  attachmentFileIds?: string[];
 }

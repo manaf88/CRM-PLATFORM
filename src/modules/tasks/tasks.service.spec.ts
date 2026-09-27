@@ -111,6 +111,7 @@ describe('TasksService review actions', () => {
       dataSource as never,
       notificationsService as unknown as NotificationsService,
       {} as never,
+      {} as never,
     );
 
     return { service, task, savedTasks, activityLogs, notifications };

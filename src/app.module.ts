@@ -1,11 +1,13 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
+import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import aiConfig from './config/ai.config';
 import appConfig from './config/app.config';
 import authConfig from './config/auth.config';
 import databaseConfig from './config/database.config';
+import mailConfig from './config/mail.config';
 import { envValidationSchema } from './config/validation';
 import { DatabaseModule } from './database/database.module';
 import { AuthModule } from './modules/auth/auth.module';
@@ -28,6 +30,9 @@ import { AutomationsModule } from './modules/automations/automations.module';
 import { CampaignsModule } from './modules/campaigns/campaigns.module';
 import { ResponsibilitiesModule } from './modules/responsibilities/responsibilities.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { AttachmentsModule } from './modules/attachments/attachments.module';
+import { MailModule } from './modules/mail/mail.module';
+import { RemindersModule } from './modules/reminders/reminders.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -40,6 +45,7 @@ import { AdminModule } from './modules/admin/admin.module';
         aiConfig,
         storageConfig,
         dashboardConfig,
+        mailConfig,
       ],
       validationSchema: envValidationSchema,
     }),
@@ -49,6 +55,10 @@ import { AdminModule } from './modules/admin/admin.module';
         limit: 100,
       },
     ]),
+    // Ageing reminders and the daily digest run on a timer inside the API;
+    // there is no separate worker process to put them in.
+    ScheduleModule.forRoot(),
+    MailModule,
     DatabaseModule,
     UsersModule,
     AuthModule,
@@ -68,6 +78,8 @@ import { AdminModule } from './modules/admin/admin.module';
     CampaignsModule,
     ResponsibilitiesModule,
     AdminModule,
+    RemindersModule,
+    AttachmentsModule,
   ],
   providers: [
     {
@@ -76,4 +88,4 @@ import { AdminModule } from './modules/admin/admin.module';
     },
   ],
 })
-export class AppModule { }
+export class AppModule {}
